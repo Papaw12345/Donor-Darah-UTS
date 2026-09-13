@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Akun extends Model
+class Akun extends Authenticatable
 {
     protected $table = 'akun';
 
@@ -23,6 +23,11 @@ class Akun extends Model
         'peran',
         'status_akun',
     ];
+
+    public function getAuthPasswordName(): string
+    {
+        return 'password_hash';
+    }
 
     public function pendonor(): HasOne
     {
