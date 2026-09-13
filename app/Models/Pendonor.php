@@ -54,4 +54,9 @@ class Pendonor extends Model
     {
         return $this->hasMany(PemesananDonor::class, 'id_pendonor', 'id_pendonor');
     }
+
+    public function pemberitahuan(): HasMany
+    {
+        return $this->hasMany(Pemberitahuan::class, 'id_pendonor', 'id_pendonor');
+    }
 }

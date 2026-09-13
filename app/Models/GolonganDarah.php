@@ -26,4 +26,14 @@ class GolonganDarah extends Model
     {
         return $this->hasMany(Pendonor::class, 'id_golongan_darah', 'id_golongan_darah');
     }
+
+    public function unitKomponenDarah(): HasMany
+    {
+        return $this->hasMany(UnitKomponenDarah::class, 'id_golongan_darah', 'id_golongan_darah');
+    }
+
+    public function ambangPersediaan(): HasMany
+    {
+        return $this->hasMany(AmbangPersediaan::class, 'id_golongan_darah', 'id_golongan_darah');
+    }
 }

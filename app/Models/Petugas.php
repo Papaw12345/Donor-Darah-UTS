@@ -38,4 +38,19 @@ class Petugas extends Model
     {
         return $this->hasMany(Penyumbangan::class, 'id_petugas_pencatat', 'id_petugas');
     }
+
+    public function unitKomponenDarahDicatat(): HasMany
+    {
+        return $this->hasMany(UnitKomponenDarah::class, 'id_petugas_pencatat', 'id_petugas');
+    }
+
+    public function unitKomponenDarahDiluluskan(): HasMany
+    {
+        return $this->hasMany(UnitKomponenDarah::class, 'id_petugas_pelulus', 'id_petugas');
+    }
+
+    public function pemberitahuanDikirim(): HasMany
+    {
+        return $this->hasMany(Pemberitahuan::class, 'id_petugas_pengirim', 'id_petugas');
+    }
 }
