@@ -9,6 +9,12 @@
     <main>
         <h1>Login</h1>
 
+        @if (session('success'))
+            <div role="status">
+                {{ session('success') }}
+            </div>
+        @endif
+
         @if ($errors->any())
             <div role="alert">
                 <ul>
@@ -48,6 +54,11 @@
 
             <button type="submit">Login</button>
         </form>
+
+        <p>
+            Belum memiliki akun?
+            <a href="{{ route('register') }}">Daftar sebagai Pendonor</a>
+        </p>
     </main>
 </body>
 </html>
