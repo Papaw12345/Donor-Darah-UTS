@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Pendonor extends Model
 {
@@ -47,5 +48,10 @@ class Pendonor extends Model
     public function golonganDarah(): BelongsTo
     {
         return $this->belongsTo(GolonganDarah::class, 'id_golongan_darah', 'id_golongan_darah');
+    }
+
+    public function pemesananDonor(): HasMany
+    {
+        return $this->hasMany(PemesananDonor::class, 'id_pendonor', 'id_pendonor');
     }
 }
