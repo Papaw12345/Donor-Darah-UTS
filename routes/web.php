@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminAmbangPersediaanController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminJadwalController;
 use App\Http\Controllers\AdminPertanyaanKuesionerController;
@@ -72,5 +73,16 @@ Route::middleware(['auth', 'active'])->group(function () {
             ->name('admin.pertanyaan.edit');
         Route::put('/admin/pertanyaan/{pertanyaan}', [AdminPertanyaanKuesionerController::class, 'update'])
             ->name('admin.pertanyaan.update');
+
+        Route::get('/admin/ambang', [AdminAmbangPersediaanController::class, 'index'])
+            ->name('admin.ambang.index');
+        Route::get('/admin/ambang/create', [AdminAmbangPersediaanController::class, 'create'])
+            ->name('admin.ambang.create');
+        Route::post('/admin/ambang', [AdminAmbangPersediaanController::class, 'store'])
+            ->name('admin.ambang.store');
+        Route::get('/admin/ambang/{ambang}/edit', [AdminAmbangPersediaanController::class, 'edit'])
+            ->name('admin.ambang.edit');
+        Route::put('/admin/ambang/{ambang}', [AdminAmbangPersediaanController::class, 'update'])
+            ->name('admin.ambang.update');
     });
 });

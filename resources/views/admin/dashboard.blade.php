@@ -14,6 +14,7 @@
             <a href="{{ route('admin.petugas.index') }}">Kelola Petugas</a>
             <a href="{{ route('admin.jadwal.index') }}">Jadwal Pelayanan</a>
             <a href="{{ route('admin.pertanyaan.index') }}">Pertanyaan Kuesioner</a>
+            <a href="{{ route('admin.ambang.index') }}">Ambang Persediaan</a>
         </nav>
 
         <section aria-labelledby="ringkasan-administrasi">
