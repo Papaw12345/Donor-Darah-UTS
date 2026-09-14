@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminJadwalController;
+use App\Http\Controllers\AdminPertanyaanKuesionerController;
 use App\Http\Controllers\AdminPetugasController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleHomeController;
@@ -60,5 +61,16 @@ Route::middleware(['auth', 'active'])->group(function () {
             ->name('admin.jadwal.edit');
         Route::put('/admin/jadwal/{jadwal}', [AdminJadwalController::class, 'update'])
             ->name('admin.jadwal.update');
+
+        Route::get('/admin/pertanyaan', [AdminPertanyaanKuesionerController::class, 'index'])
+            ->name('admin.pertanyaan.index');
+        Route::get('/admin/pertanyaan/create', [AdminPertanyaanKuesionerController::class, 'create'])
+            ->name('admin.pertanyaan.create');
+        Route::post('/admin/pertanyaan', [AdminPertanyaanKuesionerController::class, 'store'])
+            ->name('admin.pertanyaan.store');
+        Route::get('/admin/pertanyaan/{pertanyaan}/edit', [AdminPertanyaanKuesionerController::class, 'edit'])
+            ->name('admin.pertanyaan.edit');
+        Route::put('/admin/pertanyaan/{pertanyaan}', [AdminPertanyaanKuesionerController::class, 'update'])
+            ->name('admin.pertanyaan.update');
     });
 });
