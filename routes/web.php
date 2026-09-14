@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminJadwalController;
 use App\Http\Controllers\AdminPetugasController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleHomeController;
@@ -48,5 +49,16 @@ Route::middleware(['auth', 'active'])->group(function () {
             ->name('admin.petugas.deactivate');
         Route::patch('/admin/petugas/{petugas}/aktifkan', [AdminPetugasController::class, 'activate'])
             ->name('admin.petugas.activate');
+
+        Route::get('/admin/jadwal', [AdminJadwalController::class, 'index'])
+            ->name('admin.jadwal.index');
+        Route::get('/admin/jadwal/create', [AdminJadwalController::class, 'create'])
+            ->name('admin.jadwal.create');
+        Route::post('/admin/jadwal', [AdminJadwalController::class, 'store'])
+            ->name('admin.jadwal.store');
+        Route::get('/admin/jadwal/{jadwal}/edit', [AdminJadwalController::class, 'edit'])
+            ->name('admin.jadwal.edit');
+        Route::put('/admin/jadwal/{jadwal}', [AdminJadwalController::class, 'update'])
+            ->name('admin.jadwal.update');
     });
 });

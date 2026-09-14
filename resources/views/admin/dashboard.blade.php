@@ -12,6 +12,7 @@
 
         <nav aria-label="Navigasi Admin">
             <a href="{{ route('admin.petugas.index') }}">Kelola Petugas</a>
+            <a href="{{ route('admin.jadwal.index') }}">Jadwal Pelayanan</a>
         </nav>
 
         <section aria-labelledby="ringkasan-administrasi">
