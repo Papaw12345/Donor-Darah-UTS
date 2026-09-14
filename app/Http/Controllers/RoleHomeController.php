@@ -17,11 +17,6 @@ class RoleHomeController extends Controller
         return $this->show($request, 'Area Petugas');
     }
 
-    public function admin(Request $request): View
-    {
-        return $this->show($request, 'Area Admin');
-    }
-
     private function show(Request $request, string $title): View
     {
         return view('role-home', [

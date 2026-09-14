@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleHomeController;
 use Illuminate\Support\Facades\Route;
@@ -28,7 +29,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         ->middleware('role:PETUGAS')
         ->name('petugas.home');
 
-    Route::get('/admin', [RoleHomeController::class, 'admin'])
+    Route::get('/admin', [AdminDashboardController::class, 'index'])
         ->middleware('role:ADMIN')
         ->name('admin.home');
 });
