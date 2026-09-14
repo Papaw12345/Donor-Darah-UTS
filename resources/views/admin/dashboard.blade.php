@@ -10,6 +10,10 @@
         <h1>Dashboard Admin</h1>
         <p>Akun: {{ $email }}</p>
 
+        <nav aria-label="Navigasi Admin">
+            <a href="{{ route('admin.petugas.index') }}">Kelola Petugas</a>
+        </nav>
+
         <section aria-labelledby="ringkasan-administrasi">
             <h2 id="ringkasan-administrasi">Ringkasan Administrasi</h2>
 
