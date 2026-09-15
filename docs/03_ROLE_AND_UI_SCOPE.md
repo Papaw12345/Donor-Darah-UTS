@@ -201,6 +201,28 @@ Pendonor dapat:
 
 Kode check-in bukan QR code atau barcode.
 
+Ketentuan bahwa kode check-in bersifat unik, berupa teks biasa, terkait dengan `pemesanan_donor`, dibuat setelah proses pradonasi yang diperlukan termasuk kuesioner selesai, ditunjukkan Pendonor kepada Petugas, dan kemudian digunakan Petugas untuk menemukan kunjungan terkait merupakan aturan yang sudah bersumber. Ketentuan tersebut bukan keputusan baru Phase 7F.
+
+Keputusan lifecycle Phase 7D juga tetap berlaku: proses check-in Petugas yang berhasil pada phase berikutnya melakukan transisi `TERJADWAL` menjadi `CHECK_IN` dan mengisi `waktu_checkin`. Pembuatan atau penampilan kode pada Phase 7F bukan proses check-in tersebut.
+
+#### Keputusan Proyek Phase 7F
+
+Rincian berikut merupakan keputusan proyek Phase 7F untuk perilaku operasional yang sebelumnya belum ditentukan secara tepat:
+
+- Pendonor hanya dapat melihat atau menghasilkan kode check-in untuk `pemesanan_donor` miliknya sendiri. Kepemilikan berasal dari Pendonor yang sedang terautentikasi; identifier Pendonor dari client tidak dapat memberi akses ke pemesanan atau kode Pendonor lain.
+- Kode baru hanya dapat dihasilkan untuk pemesanan milik Pendonor terautentikasi yang berstatus `TERJADWAL`, sudah mempunyai `kuesioner_pradonasi`, memiliki tanggal jadwal yang belum lewat menurut WIB (`Asia/Jakarta`), dan tidak terkait dengan jadwal berstatus administratif `DIBATALKAN`. Jadwal berstatus `DITUTUP` tidak dengan sendirinya menggugurkan pemesanan `TERJADWAL` yang sudah valid untuk pembuatan kode.
+- Untuk prototype ini, keberadaan `kuesioner_pradonasi` yang tersimpan bagi pemesanan menjadi bukti pada layer aplikasi bahwa prasyarat kuesioner telah selesai. Tidak ada tabel atau status penyelesaian pradonasi tambahan.
+- Satu pemesanan mempertahankan satu nilai kode. Setelah `kode_checkin` terisi, akses atau permintaan pembuatan berulang menampilkan atau mempertahankan kode yang sama dan tidak menghasilkan, mengganti, atau merotasinya. Tidak ada riwayat atau versioning kode.
+- Format kode yang dihasilkan adalah `UDD-` diikuti tepat 12 karakter heksadesimal huruf besar, dengan bentuk contoh `UDD-A84C21EF07B9`. Panjang totalnya 16 karakter dan tetap berada dalam batas `VARCHAR(50)` yang sudah ada. Format khusus ini merupakan keputusan proyek Phase 7F. Kandidat harus dibuat menggunakan sumber acak yang sesuai untuk kode non-sekuensial dan tidak boleh diturunkan langsung dari ID Pendonor atau ID pemesanan.
+- Jika kandidat bertabrakan dengan kode yang sudah ada, aplikasi mencoba kandidat baru. UNIQUE `pemesanan_donor.kode_checkin` yang sudah ada tetap menjadi lapisan integritas terakhir; kode milik pemesanan lain tidak boleh ditimpa dan tidak ada UNIQUE baru.
+- Akses `GET` hanya menampilkan halaman dan status kode: kode yang sudah ada ditampilkan, sedangkan pemesanan yang belum mempunyai kode menunjukkan apakah pembuatan tersedia. Akses `POST` melakukan pembuatan kode untuk pemesanan yang memenuhi syarat. `GET` tidak membuat atau merotasi kode.
+- Pembuatan dilakukan secara atomik dengan row `pemesanan_donor` sebagai titik serialisasi: kepemilikan diverifikasi, row pemesanan dikunci, keberadaan kode dan seluruh prasyarat diperiksa ulang, lalu satu kode unik dibuat dan disimpan. Permintaan serentak untuk pemesanan yang sama tidak boleh mengganti atau merotasi kode yang telah dibuat.
+- Kode yang sudah dibuat tidak dihapus otomatis hanya karena status pemesanan kemudian berubah atau tanggal jadwal berlalu. Retensi ini bukan izin check-in untuk pemesanan yang dibatalkan atau selesai; kelayakan check-in oleh Petugas ditentukan pada Phase 8.
+
+Melihat atau menghasilkan kode tidak mengisi `waktu_checkin`, tidak mengubah `status_pemesanan`, tidak melakukan transisi `TERJADWAL` menjadi `CHECK_IN`, tidak membuat `seleksi_donor`, tidak mengubah data kuesioner, dan tidak mengubah pemesanan lain. Segera setelah kode dibuat untuk pemesanan normal, status tetap `TERJADWAL`, `waktu_checkin` tetap `NULL`, dan `kode_checkin` berisi kode yang baru dihasilkan.
+
+Phase 7F tidak mengimplementasikan check-in Petugas, pencarian kode oleh Petugas, pengisian `waktu_checkin`, transisi ke `CHECK_IN`, tampilan kuesioner bagi Petugas, seleksi, penyumbangan, QR code, barcode, scanner, field kedaluwarsa kode, riwayat kode, tabel token, atau perubahan schema. Fungsi operasional tersebut tetap menjadi Phase 8 atau phase berikutnya.
+
 ### Riwayat Donor
 
 Pendonor dapat melihat riwayat penyumbangannya sendiri.

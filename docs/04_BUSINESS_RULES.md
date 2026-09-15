@@ -533,6 +533,8 @@ Schema yang ada tetap mereferensikan row `pertanyaan_kuesioner` saat ini. Snapsh
 
 ## 29. Kode Check-in Dibuat Setelah Prasyarat Pradonasi
 
+### Aturan yang Sudah Bersumber
+
 Kode check-in unik dibuat setelah proses penjadwalan/pemesanan dan pengisian kuesioner yang diperlukan telah selesai.
 
 Kode check-in terhubung dengan `pemesanan_donor`.
@@ -540,6 +542,86 @@ Kode check-in terhubung dengan `pemesanan_donor`.
 Petugas menggunakan kode tersebut ketika Pendonor datang untuk membuka data kunjungan yang sesuai.
 
 Tidak ada tabel check-in terpisah.
+
+Kode ditampilkan sebagai teks biasa dan bukan QR code atau barcode. Keunikan kode, relasi kode dengan pemesanan, urutan pembuatannya setelah prasyarat pradonasi, dan penggunaan kode oleh Petugas merupakan aturan yang sudah bersumber, bukan keputusan baru Phase 7F.
+
+### Keputusan Lifecycle Phase 7D yang Tetap Berlaku
+
+Check-in Petugas yang berhasil pada phase berikutnya melakukan transisi:
+
+`TERJADWAL` -> `CHECK_IN`
+
+Pada proses tersebut `waktu_checkin` diisi. Phase 7F hanya mengatur kode milik Pendonor dan tidak menjalankan lifecycle check-in Petugas.
+
+### Keputusan Proyek Phase 7F
+
+Ketentuan berikut memformalkan rincian operasional pembuatan dan penampilan kode yang sebelumnya belum ditentukan secara tepat.
+
+#### Kepemilikan dan Prasyarat Kode Baru
+
+- Pendonor hanya dapat melihat atau menghasilkan kode untuk `pemesanan_donor` miliknya sendiri.
+- Kepemilikan harus ditentukan dari Pendonor yang sedang terautentikasi. Identifier Pendonor yang dikirim client tidak boleh memberi akses ke pemesanan atau kode check-in Pendonor lain.
+- Kode baru hanya dapat dihasilkan apabila pemesanan dimiliki Pendonor terautentikasi, memiliki `status_pemesanan = TERJADWAL`, sudah mempunyai `kuesioner_pradonasi`, tanggal jadwal terkait belum lewat menurut WIB (`Asia/Jakarta`), dan jadwal tidak berstatus administratif `DIBATALKAN`.
+- Jadwal yang berstatus `DITUTUP` tidak dengan sendirinya menggugurkan pemesanan `TERJADWAL` yang sudah valid untuk pembuatan kode.
+- Untuk prototype ini, keberadaan `kuesioner_pradonasi` yang berhasil tersimpan bagi pemesanan merupakan bukti pada layer aplikasi bahwa prasyarat kuesioner telah selesai. Tabel atau status penyelesaian pradonasi lain tidak ditambahkan.
+
+#### Satu Kode, Format, dan Tabrakan
+
+- Setelah `kode_checkin` mempunyai nilai, akses atau permintaan pembuatan berulang mempertahankan nilai yang sama. Kode tidak dibuat ulang, diganti, atau dirotasi.
+- Riwayat dan versioning kode tidak diperkenalkan.
+- Kode yang dihasilkan mempunyai format `UDD-` diikuti tepat 12 karakter heksadesimal huruf besar. `UDD-A84C21EF07B9` hanya merupakan contoh bentuk. Panjang total kode adalah 16 karakter dan tetap berada dalam batas `VARCHAR(50)` yang sudah ada.
+- Format khusus tersebut merupakan keputusan proyek Phase 7F, sedangkan keunikan dan tampilan teks biasa tetap merupakan aturan yang sudah bersumber.
+- Kandidat kode harus berasal dari sumber acak yang sesuai untuk kode non-sekuensial dan tidak diturunkan langsung dari ID Pendonor atau ID pemesanan.
+- Jika kandidat sama dengan kode yang sudah dipakai, aplikasi mencoba kandidat baru dan tidak pernah menimpa kode pemesanan lain.
+- UNIQUE `pemesanan_donor.kode_checkin` yang sudah ada tetap menjadi lapisan integritas terakhir. Phase 7F tidak menambahkan UNIQUE baru.
+
+#### Pemisahan GET dan POST
+
+- `GET` menampilkan halaman atau status kode. Jika kode sudah ada, kode tersebut ditampilkan; jika belum ada, halaman menunjukkan apakah pembuatan tersedia.
+- `POST` melakukan pembuatan kode untuk pemesanan yang memenuhi syarat.
+- `GET` tidak membuat, mengganti, atau merotasi kode. Pemisahan aksi ini merupakan keputusan implementasi Phase 7F, bukan aturan dari sumber awal.
+
+#### Pembuatan Atomik dan Retensi
+
+Pembuatan kode dilakukan dalam satu transaksi atomik dengan row `pemesanan_donor` sebagai titik serialisasi:
+
+1. memverifikasi kepemilikan terautentikasi;
+2. mengunci row pemesanan target;
+3. memeriksa ulang apakah `kode_checkin` sudah ada;
+4. memeriksa ulang keberadaan kuesioner dan seluruh kelayakan pemesanan; dan
+5. menghasilkan serta menyimpan satu kode unik.
+
+Permintaan pembuatan serentak untuk pemesanan yang sama tidak boleh mengganti atau merotasi kode yang telah dibuat. Jika pemeriksaan setelah penguncian menemukan kode sudah ada, kode tersebut tetap dipertahankan.
+
+Kode yang sudah dihasilkan tidak dihapus otomatis hanya karena status pemesanan kemudian berubah atau tanggal jadwal berlalu. Tidak ada pembersihan historis otomatis. Retensi kode tidak menyatakan bahwa pemesanan yang dibatalkan atau selesai memenuhi syarat untuk check-in Petugas; aturan kelayakan check-in berada pada Phase 8.
+
+#### Tanpa Efek Samping Check-in
+
+Pembuatan atau penampilan kode tidak:
+
+- mengisi `waktu_checkin`;
+- mengubah `status_pemesanan`;
+- melakukan transisi `TERJADWAL` menjadi `CHECK_IN`;
+- membuat `seleksi_donor`;
+- mengubah data kuesioner; atau
+- mengubah pemesanan lain.
+
+Segera setelah kode dibuat untuk pemesanan normal, `status_pemesanan` tetap `TERJADWAL`, `waktu_checkin` tetap `NULL`, dan `kode_checkin` berisi kode yang baru dihasilkan.
+
+#### Batas Implementasi Phase 7F
+
+Phase 7F tidak mengimplementasikan:
+
+- check-in Petugas atau pencarian pemesanan berdasarkan kode oleh Petugas;
+- pengisian `waktu_checkin` atau transisi status ke `CHECK_IN`;
+- tampilan kuesioner bagi Petugas;
+- seleksi atau penyumbangan;
+- QR code, barcode, atau scanner;
+- field kedaluwarsa kode;
+- tabel riwayat kode, versioning kode, atau tabel token; maupun
+- perubahan schema.
+
+Fungsi operasional tersebut tetap menjadi bagian Phase 8 atau phase berikutnya.
 
 ---
 
