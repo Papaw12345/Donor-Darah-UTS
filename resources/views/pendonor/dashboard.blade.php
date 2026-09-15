@@ -33,6 +33,41 @@
             </dl>
         </section>
 
+        <section aria-labelledby="pemesanan-aktif">
+            <h2 id="pemesanan-aktif">Pemesanan Aktif</h2>
+
+            @if ($pemesananAktif->isEmpty())
+                <p>Tidak ada pemesanan donor aktif.</p>
+            @else
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Jam Pelayanan</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($pemesananAktif as $pemesanan)
+                            <tr>
+                                <td>{{ $pemesanan->jadwalPelayanan->tanggal->format('d-m-Y') }}</td>
+                                <td>
+                                    {{ substr($pemesanan->jadwalPelayanan->jam_mulai, 0, 5) }}
+                                    -
+                                    {{ substr($pemesanan->jadwalPelayanan->jam_selesai, 0, 5) }}
+                                </td>
+                                <td>{{ $pemesanan->status_pemesanan }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+
+            <p>
+                <a href="{{ route('pendonor.pemesanan.index') }}">Lihat Semua Pemesanan</a>
+            </p>
+        </section>
+
         <section aria-labelledby="informasi-donor-berikutnya">
             <h2 id="informasi-donor-berikutnya">Informasi Donor Berikutnya</h2>
 
