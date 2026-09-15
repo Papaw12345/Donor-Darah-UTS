@@ -622,6 +622,25 @@ Nilainya dihitung dari riwayat penyumbangan berhasil dan ketentuan donor ulang y
 
 ---
 
+## 42. Pembaruan Profil Pendonor
+
+Target pembaruan selalu profil `pendonor` yang terhubung dengan akun `PENDONOR` yang sedang terautentikasi. Nilai `id_pendonor` atau `id_akun` yang dikirim oleh client tidak boleh menentukan target atau kepemilikan profil.
+
+Hanya field berikut yang boleh disimpan melalui pembaruan Profil Saya:
+
+- `nama_lengkap`;
+- `tempat_lahir`;
+- `alamat`;
+- `nomor_telepon`;
+- `pekerjaan`;
+- `alamat_kantor`.
+
+Field `nik`, `nomor_donor`, `jenis_kelamin`, `tanggal_lahir`, `id_golongan_darah`, dan `akun.email` harus tetap tidak berubah meskipun request yang dibuat secara khusus menyertakan field tersebut.
+
+Nullable pada `pekerjaan` dan `alamat_kantor` tetap mengikuti schema. Aturan ini tidak mengubah perilaku registrasi Pendonor dan tidak menambahkan perilaku perubahan password.
+
+---
+
 # C. Aturan Implementasi Berdasarkan Layer
 
 ## Constraint Basis Data

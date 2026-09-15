@@ -96,6 +96,30 @@ Pendonor dapat:
 
 Golongan darah yang sudah dikonfirmasi oleh UDD tidak boleh diubah secara bebas oleh Pendonor.
 
+#### Batas Field Profil
+
+Field yang dapat diperbarui oleh Pendonor:
+
+- `nama_lengkap`;
+- `tempat_lahir`;
+- `alamat`;
+- `nomor_telepon`;
+- `pekerjaan`;
+- `alamat_kantor`.
+
+Field yang hanya dapat dilihat pada area Profil Saya dan tidak dapat diperbarui oleh Pendonor:
+
+- NIK (`nik`);
+- nomor donor (`nomor_donor`);
+- jenis kelamin (`jenis_kelamin`);
+- tanggal lahir (`tanggal_lahir`);
+- golongan darah (`id_golongan_darah`);
+- email akun (`akun.email`).
+
+Golongan darah tetap dikendalikan melalui proses konfirmasi UDD. Pengelolaan password tidak menjadi bagian dari menu Profil Saya. Pendonor hanya dapat melihat dan memperbarui profilnya sendiri.
+
+Pembatasan ini menjaga NIK sebagai identitas unik, nomor donor sebagai identitas operasional, serta jenis kelamin dan tanggal lahir sebagai data yang berkaitan dengan identitas atau aturan donor ulang. Golongan darah dikonfirmasi oleh UDD/Petugas, sedangkan email merupakan identitas akun autentikasi. Field yang dapat diperbarui dibatasi pada data profil pribadi, kontak, dan pekerjaan yang tidak mengubah kepemilikan transaksi atau aturan kelayakan donor.
+
 ### Jadwal Donor
 
 Pendonor dapat:
