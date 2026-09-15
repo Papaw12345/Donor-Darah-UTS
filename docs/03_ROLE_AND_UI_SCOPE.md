@@ -229,6 +229,27 @@ Pendonor dapat melihat riwayat penyumbangannya sendiri.
 
 Riwayat donor tidak dapat diubah oleh Pendonor.
 
+Riwayat donor bersumber dari transaksi `penyumbangan` yang dicatat melalui proses operasional oleh Petugas. Transaksi tersebut dapat mempunyai `hasil_penyumbangan = BERHASIL` atau `hasil_penyumbangan = GAGAL`; penyumbangan gagal dapat tetap tercatat, tetapi tidak diperlakukan sebagai donor berhasil dalam perhitungan interval atau frekuensi donor ulang. Pendonor tidak membuat atau mengubah transaksi penyumbangan.
+
+Ketentuan bahwa Pendonor hanya dapat mengakses datanya sendiri, dapat melihat tetapi tidak mengubah riwayat penyumbangan, riwayat berasal dari transaksi `penyumbangan`, penyumbangan dapat berakhir `BERHASIL` atau `GAGAL`, dan hanya penyumbangan berhasil yang digunakan untuk perhitungan donor ulang merupakan aturan yang sudah bersumber. Informasi Donor Berikutnya tetap merupakan fitur Pendonor yang terpisah.
+
+#### Keputusan Proyek Phase 7G
+
+Ketentuan berikut memformalkan rincian operasional halaman Riwayat Donor yang sebelumnya belum ditentukan secara tepat.
+
+- Riwayat milik Pendonor terautentikasi hanya memuat row `penyumbangan` yang kepemilikannya dapat ditelusuri melalui `penyumbangan.id_seleksi` -> `seleksi_donor.id_seleksi` -> `seleksi_donor.id_pemesanan` -> `pemesanan_donor.id_pemesanan` -> `pemesanan_donor.id_pendonor` -> `pendonor.id_pendonor` milik Pendonor terautentikasi. Identifier Pendonor yang dikirim client tidak boleh menentukan kepemilikan.
+- Satu row Riwayat Donor hanya ada apabila row `penyumbangan` yang nyata memang tersimpan. `pemesanan_donor` tanpa penyumbangan, status `CHECK_IN` tanpa penyumbangan, `seleksi_donor` tanpa penyumbangan, keputusan `LAYAK`, `DITUNDA`, atau `DITOLAK`, pemesanan dibatalkan, dan ketidakhadiran tidak boleh disintesis menjadi row riwayat.
+- Halaman riwayat umum menampilkan seluruh transaksi penyumbangan milik Pendonor, termasuk hasil `BERHASIL` dan `GAGAL`. Penampilan transaksi gagal ini merupakan keputusan proyek Phase 7G; sumber awal hanya menetapkan bahwa transaksi gagal dapat tetap tercatat dan tidak dihitung sebagai donor berhasil untuk aturan donor ulang.
+- Riwayat bersifat hanya-baca. Phase 7G tidak memberi Pendonor aksi untuk membuat, mengubah, atau menghapus penyumbangan; mengubah hasil, volume, waktu pengambilan, atau alasan gagal; maupun mengubah seleksi atau status pemesanan.
+- Setiap row minimal menampilkan `waktu_pengambilan`, `volume_ml`, `hasil_penyumbangan`, dan `alasan_gagal` ketika berlaku. `volume_ml` yang `NULL` ditampilkan secara netral, misalnya `-`; `alasan_gagal` yang `NULL` tidak memerlukan isi penjelasan.
+- Tampilan tidak membuka pengukuran medis rinci dari seleksi, kredensial Petugas, atau data internal lain yang tidak berkaitan hanya karena data tersebut dapat dijangkau melalui relasi.
+- Riwayat diurutkan secara deterministik berdasarkan `waktu_pengambilan` menurun, kemudian `id_penyumbangan` menurun sebagai tie-breaker, sehingga transaksi terbaru tampil lebih dahulu.
+- Apabila tidak ada row `penyumbangan` milik Pendonor, halaman menampilkan pesan empty state yang terkendali dan tidak membuat riwayat palsu.
+- Akses riwayat menggunakan `GET` dan bersifat hanya-baca: tidak memperbarui row basis data, mengubah status pemesanan, membuat seleksi, penyumbangan, atau unit komponen, menandai proses selesai, maupun mengubah data pemberitahuan.
+- Phase 7G tidak menambahkan tabel, kolom, snapshot riwayat, cache riwayat, total donor tersimpan, tanggal donor terakhir tersimpan, tanggal donor berikutnya tersimpan, maupun requirement UNIQUE, foreign key, atau index baru. Relasi transaksi yang sudah ada tetap digunakan.
+
+Phase 7G tidak mengimplementasikan perkiraan tanggal donor berikutnya, ringkasan kelayakan donor ulang saat ini, hitungan penyumbangan berhasil tahunan, interval countdown, atau keputusan dapat donor kembali. Phase ini juga tidak menambahkan ekspor PDF/Excel, grafik atau statistik, sertifikat, badge atau reward, kerangka pencarian/filter, editing, penghapusan, arsitektur pagination, riwayat unit komponen, riwayat medis seleksi yang terperinci, fitur Petugas, atau pemberitahuan. Frontend tetap minimal. Perhitungan Informasi Donor Berikutnya tetap berada pada Phase 7H dan tidak digabungkan ke Phase 7G.
+
 ### Informasi Donor Berikutnya
 
 Pendonor dapat melihat perkiraan waktu ketika dirinya telah memenuhi interval dan frekuensi untuk mencoba melakukan donor kembali berdasarkan riwayat penyumbangan.
