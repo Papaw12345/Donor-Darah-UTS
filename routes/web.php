@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminPetugasController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PendonorDashboardController;
 use App\Http\Controllers\PendonorJadwalController;
+use App\Http\Controllers\PendonorKuesionerController;
 use App\Http\Controllers\PendonorPemesananController;
 use App\Http\Controllers\PendonorProfileController;
 use App\Http\Controllers\RoleHomeController;
@@ -56,6 +57,14 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::patch('/pendonor/pemesanan/{pemesanan}/batalkan', [PendonorPemesananController::class, 'cancel'])
         ->middleware('role:PENDONOR')
         ->name('pendonor.pemesanan.cancel');
+
+    Route::get('/pendonor/pemesanan/{pemesanan}/kuesioner', [PendonorKuesionerController::class, 'show'])
+        ->middleware('role:PENDONOR')
+        ->name('pendonor.kuesioner.show');
+
+    Route::post('/pendonor/pemesanan/{pemesanan}/kuesioner', [PendonorKuesionerController::class, 'store'])
+        ->middleware('role:PENDONOR')
+        ->name('pendonor.kuesioner.store');
 
     Route::get('/petugas', [RoleHomeController::class, 'petugas'])
         ->middleware('role:PETUGAS')

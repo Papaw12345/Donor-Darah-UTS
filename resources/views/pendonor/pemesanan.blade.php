@@ -48,6 +48,8 @@
                             <td>{{ $item->waktu_pemesanan->format('d-m-Y H:i') }}</td>
                             <td>{{ $item->status_pemesanan }}</td>
                             <td>
+                                <a href="{{ route('pendonor.kuesioner.show', $item) }}">Kuesioner Pradonasi</a>
+
                                 @if (
                                     $item->status_pemesanan === 'TERJADWAL'
                                     && $item->jadwalPelayanan->tanggal->gte(today('Asia/Jakarta'))
