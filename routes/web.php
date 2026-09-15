@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminPertanyaanKuesionerController;
 use App\Http\Controllers\AdminPetugasController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PendonorDashboardController;
+use App\Http\Controllers\PendonorProfileController;
 use App\Http\Controllers\RoleHomeController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +30,14 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/pendonor', [PendonorDashboardController::class, 'index'])
         ->middleware('role:PENDONOR')
         ->name('pendonor.home');
+
+    Route::get('/pendonor/profil', [PendonorProfileController::class, 'show'])
+        ->middleware('role:PENDONOR')
+        ->name('pendonor.profil.show');
+
+    Route::put('/pendonor/profil', [PendonorProfileController::class, 'update'])
+        ->middleware('role:PENDONOR')
+        ->name('pendonor.profil.update');
 
     Route::get('/petugas', [RoleHomeController::class, 'petugas'])
         ->middleware('role:PETUGAS')

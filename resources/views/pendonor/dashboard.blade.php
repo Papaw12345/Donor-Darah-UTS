@@ -33,6 +33,10 @@
             </dl>
         </section>
 
+        <p>
+            <a href="{{ route('pendonor.profil.show') }}">Profil Saya</a>
+        </p>
+
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit">Logout</button>
