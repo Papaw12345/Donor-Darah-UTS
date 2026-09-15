@@ -653,6 +653,31 @@ Informasi donor berikutnya pada prototype dihitung dari riwayat penyumbangan ber
 
 Jangan menambahkan field tanggal penundaan tanpa keputusan perubahan schema.
 
+### Keputusan Proyek Phase 7H - Informasi Donor Berikutnya
+
+Phase 7H menggunakan aturan donor ulang yang sama dengan Phase 7D, tetapi menjawab pertanyaan yang berbeda. Phase 7D menguji kelayakan terhadap tanggal jadwal yang dipilih, sedangkan Phase 7H menghitung informasi kondisi saat ini dengan tanggal acuan hari ini menurut WIB (`Asia/Jakarta`).
+
+Aturan perhitungannya dikunci sebagai berikut:
+
+1. Kepemilikan data berasal dari Pendonor yang sedang terautentikasi.
+2. Riwayat yang digunakan hanya `penyumbangan` dengan `hasil_penyumbangan = BERHASIL` milik Pendonor tersebut dan bertanggal sampai dengan tanggal acuan.
+3. Penyumbangan `GAGAL` tidak memengaruhi interval atau frekuensi donor ulang.
+4. Jika terdapat penyumbangan berhasil sebelumnya, tanggal pemenuhan interval adalah tanggal donor berhasil paling akhir ditambah 2 bulan kalender menggunakan perilaku tanpa overflow yang sama seperti Phase 7D.
+5. Jumlah donor tahunan dihitung dari penyumbangan `BERHASIL` pada tahun kalender tanggal acuan sampai dengan tanggal acuan.
+6. Batas tahunan adalah 6 untuk `LAKI_LAKI` dan 4 untuk `PEREMPUAN`.
+7. Jika jumlah donor tahun berjalan masih di bawah batas, tidak ada penundaan tambahan dari sisi frekuensi.
+8. Jika jumlah donor tahun berjalan sudah mencapai batas, tanggal paling awal dari sisi frekuensi adalah 1 Januari tahun kalender berikutnya.
+9. Perkiraan tanggal donor berikutnya adalah tanggal paling awal yang sekaligus tidak lebih awal dari tanggal acuan, memenuhi interval 2 bulan, dan memenuhi batas frekuensi tahunan.
+10. Secara operasional, tanggal donor berikutnya adalah nilai maksimum dari tanggal acuan, tanggal pemenuhan interval bila ada, dan tanggal pemenuhan frekuensi bila batas tahunan sudah tercapai.
+11. Pendonor yang belum memiliki penyumbangan `BERHASIL` tidak dikenai pembatasan interval atau frekuensi donor ulang untuk kesempatan pertamanya.
+12. Keputusan seleksi `DITUNDA` atau `DITOLAK` tidak menghasilkan tanggal `ditunda_sampai`, dan penyumbangan `GAGAL` tidak menggantikan tanggal donor berhasil terakhir.
+13. Jika tanggal perkiraan sama dengan tanggal acuan, Pendonor ditampilkan sebagai sudah dapat mencoba donor kembali sekarang berdasarkan riwayat.
+14. Hasil perhitungan bukan keputusan kelayakan medis akhir. Kuesioner, pemeriksaan, dan keputusan seleksi Petugas tetap berlaku.
+15. Perhitungan bersifat read-only dan tidak boleh membuat atau mengubah record workflow.
+16. Donor terakhir berhasil, jumlah donor berhasil, status donor ulang, dan tanggal donor berikutnya tetap dihitung saat diperlukan dan tidak disimpan sebagai field baru.
+
+Phase 7H tidak mengubah aturan Phase 7D, tidak menambahkan aturan medis baru, tidak membuat tabel atau kolom baru, dan tidak menggunakan `seleksi_donor.alasan_keputusan` sebagai sumber tanggal penundaan.
+
 ---
 
 ## 32. Golongan Darah Pendonor Baru

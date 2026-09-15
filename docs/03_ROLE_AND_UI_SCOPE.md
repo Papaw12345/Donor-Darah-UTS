@@ -256,6 +256,33 @@ Pendonor dapat melihat perkiraan waktu ketika dirinya telah memenuhi interval da
 
 Informasi ini bukan keputusan kelayakan medis akhir.
 
+#### Keputusan Proyek Phase 7H
+
+Rincian berikut mengunci perilaku Informasi Donor Berikutnya tanpa mengubah aturan donor ulang yang sudah digunakan pada Phase 7D:
+
+- fitur hanya menggunakan data milik Pendonor yang sedang terautentikasi;
+- sumber perhitungan adalah penyumbangan dengan `hasil_penyumbangan = BERHASIL` milik Pendonor tersebut;
+- penyumbangan `GAGAL` tidak digunakan untuk interval maupun frekuensi donor ulang;
+- tanggal acuan informasi adalah tanggal hari ini menurut WIB (`Asia/Jakarta`); tanggal acuan ini khusus untuk informasi kondisi saat ini dan tidak mengubah Phase 7D yang mengevaluasi pemesanan terhadap tanggal jadwal terpilih;
+- hanya penyumbangan berhasil dengan tanggal pengambilan sampai dengan tanggal acuan yang diperlakukan sebagai riwayat pada perhitungan saat ini;
+- jika terdapat riwayat berhasil, batas interval dihitung dari tanggal penyumbangan berhasil paling akhir ditambah 2 bulan kalender dengan perilaku tanpa overflow yang sama seperti Phase 7D;
+- frekuensi tahun berjalan dihitung dari penyumbangan `BERHASIL` dalam tahun kalender tanggal acuan sampai dengan tanggal acuan;
+- batas frekuensi tetap 6 kali per tahun untuk `LAKI_LAKI` dan 4 kali per tahun untuk `PEREMPUAN`;
+- apabila batas frekuensi tahun berjalan sudah tercapai, batas dari sisi frekuensi baru terbuka pada 1 Januari tahun kalender berikutnya;
+- perkiraan tanggal donor berikutnya adalah tanggal paling awal yang tidak lebih awal dari tanggal acuan, memenuhi interval 2 bulan, dan berada pada periode ketika batas frekuensi tahunan belum terlampaui;
+- secara operasional, tanggal tersebut merupakan nilai maksimum dari tanggal acuan, tanggal hasil interval 2 bulan bila ada, dan 1 Januari tahun berikutnya bila batas frekuensi tahun berjalan sudah tercapai;
+- Pendonor tanpa riwayat penyumbangan `BERHASIL` tidak dikenai pembatasan donor ulang untuk kesempatan pertama dan ditampilkan sebagai dapat mencoba donor pertama sekarang berdasarkan riwayat;
+- keputusan seleksi DITUNDA atau DITOLAK dan penyumbangan `GAGAL` tidak menghasilkan tanggal penundaan baru pada fitur ini karena prototype tidak memiliki field `ditunda_sampai`;
+- apabila seluruh aturan riwayat sudah terpenuhi pada tanggal acuan, UI menyatakan bahwa Pendonor sudah dapat mencoba donor kembali sekarang;
+- apabila belum terpenuhi, UI menampilkan perkiraan tanggal paling awal berdasarkan aturan interval/frekuensi di atas;
+- hasil selalu disertai penjelasan bahwa informasi ini bukan keputusan kelayakan medis akhir dan Pendonor tetap harus menjalani proses pradonasi serta seleksi Petugas;
+- fitur bersifat read-only dan tidak mengubah riwayat penyumbangan, pemesanan, seleksi, maupun data lain;
+- tanggal donor terakhir, jumlah donor, status donor ulang, dan tanggal donor berikutnya tetap merupakan data turunan dan tidak disimpan sebagai field baru.
+
+Dashboard Pendonor menampilkan ringkasan hasil perhitungan donor berikutnya dan menyediakan navigasi menuju informasi yang lebih rinci. Ringkasan dan halaman rinci harus menggunakan aturan perhitungan yang sama.
+
+Phase 7H tidak menambahkan keputusan medis, countdown wajib, field penundaan, tabel baru, kolom baru, atau perubahan schema.
+
 ### Pemberitahuan
 
 Pendonor dapat:
