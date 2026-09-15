@@ -174,6 +174,24 @@ Kuesioner diisi pada setiap kesempatan donor.
 
 Aturan mengenai batas waktu perubahan jawaban tidak ditentukan pada dokumen ini dan tidak boleh diasumsikan tanpa keputusan lebih lanjut.
 
+Ketentuan bahwa kuesioner dibuat untuk pemesanan milik Pendonor pada setiap kesempatan donor, hanya pertanyaan aktif yang ditampilkan, jawaban disimpan pada `jawaban_kuesioner`, satu pemesanan maksimal memiliki satu kuesioner, dan satu pertanyaan maksimal memiliki satu jawaban dalam satu kuesioner merupakan aturan yang sudah bersumber dari dokumen awal dan schema. Demikian pula, kuesioner bukan transaksi review medis tersendiri, jawabannya kemudian dapat dilihat Petugas sebagai informasi untuk seleksi, dan pengisian pradonasi yang diperlukan mendahului pembuatan kode check-in. Ketentuan tersebut bukan keputusan baru Phase 7E.
+
+#### Keputusan Proyek Phase 7E
+
+Rincian berikut merupakan keputusan proyek Phase 7E untuk perilaku operasional yang sebelumnya belum ditentukan secara tepat:
+
+- Pendonor hanya dapat membuat dan melihat kuesioner yang terkait dengan `pemesanan_donor` miliknya sendiri. Kepemilikan berasal dari Pendonor yang sedang terautentikasi; identifier Pendonor dari client tidak dapat memberi akses ke pemesanan atau kuesioner Pendonor lain.
+- Kuesioner baru hanya dapat dikirim untuk pemesanan milik Pendonor terautentikasi yang berstatus `TERJADWAL`, memiliki tanggal jadwal yang belum lewat menurut WIB (`Asia/Jakarta`), dan tidak terkait dengan jadwal berstatus administratif `DIBATALKAN`. Perubahan jadwal menjadi `DITUTUP` tidak dengan sendirinya membatalkan hak mengisi kuesioner untuk pemesanan yang sudah valid.
+- Untuk prototype ini, pengisian kuesioner bersifat satu kali kirim. Setelah berhasil dikirim, Pendonor dapat melihat kuesioner dan jawaban yang tersimpan, tetapi tidak dapat mengubah atau mengganti jawabannya. Prototype tidak menyediakan draft atau riwayat revisi jawaban.
+- Form menampilkan seluruh pertanyaan dengan `status_aktif = true`, diurutkan berdasarkan `urutan` lalu `id_pertanyaan` sebagai pembeda deterministik. `kategori` hanya boleh digunakan untuk tampilan atau pengelompokan dan tidak mengubah kewajiban menjawab.
+- Setiap pertanyaan aktif wajib memiliki tepat satu jawaban saat pengiriman berhasil. Jawaban `YA_TIDAK` disimpan secara kanonis sebagai tepat `YA` atau `TIDAK`, sedangkan jawaban `TEKS` wajib tidak kosong setelah whitespace awal dan akhir dihapus. Tidak ada jenis jawaban tambahan.
+- Server menentukan sendiri himpunan pertanyaan aktif yang berwenang pada saat pengiriman. Key jawaban yang dikirim harus tepat sama dengan himpunan pertanyaan aktif tersebut. Jika himpunan pertanyaan berubah sejak form dimuat, pengiriman ditolak secara terkendali dan Pendonor diminta memuat ulang form; jawaban tak terduga atau jawaban yang hilang tidak boleh diabaikan secara diam-diam.
+- Jika tidak ada pertanyaan aktif, kuesioner dinyatakan tidak tersedia bagi Pendonor dan sistem tidak membuat `kuesioner_pradonasi` kosong.
+- Pengiriman yang berhasil disimpan secara atomik sebagai satu `kuesioner_pradonasi` dan tepat satu `jawaban_kuesioner` untuk setiap pertanyaan aktif. `waktu_pengisian` menyatakan waktu keberhasilan pengiriman menurut konvensi timestamp aplikasi.
+- Kuesioner dan jawabannya tetap disimpan sebagai riwayat apabila status pemesanan kemudian berubah atau pemesanan dibatalkan. Pemesanan baru dengan `id_pemesanan` baru merupakan kesempatan donor baru dan mempunyai kuesionernya sendiri.
+
+Phase 7E tidak menghasilkan `kode_checkin`, tidak mengisi `waktu_checkin`, tidak mengubah `status_pemesanan`, serta tidak mengimplementasikan check-in Petugas, review medis kuesioner, seleksi, atau penyumbangan. Phase ini juga tidak menambahkan draft, versioning kuesioner, snapshot teks pertanyaan, atau perubahan schema. Riwayat jawaban tetap mereferensikan row `pertanyaan_kuesioner` yang ada sesuai schema saat ini.
+
 ### Kode Check-in
 
 Pendonor dapat:

@@ -451,11 +451,83 @@ Keputusan ini tidak menambahkan aturan medis lain dan tidak mengubah bahwa hasil
 
 ## 28. Kuesioner Diisi pada Setiap Kesempatan Donor
 
+### Aturan yang Sudah Bersumber
+
 Pendonor mengisi kuesioner pradonasi untuk setiap kesempatan donor.
 
 Kuesioner terkait dengan satu `pemesanan_donor`.
 
 Kuesioner digunakan oleh Petugas sebagai salah satu informasi dalam proses seleksi dan bukan sebagai transaksi review medis terpisah.
+
+Aturan yang sudah bersumber juga menetapkan bahwa:
+
+- kuesioner dibuat untuk pemesanan milik Pendonor;
+- pertanyaan dengan `status_aktif = true` ditampilkan dan jawabannya disimpan pada `jawaban_kuesioner`;
+- satu `pemesanan_donor` maksimal memiliki satu `kuesioner_pradonasi`;
+- satu pertanyaan maksimal memiliki satu `jawaban_kuesioner` dalam satu kuesioner;
+- pengisian pradonasi yang diperlukan selesai sebelum kode check-in dibuat.
+
+Cardinality tersebut tetap dijaga oleh UNIQUE `kuesioner_pradonasi.id_pemesanan` dan UNIQUE (`jawaban_kuesioner.id_kuesioner`, `jawaban_kuesioner.id_pertanyaan`) yang sudah ada. Sumber awal tidak menentukan batas waktu perubahan jawaban; rincian satu kali kirim di bawah merupakan keputusan proyek, bukan klaim dari sumber awal.
+
+### Keputusan Proyek Phase 7E
+
+Ketentuan berikut memformalkan rincian operasional yang sebelumnya belum ditentukan secara tepat.
+
+#### Kepemilikan dan Kelayakan Pemesanan
+
+- Pendonor hanya dapat membuat dan melihat kuesioner yang berkaitan dengan `pemesanan_donor` miliknya sendiri.
+- Kepemilikan harus ditentukan dari Pendonor yang sedang terautentikasi. Identifier Pendonor yang dikirim client tidak boleh memberi akses ke pemesanan atau kuesioner Pendonor lain.
+- Kuesioner baru hanya dapat dikirim apabila pemesanan dimiliki Pendonor terautentikasi, memiliki `status_pemesanan = TERJADWAL`, tanggal jadwal terkait belum lewat menurut WIB (`Asia/Jakarta`), dan jadwal tidak berstatus administratif `DIBATALKAN`.
+- Jadwal yang kemudian berstatus `DITUTUP` tidak dengan sendirinya menggugurkan pemesanan yang sudah valid untuk penyelesaian kuesioner.
+
+#### Satu Kali Kirim dan Retensi Riwayat
+
+- Prototype menggunakan satu kali pengiriman kuesioner. Setelah pengiriman berhasil, Pendonor dapat melihat kuesioner beserta jawaban yang tersimpan, tetapi tidak mengubah atau mengganti jawaban tersebut.
+- Tidak ada draft, penggantian jawaban, atau riwayat revisi jawaban.
+- Kuesioner dan jawaban yang sudah berhasil disimpan tidak dihapus otomatis apabila status pemesanan kemudian berubah atau pemesanan dibatalkan.
+- Pemesanan baru dengan `id_pemesanan` baru adalah kesempatan donor baru dan mempunyai kuesionernya sendiri.
+
+#### Himpunan Pertanyaan dan Representasi Jawaban
+
+- Pada pengiriman yang berhasil, setiap pertanyaan dalam himpunan pertanyaan berwenang saat ini dengan `status_aktif = true` wajib mempunyai tepat satu jawaban. Kuesioner yang hanya terisi sebagian tidak boleh dibuat.
+- Pertanyaan aktif ditampilkan menurut `urutan`, kemudian `id_pertanyaan` sebagai pembeda deterministik. `kategori` hanya digunakan untuk tampilan atau pengelompokan dan tidak mengubah aturan validasi.
+- Untuk `jenis_jawaban = YA_TIDAK`, jawaban kanonis yang disimpan harus tepat `YA` atau `TIDAK`.
+- Untuk `jenis_jawaban = TEKS`, jawaban wajib tidak kosong setelah trimming.
+- Tidak ada jenis jawaban baru dan tipe kolom `jawaban_kuesioner.jawaban` tidak berubah.
+- Server wajib menentukan sendiri himpunan pertanyaan aktif yang berwenang pada saat pengiriman dan tidak mempercayai himpunan identifier pertanyaan dari client.
+- Key jawaban yang dikirim harus tepat sama dengan himpunan pertanyaan aktif pada saat pengiriman. Jika himpunan pertanyaan berubah sejak form dimuat, pengiriman ditolak secara terkendali dan Pendonor harus memuat ulang form.
+- Jawaban untuk pertanyaan yang tidak diharapkan tidak boleh dibuang diam-diam, dan jawaban yang tidak dikirim tidak boleh dibuat diam-diam.
+- Apabila tidak ada pertanyaan aktif, sistem tidak membuat `kuesioner_pradonasi` kosong dan memberitahukan bahwa kuesioner sedang tidak tersedia.
+
+#### Pengiriman Atomik
+
+Pengiriman kuesioner yang berhasil merupakan satu transaksi atomik yang:
+
+1. memverifikasi kepemilikan terautentikasi dan kelayakan pemesanan;
+2. mencegah kuesioner kedua untuk pemesanan yang sama;
+3. menentukan dan memvalidasi himpunan pertanyaan aktif;
+4. membuat satu `kuesioner_pradonasi`; dan
+5. membuat tepat satu `jawaban_kuesioner` untuk setiap pertanyaan aktif.
+
+Row pemesanan diperlakukan sebagai titik serialisasi untuk pengiriman ganda yang berlangsung bersamaan. Constraint UNIQUE yang sudah ada tetap menjadi lapisan integritas terakhir; Phase 7E tidak menambahkan UNIQUE baru.
+
+`kuesioner_pradonasi.waktu_pengisian` menyatakan waktu pengiriman kuesioner berhasil dengan konvensi timestamp aplikasi yang sudah digunakan.
+
+#### Batas Implementasi Phase 7E
+
+Phase 7E tidak:
+
+- menghasilkan `kode_checkin`;
+- mengisi `waktu_checkin`;
+- mengubah `status_pemesanan`;
+- mengimplementasikan check-in Petugas;
+- mengimplementasikan review medis kuesioner;
+- mengimplementasikan seleksi atau penyumbangan;
+- menambahkan status draft, versioning kuesioner, atau riwayat revisi jawaban;
+- menambahkan snapshot teks pertanyaan; atau
+- mengubah schema.
+
+Schema yang ada tetap mereferensikan row `pertanyaan_kuesioner` saat ini. Snapshot atau tabel versioning tidak ditambahkan hanya untuk mempertahankan redaksi lama pertanyaan.
 
 ---
 
