@@ -12,6 +12,7 @@ use App\Http\Controllers\PendonorKodeCheckinController;
 use App\Http\Controllers\PendonorKuesionerController;
 use App\Http\Controllers\PendonorPemesananController;
 use App\Http\Controllers\PendonorProfileController;
+use App\Http\Controllers\PendonorRiwayatController;
 use App\Http\Controllers\RoleHomeController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/pendonor', [PendonorDashboardController::class, 'index'])
         ->middleware('role:PENDONOR')
         ->name('pendonor.home');
+
+    Route::get('/pendonor/riwayat', [PendonorRiwayatController::class, 'index'])
+        ->middleware('role:PENDONOR')
+        ->name('pendonor.riwayat.index');
 
     Route::get('/pendonor/profil', [PendonorProfileController::class, 'show'])
         ->middleware('role:PENDONOR')
