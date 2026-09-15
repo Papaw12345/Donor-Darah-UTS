@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminJadwalController;
 use App\Http\Controllers\AdminPertanyaanKuesionerController;
 use App\Http\Controllers\AdminPetugasController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PendonorDashboardController;
 use App\Http\Controllers\RoleHomeController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,7 +26,7 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->name('logout');
 
 Route::middleware(['auth', 'active'])->group(function () {
-    Route::get('/pendonor', [RoleHomeController::class, 'pendonor'])
+    Route::get('/pendonor', [PendonorDashboardController::class, 'index'])
         ->middleware('role:PENDONOR')
         ->name('pendonor.home');
 
