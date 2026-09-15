@@ -151,6 +151,21 @@ Pendonor dapat:
 
 Pendonor tidak boleh melihat atau mengubah pemesanan milik Pendonor lain.
 
+#### Keputusan Proyek Phase 7D
+
+Klarifikasi berikut merupakan keputusan proyek Phase 7D untuk bagian alur Pemesanan Donor yang sebelumnya belum ditentukan secara rinci.
+
+- Kepemilikan pemesanan harus ditentukan dari Pendonor yang sedang terautentikasi. Identifier Pendonor yang dikirim oleh client tidak boleh digunakan untuk memberi akses ke pemesanan milik Pendonor lain.
+- Pemesanan baru hanya dapat dibuat untuk jadwal `DIBUKA` dengan tanggal hari ini atau setelahnya menurut WIB (`Asia/Jakarta`), sisa kapasitas lebih dari `0`, kelayakan donor ulang terpenuhi terhadap tanggal jadwal yang dipilih, dan aturan pemesanan ulang untuk jadwal yang sama terpenuhi.
+- Untuk keperluan workflow dan UI, status pemesanan aktif adalah `TERJADWAL` dan `CHECK_IN`.
+- Untuk kombinasi Pendonor dan jadwal yang sama, pemesanan berstatus `TERJADWAL`, `CHECK_IN`, `SELESAI`, atau `TIDAK_HADIR` menghalangi pemesanan baru. Hanya pemesanan berstatus `DIBATALKAN` yang tidak menghalangi pemesanan ulang pada jadwal yang sama.
+- Pemesanan pada `id_jadwal` yang berbeda tidak otomatis dilarang oleh aturan duplikasi. Prototype ini tidak menambahkan aturan satu pemesanan per hari, konsep jadwal alternatif, atau pembatalan otomatis atas pemesanan lain.
+- Pemesanan yang valid dibuat dengan status `TERJADWAL`; `waktu_pemesanan` diisi pada saat pembuatan menggunakan konvensi timestamp aplikasi; sedangkan `kode_checkin` dan `waktu_checkin` tetap `NULL`.
+- Pendonor hanya dapat membatalkan pemesanan miliknya yang berstatus `TERJADWAL` dan tanggal jadwalnya belum lewat menurut WIB (`Asia/Jakarta`). Pembatalan mengubah status `TERJADWAL` menjadi `DIBATALKAN`.
+- Pemesanan berstatus `CHECK_IN`, `SELESAI`, `TIDAK_HADIR`, atau `DIBATALKAN` tidak dapat dibatalkan oleh Pendonor.
+
+Pembuatan kode check-in dan proses check-in bukan bagian implementasi Phase 7D.
+
 ### Kuesioner Pradonasi
 
 Pendonor dapat mengisi kuesioner kesehatan pradonasi untuk pemesanan miliknya sendiri.

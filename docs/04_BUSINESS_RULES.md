@@ -436,6 +436,17 @@ Penyumbangan dengan `hasil_penyumbangan = GAGAL` tidak digunakan sebagai donor b
 
 Untuk prototype ini, ketentuan interval 2 bulan dan batas frekuensi 6/4 diterapkan pada donor Whole Blood.
 
+### Keputusan Proyek Phase 7D - Tanggal Acuan Kelayakan
+
+Ketentuan interval 2 bulan, batas frekuensi 6/4, penggunaan penyumbangan berhasil, dan perlakuan bagi Pendonor tanpa riwayat berhasil di atas tetap merupakan aturan yang sudah bersumber dari dokumen awal. Rincian tanggal acuan berikut merupakan keputusan proyek Phase 7D atas hal yang sebelumnya belum ditentukan:
+
+- kelayakan pemesanan dievaluasi terhadap `jadwal_pelayanan.tanggal` yang dipilih, bukan terhadap timestamp pengiriman request pemesanan;
+- periode frekuensi tahunan adalah tahun kalender yang memuat tanggal jadwal terpilih;
+- perhitungan frekuensi menggunakan penyumbangan `BERHASIL` dalam tahun kalender tersebut sampai dengan tanggal jadwal terpilih;
+- interval 2 bulan dihitung antara penyumbangan `BERHASIL` paling akhir sebelum atau pada tanggal jadwal terpilih dan tanggal jadwal terpilih.
+
+Keputusan ini tidak menambahkan aturan medis lain dan tidak mengubah bahwa hasil pemeriksaan riwayat bukan keputusan kelayakan medis akhir.
+
 ---
 
 ## 28. Kuesioner Diisi pada Setiap Kesempatan Donor
@@ -512,6 +523,21 @@ Validasi ini dilakukan di layer aplikasi dengan mempertimbangkan status pemesana
 
 Jangan menambahkan UNIQUE `(id_pendonor, id_jadwal)` ke basis data.
 
+### Keputusan Proyek Phase 7D - Status Aktif dan Pemesanan Ulang
+
+Klarifikasi berikut merupakan keputusan proyek Phase 7D atas istilah dan perilaku yang sebelumnya belum ditentukan secara rinci:
+
+- untuk keperluan workflow dan UI prototype, status pemesanan aktif adalah `TERJADWAL` dan `CHECK_IN`;
+- `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tidak didefinisikan sebagai status aktif;
+- untuk kombinasi `(id_pendonor, id_jadwal)` yang sama, record berstatus `TERJADWAL`, `CHECK_IN`, `SELESAI`, atau `TIDAK_HADIR` menghalangi pembuatan pemesanan baru;
+- hanya record berstatus `DIBATALKAN` yang tidak menghalangi pemesanan ulang untuk kombinasi Pendonor dan jadwal yang sama.
+
+Aturan penghalang pemesanan ulang untuk jadwal yang sama sengaja lebih luas daripada definisi status aktif: `SELESAI` dan `TIDAK_HADIR` bukan status aktif, tetapi tetap menghalangi pemesanan ulang pada jadwal yang sama.
+
+Pemesanan pada nilai `id_jadwal` yang berbeda tidak otomatis dilarang oleh aturan duplikasi ini. Prototype tidak memperkenalkan aturan satu pemesanan per hari, konsep jadwal alternatif, atau pembatalan otomatis atas pemesanan lain.
+
+Pendonor hanya dapat melihat dan mengelola pemesanan miliknya sendiri. Kepemilikan harus berasal dari Pendonor yang sedang terautentikasi; identifier Pendonor yang dikirim oleh client tidak boleh memberi kewenangan atas pemesanan Pendonor lain.
+
 ---
 
 ## 34. Kapasitas Jadwal adalah Data Turunan
@@ -532,6 +558,37 @@ Pemesanan dengan status `DIBATALKAN` tidak menggunakan kapasitas sehingga tidak 
 Definisi penggunaan kapasitas ini tidak sekaligus menentukan status yang dianggap aktif untuk aturan pencegahan pemesanan aktif ganda. Aturan pemesanan aktif ditentukan terpisah pada alur Pemesanan Donor.
 
 Jangan menambahkan field `jumlah_pemesanan`, `booked_count`, atau `sisa_kapasitas` tanpa perubahan rancangan.
+
+### Keputusan Proyek Phase 7D - Ketersediaan dan Siklus Pemesanan
+
+Pemesanan baru hanya dapat dibuat apabila seluruh kondisi berikut terpenuhi:
+
+- `status_jadwal = DIBUKA`;
+- tanggal jadwal sama dengan atau setelah tanggal hari ini menurut WIB (`Asia/Jakarta`);
+- sisa kapasitas lebih dari `0` berdasarkan definisi kapasitas di atas;
+- kelayakan donor ulang terhadap tanggal jadwal terpilih terpenuhi;
+- aturan pemesanan ulang untuk kombinasi Pendonor dan jadwal yang sama terpenuhi.
+
+Saat pemesanan yang valid dibuat:
+
+- `status_pemesanan` diisi `TERJADWAL`;
+- `waktu_pemesanan` diisi pada saat pembuatan menggunakan konvensi timestamp aplikasi yang sudah digunakan;
+- `kode_checkin` tetap `NULL`;
+- `waktu_checkin` tetap `NULL`.
+
+Kode check-in dibuat pada alur pradonasi/check-in berikutnya dan bukan pada pembuatan pemesanan Phase 7D.
+
+Pendonor hanya dapat membatalkan pemesanan miliknya sendiri apabila statusnya `TERJADWAL` dan tanggal jadwal terkait belum lewat menurut WIB (`Asia/Jakarta`). Pembatalan melakukan transisi:
+
+`TERJADWAL` -> `DIBATALKAN`
+
+Pemesanan berstatus `CHECK_IN`, `SELESAI`, `TIDAK_HADIR`, atau `DIBATALKAN` tidak dapat dibatalkan oleh Pendonor. Karena `DIBATALKAN` tidak menggunakan kapasitas, transisi pembatalan melepaskan kontribusi kapasitas dari pemesanan tersebut.
+
+Untuk menghilangkan ambiguitas bagi phase berikutnya, check-in yang berhasil melakukan transisi:
+
+`TERJADWAL` -> `CHECK_IN`
+
+Pada check-in, `waktu_checkin` diisi. Check-in tidak otomatis mengubah pemesanan lain milik Pendonor yang sama, dan prototype tidak memperkenalkan aturan satu check-in per hari. Ketentuan ini hanya memformalkan lifecycle; pembuatan kode check-in dan fungsi check-in Petugas tidak diimplementasikan pada Phase 7D.
 
 ---
 
