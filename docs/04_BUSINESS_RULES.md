@@ -518,10 +518,18 @@ Jangan menambahkan UNIQUE `(id_pendonor, id_jadwal)` ke basis data.
 
 Jumlah pemesanan pada suatu jadwal dan sisa kapasitas tidak disimpan sebagai field tetap.
 
-Sisa kapasitas dihitung dari:
+Sisa kapasitas dihitung dari nilai `jadwal_pelayanan.kapasitas` dikurangi jumlah pemesanan pada jadwal tersebut yang menggunakan kapasitas.
 
-- nilai `jadwal_pelayanan.kapasitas`; dan
-- jumlah pemesanan yang masih berlaku untuk jadwal tersebut.
+Status pemesanan yang menggunakan kapasitas adalah:
+
+- `TERJADWAL`;
+- `CHECK_IN`;
+- `SELESAI`;
+- `TIDAK_HADIR`.
+
+Pemesanan dengan status `DIBATALKAN` tidak menggunakan kapasitas sehingga tidak mengurangi sisa kapasitas.
+
+Definisi penggunaan kapasitas ini tidak sekaligus menentukan status yang dianggap aktif untuk aturan pencegahan pemesanan aktif ganda. Aturan pemesanan aktif ditentukan terpisah pada alur Pemesanan Donor.
 
 Jangan menambahkan field `jumlah_pemesanan`, `booked_count`, atau `sisa_kapasitas` tanpa perubahan rancangan.
 
