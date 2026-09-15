@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminPetugasController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PendonorDashboardController;
 use App\Http\Controllers\PendonorJadwalController;
+use App\Http\Controllers\PendonorKodeCheckinController;
 use App\Http\Controllers\PendonorKuesionerController;
 use App\Http\Controllers\PendonorPemesananController;
 use App\Http\Controllers\PendonorProfileController;
@@ -65,6 +66,14 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/pendonor/pemesanan/{pemesanan}/kuesioner', [PendonorKuesionerController::class, 'store'])
         ->middleware('role:PENDONOR')
         ->name('pendonor.kuesioner.store');
+
+    Route::get('/pendonor/pemesanan/{pemesanan}/kode-checkin', [PendonorKodeCheckinController::class, 'show'])
+        ->middleware('role:PENDONOR')
+        ->name('pendonor.kode-checkin.show');
+
+    Route::post('/pendonor/pemesanan/{pemesanan}/kode-checkin', [PendonorKodeCheckinController::class, 'generate'])
+        ->middleware('role:PENDONOR')
+        ->name('pendonor.kode-checkin.generate');
 
     Route::get('/petugas', [RoleHomeController::class, 'petugas'])
         ->middleware('role:PETUGAS')

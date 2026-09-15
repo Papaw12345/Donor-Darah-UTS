@@ -428,17 +428,6 @@ class Phase7DPemesananTest extends TestCase
             ->assertSee('name="_token"', false);
     }
 
-    public function test_booking_list_has_no_placeholder_checkin_action(): void
-    {
-        $pendonor = $this->createPendonor();
-
-        $this->actingAs($pendonor->akun)
-            ->get(route('pendonor.pemesanan.index'))
-            ->assertOk()
-            ->assertDontSee('Kode Check-in')
-            ->assertDontSee('Check-in');
-    }
-
     private function assertScheduleStatusIsRejected(string $status): void
     {
         $pendonor = $this->createPendonor();

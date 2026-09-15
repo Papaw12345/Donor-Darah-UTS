@@ -49,6 +49,7 @@
                             <td>{{ $item->status_pemesanan }}</td>
                             <td>
                                 <a href="{{ route('pendonor.kuesioner.show', $item) }}">Kuesioner Pradonasi</a>
+                                <a href="{{ route('pendonor.kode-checkin.show', $item) }}">Kode Check-in</a>
 
                                 @if (
                                     $item->status_pemesanan === 'TERJADWAL'
