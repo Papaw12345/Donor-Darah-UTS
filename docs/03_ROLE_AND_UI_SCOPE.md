@@ -131,7 +131,7 @@ Pendonor dapat:
 Pada menu Jadwal Donor, jadwal dianggap tersedia untuk ditampilkan apabila:
 
 - `status_jadwal = DIBUKA`;
-- `tanggal` sama dengan atau setelah tanggal hari ini; dan
+- `tanggal` sama dengan atau setelah tanggal hari ini menurut waktu operasional WIB (`Asia/Jakarta`); dan
 - sisa kapasitas lebih dari `0`.
 
 Jadwal dengan tanggal sebelum hari ini, jadwal `DITUTUP`, jadwal `DIBATALKAN`, atau jadwal yang sudah penuh tidak ditampilkan sebagai jadwal tersedia.

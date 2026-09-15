@@ -37,6 +37,10 @@
             <a href="{{ route('pendonor.profil.show') }}">Profil Saya</a>
         </p>
 
+        <p>
+            <a href="{{ route('pendonor.jadwal.index') }}">Jadwal Donor</a>
+        </p>
+
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit">Logout</button>
