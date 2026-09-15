@@ -41,6 +41,10 @@
             <a href="{{ route('pendonor.jadwal.index') }}">Jadwal Donor</a>
         </p>
 
+        <p>
+            <a href="{{ route('pendonor.pemesanan.index') }}">Pemesanan Donor Saya</a>
+        </p>
+
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit">Logout</button>

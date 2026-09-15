@@ -13,6 +13,16 @@
             Menampilkan jadwal pelayanan yang masih dibuka dan masih memiliki kapasitas.
         </p>
 
+        @if ($errors->any())
+            <div role="alert">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         @if ($jadwal->isEmpty())
             <p>Belum ada jadwal donor yang tersedia.</p>
         @else
@@ -25,6 +35,7 @@
                         <th scope="col">Kapasitas</th>
                         <th scope="col">Sisa Kapasitas</th>
                         <th scope="col">Status</th>
+                        <th scope="col">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -36,11 +47,21 @@
                             <td>{{ $item->kapasitas }}</td>
                             <td>{{ $item->kapasitas - $item->jumlah_pemesanan_berlaku }}</td>
                             <td>{{ $item->status_jadwal }}</td>
+                            <td>
+                                <form method="POST" action="{{ route('pendonor.pemesanan.store', $item) }}">
+                                    @csrf
+                                    <button type="submit">Buat Pemesanan</button>
+                                </form>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
         @endif
+
+        <p>
+            <a href="{{ route('pendonor.pemesanan.index') }}">Lihat Pemesanan Saya</a>
+        </p>
 
         <p>
             <a href="{{ route('pendonor.home') }}">Kembali ke Dashboard</a>
