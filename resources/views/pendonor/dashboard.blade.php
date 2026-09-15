@@ -49,6 +49,32 @@
             </p>
         </section>
 
+        <section aria-labelledby="pemberitahuan-terbaru">
+            <h2 id="pemberitahuan-terbaru">Pemberitahuan</h2>
+
+            <p>Belum dibaca: {{ $jumlahPemberitahuanBelumDibaca }}</p>
+
+            @if ($pemberitahuanTerbaru->isEmpty())
+                <p>Belum ada pemberitahuan.</p>
+            @else
+                <ul>
+                    @foreach ($pemberitahuanTerbaru as $item)
+                        <li>
+                            {{ $item->waktu_dibuat->format('d-m-Y H:i') }}
+                            - {{ $item->petugasPengirim?->nama_petugas ?? '-' }}
+                            - {{ $item->isi_pesan }}
+                            - {{ $item->waktu_dibaca === null ? 'Belum dibaca' : 'Sudah dibaca' }}
+                            - <a href="{{ route('pendonor.pemberitahuan.show', $item) }}">Lihat</a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+
+            <p>
+                <a href="{{ route('pendonor.pemberitahuan.index') }}">Lihat Semua Pemberitahuan</a>
+            </p>
+        </section>
+
         <p>
             <a href="{{ route('pendonor.profil.show') }}">Profil Saya</a>
         </p>

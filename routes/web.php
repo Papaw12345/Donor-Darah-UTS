@@ -11,6 +11,7 @@ use App\Http\Controllers\PendonorDonorBerikutnyaController;
 use App\Http\Controllers\PendonorJadwalController;
 use App\Http\Controllers\PendonorKodeCheckinController;
 use App\Http\Controllers\PendonorKuesionerController;
+use App\Http\Controllers\PendonorPemberitahuanController;
 use App\Http\Controllers\PendonorPemesananController;
 use App\Http\Controllers\PendonorProfileController;
 use App\Http\Controllers\PendonorRiwayatController;
@@ -44,6 +45,18 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/pendonor/riwayat', [PendonorRiwayatController::class, 'index'])
         ->middleware('role:PENDONOR')
         ->name('pendonor.riwayat.index');
+
+    Route::get('/pendonor/pemberitahuan', [PendonorPemberitahuanController::class, 'index'])
+        ->middleware('role:PENDONOR')
+        ->name('pendonor.pemberitahuan.index');
+
+    Route::get('/pendonor/pemberitahuan/{pemberitahuan}', [PendonorPemberitahuanController::class, 'show'])
+        ->middleware('role:PENDONOR')
+        ->name('pendonor.pemberitahuan.show');
+
+    Route::patch('/pendonor/pemberitahuan/{pemberitahuan}/dibaca', [PendonorPemberitahuanController::class, 'read'])
+        ->middleware('role:PENDONOR')
+        ->name('pendonor.pemberitahuan.read');
 
     Route::get('/pendonor/profil', [PendonorProfileController::class, 'show'])
         ->middleware('role:PENDONOR')

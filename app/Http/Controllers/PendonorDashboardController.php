@@ -17,10 +17,23 @@ class PendonorDashboardController extends Controller
             ->with('golonganDarah')
             ->firstOrFail();
 
+        $jumlahPemberitahuanBelumDibaca = $pendonor->pemberitahuan()
+            ->whereNull('waktu_dibaca')
+            ->count();
+
+        $pemberitahuanTerbaru = $pendonor->pemberitahuan()
+            ->with('petugasPengirim')
+            ->orderByDesc('waktu_dibuat')
+            ->orderByDesc('id_pemberitahuan')
+            ->limit(3)
+            ->get();
+
         return view('pendonor.dashboard', [
             'akun' => $akun,
             'pendonor' => $pendonor,
             'informasiDonorBerikutnya' => $calculator->calculate($pendonor),
+            'jumlahPemberitahuanBelumDibaca' => $jumlahPemberitahuanBelumDibaca,
+            'pemberitahuanTerbaru' => $pemberitahuanTerbaru,
         ]);
     }
 }
