@@ -978,6 +978,128 @@ Nullable pada `pekerjaan` dan `alamat_kantor` tetap mengikuti schema. Aturan ini
 
 ---
 
+## 43. Keputusan Proyek Phase 8A - Dashboard Petugas
+
+Phase 8A mengimplementasikan Dashboard Petugas sebagai ringkasan operasional hanya-baca. Ketentuan pada bagian ini memperjelas istilah dashboard yang sebelumnya belum mempunyai definisi teknis presisi dan tidak mengubah aturan inti donor maupun persediaan.
+
+### Lingkup dan Akses
+
+1. Dashboard Petugas tetap menggunakan route `GET /petugas` dengan nama `petugas.home`.
+2. Akses hanya untuk akun terautentikasi dengan `status_akun = AKTIF` dan `peran = PETUGAS`.
+3. Akun Petugas yang mengakses dashboard harus dapat ditelusuri ke satu row `petugas`.
+4. Data dashboard menggambarkan kondisi satu UDD secara keseluruhan dan tidak dibatasi hanya pada row yang dibuat atau dicatat oleh Petugas yang sedang login.
+5. Dashboard bersifat hanya-baca dan tidak menjalankan transisi state atau mutasi transaksi apa pun.
+
+### Tanggal Acuan
+
+Tanggal acuan untuk ringkasan yang berbasis hari adalah tanggal hari ini menurut WIB (`Asia/Jakarta`).
+
+Perbandingan tanggal pada persediaan juga menggunakan tanggal acuan tersebut.
+
+### Kegiatan Donor Hari Ini
+
+Kegiatan donor hari ini bersumber dari `pemesanan_donor` yang terhubung ke `jadwal_pelayanan` dengan:
+
+`jadwal_pelayanan.tanggal = tanggal_acuan`
+
+Dashboard menampilkan hitungan untuk masing-masing status:
+
+- `TERJADWAL`;
+- `CHECK_IN`;
+- `SELESAI`;
+- `TIDAK_HADIR`.
+
+`DIBATALKAN` tidak dihitung sebagai kegiatan donor operasional hari tersebut.
+
+Hitungan ini hanya merupakan agregasi untuk tampilan dashboard. Phase 8A tidak menetapkan kapan status berubah menjadi `SELESAI` atau `TIDAK_HADIR`, tidak mengubah definisi lifecycle, dan tidak memperbarui row `pemesanan_donor`.
+
+### Pendonor yang Sedang Diproses
+
+Jumlah Pendonor yang sedang diproses didefinisikan sebagai:
+
+`COUNT(DISTINCT pemesanan_donor.id_pendonor)`
+
+untuk row dengan:
+
+`status_pemesanan = CHECK_IN`
+
+Hitungan ini tidak diberi filter tanggal jadwal. Tujuannya adalah menampilkan state workflow yang masih tersimpan sebagai `CHECK_IN`, termasuk jika terdapat row yang belum ditutup oleh proses operasional.
+
+Dashboard tidak melakukan auto-complete, auto-no-show, atau koreksi status hanya karena tanggal jadwal sudah berlalu.
+
+### Total Persediaan Tersedia
+
+Jumlah unit yang saat ini dihitung sebagai persediaan adalah unit dengan:
+
+- `status_unit = TERSEDIA`; dan
+- `tanggal_kedaluwarsa >= tanggal_acuan`.
+
+Unit yang kedaluwarsa, `MENUNGGU_PELULUSAN`, `DITOLAK`, atau `DIDISTRIBUSIKAN` tidak dihitung sebagai persediaan tersedia.
+
+Total persediaan merupakan nilai turunan dan tidak disimpan sebagai angka stok.
+
+### Ringkasan Persediaan Rendah
+
+Persediaan rendah tetap menggunakan konfigurasi pada `ambang_persediaan`.
+
+Untuk setiap row `ambang_persediaan`, sistem menghitung jumlah unit tersedia dengan kombinasi yang sama berdasarkan:
+
+- `id_jenis_komponen`; dan
+- `id_golongan_darah`.
+
+Kombinasi diklasifikasikan rendah apabila:
+
+`jumlah_persediaan <= jumlah_minimum`
+
+Aturan tambahan untuk Dashboard Phase 8A:
+
+1. Stok `0` merupakan nilai persediaan yang valid dan tetap dibandingkan dengan `jumlah_minimum`.
+2. Hanya kombinasi yang mempunyai konfigurasi `ambang_persediaan` yang dapat diklasifikasikan low-stock.
+3. Sistem tidak menggunakan nilai ambang default atau hardcoded untuk kombinasi yang belum dikonfigurasi.
+4. Dashboard menampilkan jumlah kombinasi low-stock.
+5. Dashboard menampilkan seluruh kombinasi low-stock tanpa limit arbitrer.
+6. Setiap row low-stock minimal menampilkan jenis komponen, golongan darah ABO/Rhesus, jumlah persediaan, dan jumlah minimum.
+7. Jika belum ada konfigurasi ambang atau tidak ada kombinasi yang rendah, dashboard menampilkan empty state yang terkendali.
+8. Tidak ada CRUD nilai stok atau perubahan nilai `jumlah_minimum` dari Dashboard Petugas.
+
+### Batas Implementasi Phase 8A
+
+Phase 8A hanya menyediakan ringkasan dan navigasi yang sudah mempunyai tujuan route nyata.
+
+Phase 8A tidak mengimplementasikan lebih awal:
+
+- check-in Pendonor;
+- tampilan operasional kuesioner bagi Petugas;
+- seleksi donor;
+- pencatatan penyumbangan;
+- pencatatan unit komponen;
+- pelulusan unit;
+- distribusi unit;
+- halaman persediaan lengkap;
+- halaman persediaan rendah lengkap;
+- pemanggilan Pendonor; atau
+- pembuatan pemberitahuan.
+
+Menu atau tombol menuju fitur Phase 8 berikutnya tidak ditampilkan sebelum route dan fungsinya benar-benar tersedia.
+
+Phase 8A juga tidak menambahkan:
+
+- tabel atau kolom baru;
+- field statistik atau stok;
+- status baru;
+- migration baru;
+- custom index;
+- cache persediaan;
+- cron untuk kedaluwarsa;
+- chart atau grafik;
+- realtime/WebSocket;
+- AJAX atau SPA;
+- repository/service/DTO architecture khusus dashboard; atau
+- perubahan schema.
+
+Query agregasi Dashboard Phase 8A dapat tetap berada secara sederhana pada controller. Apabila perhitungan persediaan yang sama kemudian digunakan oleh beberapa fitur, konsistensinya dievaluasi pada Phase 9 dan dapat dipusatkan secara sederhana tanpa over-engineering.
+
+---
 # C. Aturan Implementasi Berdasarkan Layer
 
 ## Constraint Basis Data

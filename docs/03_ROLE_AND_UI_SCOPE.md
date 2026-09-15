@@ -373,6 +373,38 @@ Menampilkan ringkasan operasional seperti:
 - kondisi persediaan darah;
 - informasi persediaan yang berada pada atau di bawah ambang batas.
 
+#### Keputusan Proyek Phase 8A - Dashboard Petugas
+
+Dashboard Petugas merupakan ringkasan operasional hanya-baca untuk satu UDD.
+
+Ketentuan Phase 8A dikunci sebagai berikut:
+
+- route dashboard tetap `GET /petugas` dengan nama `petugas.home` dan wajib dilindungi autentikasi, status akun aktif, serta role `PETUGAS`;
+- akun Petugas yang sedang terautentikasi tetap harus mempunyai profil `petugas` yang valid, tetapi data ringkasan operasional mencakup satu UDD secara keseluruhan dan bukan hanya transaksi yang dicatat oleh Petugas tersebut;
+- tanggal acuan yang digunakan untuk ringkasan berbasis hari adalah tanggal hari ini menurut WIB (`Asia/Jakarta`);
+- bagian kegiatan donor hari ini dihitung dari `pemesanan_donor` yang terkait dengan `jadwal_pelayanan.tanggal` pada tanggal acuan;
+- kegiatan donor hari ini menampilkan jumlah pemesanan untuk masing-masing status `TERJADWAL`, `CHECK_IN`, `SELESAI`, dan `TIDAK_HADIR`;
+- pemesanan `DIBATALKAN` tidak dihitung dalam ringkasan kegiatan donor hari ini;
+- definisi kegiatan donor hari ini hanya merupakan ringkasan dashboard dan tidak mengubah lifecycle atau arti `status_pemesanan`;
+- jumlah Pendonor yang sedang diproses adalah jumlah Pendonor berbeda yang mempunyai `pemesanan_donor.status_pemesanan = CHECK_IN`;
+- hitungan Pendonor yang sedang diproses tidak dibatasi oleh tanggal jadwal. Row yang masih berstatus `CHECK_IN` tetap terlihat sebagai state workflow sampai proses operasional yang berwenang mengubah status tersebut;
+- Dashboard Petugas tidak memperbaiki, menutup, atau mengubah status workflow secara otomatis;
+- kondisi persediaan menggunakan jumlah unit yang memiliki `status_unit = TERSEDIA` dan `tanggal_kedaluwarsa` sama dengan atau setelah tanggal acuan;
+- jumlah persediaan selalu dihitung saat diperlukan dan tidak disimpan sebagai field atau angka stok manual;
+- ringkasan persediaan minimal menampilkan total unit yang saat ini tersedia;
+- kondisi persediaan rendah dievaluasi untuk setiap kombinasi yang mempunyai konfigurasi `ambang_persediaan`;
+- jumlah persediaan untuk ambang dihitung berdasarkan kombinasi `id_jenis_komponen` dan `id_golongan_darah`;
+- kombinasi berada pada kondisi rendah apabila `jumlah_persediaan <= jumlah_minimum`;
+- kombinasi dengan stok `0` tetap dievaluasi terhadap ambang dan dapat menjadi kondisi persediaan rendah;
+- kombinasi yang tidak mempunyai row `ambang_persediaan` tidak diberi ambang default dan tidak diklasifikasikan sebagai low-stock secara otomatis;
+- dashboard menampilkan jumlah kombinasi yang berada pada kondisi rendah serta seluruh kombinasi low-stock dengan informasi minimal jenis komponen, golongan darah ABO/Rhesus, jumlah persediaan, dan jumlah minimum;
+- dashboard tidak membatasi daftar low-stock menggunakan jumlah arbitrer seperti top 3;
+- apabila belum ada konfigurasi ambang, daftar low-stock menampilkan empty state yang terkendali tanpa menghalangi perhitungan total unit tersedia;
+- Phase 8A tidak menyediakan aksi check-in, seleksi, penyumbangan, pembuatan unit, pelulusan, distribusi, pemanggilan Pendonor, atau pembuatan pemberitahuan;
+- dashboard hanya boleh menampilkan navigasi ke route yang benar-benar sudah tersedia. Menu atau tombol untuk subphase Phase 8 yang belum diimplementasikan tidak boleh menjadi placeholder atau dead link;
+- akses dashboard menggunakan `GET` dan tidak membuat, memperbarui, atau menghapus row bisnis;
+- Phase 8A tidak menambahkan chart, grafik, realtime update, AJAX, SPA, cache stok, tabel ringkasan, service architecture, tabel baru, field baru, enum baru, index baru, atau perubahan schema.
+
 ### Check-in Pendonor
 
 Petugas dapat:
