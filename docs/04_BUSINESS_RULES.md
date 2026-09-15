@@ -717,6 +717,25 @@ Pemesanan pada nilai `id_jadwal` yang berbeda tidak otomatis dilarang oleh atura
 
 Pendonor hanya dapat melihat dan mengelola pemesanan miliknya sendiri. Kepemilikan harus berasal dari Pendonor yang sedang terautentikasi; identifier Pendonor yang dikirim oleh client tidak boleh memberi kewenangan atas pemesanan Pendonor lain.
 
+#### Keputusan Proyek Phase 7 Completion - Ringkasan Pemesanan Aktif
+
+Definisi status aktif Phase 7D juga digunakan oleh Dashboard Pendonor.
+
+Aturan ringkasan dashboard dikunci sebagai berikut:
+
+1. Sumber data hanya pemesanan milik Pendonor yang sedang terautentikasi.
+2. Pemesanan aktif yang ditampilkan adalah seluruh row dengan `status_pemesanan` tepat `TERJADWAL` atau `CHECK_IN`.
+3. `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tidak termasuk ringkasan aktif.
+4. Dashboard tidak menambahkan kondisi tanggal untuk mengubah definisi status aktif. State yang tersimpan tetap ditampilkan sampai workflow mengubah status pemesanan.
+5. Lebih dari satu pemesanan aktif dapat tampil apabila berada pada `id_jadwal` yang berbeda. Tidak ada konsep pemesanan utama atau pemilihan satu row secara arbitrer.
+6. Urutan data adalah `jadwal_pelayanan.tanggal ASC`, `jadwal_pelayanan.jam_mulai ASC`, `pemesanan_donor.waktu_pemesanan ASC`, kemudian `pemesanan_donor.id_pemesanan ASC`.
+7. Ringkasan hanya menampilkan informasi yang diperlukan untuk navigasi dan pemahaman state, minimal tanggal jadwal, jam pelayanan, dan status pemesanan.
+8. Aksi pengelolaan tetap dilakukan melalui halaman Pemesanan Donor dan bukan melalui penambahan mutation workflow baru pada dashboard.
+9. Akses dashboard bersifat hanya-baca dan tidak mengubah `status_pemesanan`, `waktu_checkin`, `kode_checkin`, atau data transaksi lain.
+10. Jika tidak ada pemesanan aktif, aplikasi menampilkan empty state tanpa membuat data sintetis.
+11. Ketentuan ini tidak mengubah definisi kapasitas jadwal dan tidak menambahkan field turunan.
+12. Phase 7 Completion tidak mengubah schema dan tidak menambahkan aturan medis atau lifecycle baru.
+
 ---
 
 ## 34. Kapasitas Jadwal adalah Data Turunan

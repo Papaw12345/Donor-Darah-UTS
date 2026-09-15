@@ -87,6 +87,23 @@ Menampilkan ringkasan:
 
 Dashboard hanya berfungsi sebagai ringkasan dan navigasi.
 
+#### Keputusan Proyek Phase 7 Completion - Ringkasan Pemesanan Aktif
+
+Untuk menutup Gate Phase 7, ringkasan pemesanan aktif pada Dashboard Pendonor menggunakan ketentuan berikut:
+
+- sumber data selalu Pendonor yang terhubung dengan akun `PENDONOR` yang sedang terautentikasi;
+- dashboard menampilkan seluruh `pemesanan_donor` milik Pendonor tersebut yang mempunyai `status_pemesanan = TERJADWAL` atau `status_pemesanan = CHECK_IN`;
+- `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tidak ditampilkan sebagai pemesanan aktif;
+- ringkasan tidak menambahkan filter berdasarkan tanggal jadwal. Apabila row masih berstatus aktif pada basis data, dashboard menampilkan state tersebut sebagaimana tersimpan;
+- karena pemesanan pada `id_jadwal` berbeda dapat sama-sama valid, dashboard tidak memilih satu pemesanan sebagai pemesanan utama dan tidak menyembunyikan pemesanan aktif lain;
+- urutan ringkasan adalah `jadwal_pelayanan.tanggal ASC`, `jadwal_pelayanan.jam_mulai ASC`, `pemesanan_donor.waktu_pemesanan ASC`, kemudian `pemesanan_donor.id_pemesanan ASC` sebagai tie-breaker deterministik;
+- setiap item ringkasan minimal menampilkan tanggal jadwal, jam pelayanan, dan `status_pemesanan`;
+- dashboard menyediakan link nyata menuju halaman `Pemesanan Donor Saya` untuk tindakan atau informasi lebih rinci;
+- dashboard tidak menambahkan tombol buat pemesanan, pembatalan, pengisian kuesioner, pembuatan kode check-in, atau aksi mutasi lain di dalam ringkasan ini;
+- apabila tidak ada pemesanan aktif, dashboard menampilkan empty state yang terkendali;
+- Dashboard Pendonor tetap menggunakan `GET` dan bersifat hanya-baca. Membuka dashboard tidak mengubah status atau data pemesanan;
+- Phase 7 Completion ini tidak menambahkan tabel, kolom, enum, index, status, atau perubahan schema.
+
 ### Profil Saya
 
 Pendonor dapat:
