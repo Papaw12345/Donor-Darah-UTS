@@ -293,6 +293,30 @@ Pendonor dapat:
 
 Pemberitahuan hanya berada di dalam aplikasi.
 
+#### Keputusan Proyek Phase 7I
+
+Rincian berikut mengunci perilaku sisi Pendonor untuk fitur Pemberitahuan:
+
+- Pendonor hanya dapat melihat dan menandai pemberitahuan yang ditujukan kepada dirinya sendiri. Kepemilikan berasal dari Pendonor yang terhubung dengan akun yang sedang terautentikasi; identifier Pendonor dari client tidak menentukan kepemilikan.
+- Daftar pemberitahuan hanya memuat row `pemberitahuan` milik Pendonor terautentikasi.
+- Daftar diurutkan secara deterministik berdasarkan `waktu_dibuat DESC`, kemudian `id_pemberitahuan DESC` sebagai tie-breaker.
+- Pendonor dapat membuka halaman detail untuk membaca isi lengkap pemberitahuan miliknya.
+- Akses daftar dan detail menggunakan `GET` dan bersifat hanya-baca. Membuka halaman tidak otomatis mengubah `waktu_dibaca`.
+- Status tampilan `Belum dibaca` diturunkan dari kondisi `waktu_dibaca IS NULL`, sedangkan `Sudah dibaca` diturunkan dari `waktu_dibaca IS NOT NULL`. Tidak ada field status pemberitahuan tambahan.
+- Aksi `Tandai Sudah Dibaca` dilakukan secara eksplisit melalui request mutasi non-GET, yaitu `PATCH`.
+- Pada penandaan pertama yang berhasil, `waktu_dibaca` diisi dengan waktu aksi menurut konvensi timestamp aplikasi.
+- Penandaan ulang bersifat idempotent. Jika `waktu_dibaca` sudah terisi, request berikutnya mempertahankan timestamp yang sudah ada, tidak membuat row baru, dan tidak menghasilkan error hanya karena pemberitahuan sudah dibaca.
+- Request serentak untuk menandai pemberitahuan yang sama harus menghasilkan satu state akhir yang konsisten. Implementasi boleh menggunakan transaction dan row locking sederhana agar timestamp pertama yang berhasil tidak diganti oleh request paralel berikutnya.
+- Pemberitahuan milik Pendonor lain tidak boleh dapat dibaca atau diubah melalui manipulasi URL, route parameter, query string, atau request body. Resource harus ditolak secara terkendali melalui ownership server-side.
+- Daftar minimal menampilkan waktu dibuat, Petugas pengirim, isi atau ringkasan pesan, dan status baca. Halaman detail menampilkan isi pesan lengkap serta informasi pengirim dan waktu yang relevan.
+- Pendonor tidak dapat membuat, mengirim, mengedit, atau menghapus pemberitahuan.
+- Pembuatan dan pengiriman pemberitahuan oleh Petugas tetap berada pada Phase 8. Phase 7I hanya mengimplementasikan sisi penerima Pendonor.
+- Dashboard Pendonor menampilkan jumlah pemberitahuan yang belum dibaca, maksimal 3 pemberitahuan terbaru milik Pendonor, dan link nyata menuju daftar seluruh pemberitahuan.
+- Tiga pemberitahuan terbaru pada dashboard menggunakan urutan yang sama dengan halaman daftar.
+- Jika tidak ada pemberitahuan, daftar dan ringkasan dashboard menampilkan empty state yang terkendali.
+- Phase 7I tidak menambahkan fitur tandai semua sudah dibaca, tandai belum dibaca, filter, search, arsitektur pagination, delete, edit, email, SMS, WhatsApp, WebSocket, realtime push, Laravel Notification framework, tabel baru, kolom baru, atau perubahan schema.
+- Semua tombol dan link yang ditampilkan pada fitur Phase 7I harus mempunyai route dan aksi yang benar-benar berfungsi.
+
 ## Batasan Akses Pendonor
 
 Pendonor tidak boleh:

@@ -854,6 +854,30 @@ Tidak ada pengiriman melalui:
 
 Sistem tidak menyimpan status pengiriman eksternal.
 
+### Keputusan Proyek Phase 7I - Penerimaan Pemberitahuan Pendonor
+
+Phase 7I mengimplementasikan sisi penerima Pendonor dan tidak mengambil alih fungsi pembuatan atau pengiriman pemberitahuan milik Petugas pada Phase 8.
+
+Aturan operasionalnya dikunci sebagai berikut:
+
+1. Target data selalu Pendonor yang terhubung dengan akun `PENDONOR` yang sedang terautentikasi.
+2. Pendonor hanya dapat melihat row `pemberitahuan` dengan `id_pendonor` miliknya sendiri.
+3. Identifier Pendonor dari client tidak dapat mengubah ownership atau memperluas akses.
+4. Daftar pemberitahuan diurutkan berdasarkan `waktu_dibuat DESC`, kemudian `id_pemberitahuan DESC`.
+5. `GET` daftar dan detail tidak mengubah database dan tidak mengisi `waktu_dibaca`.
+6. Status belum dibaca diturunkan dari `waktu_dibaca IS NULL`; status sudah dibaca diturunkan dari `waktu_dibaca IS NOT NULL`.
+7. Penandaan sebagai sudah dibaca dilakukan melalui aksi `PATCH` yang hanya dapat menargetkan pemberitahuan milik Pendonor terautentikasi.
+8. Penandaan pertama mengisi `waktu_dibaca`. Jika field tersebut sudah terisi, request ulang mempertahankan nilai yang ada.
+9. Aksi penandaan bersifat idempotent: request berulang tidak membuat row baru, tidak merotasi timestamp yang telah tersimpan, dan tidak mengubah isi pesan, pengirim, penerima, atau `waktu_dibuat`.
+10. Untuk request serentak terhadap pemberitahuan yang sama, implementasi harus menjaga satu hasil akhir yang konsisten. Transaction dan row locking sederhana dapat digunakan sebagai titik serialisasi agar request kedua membaca state terbaru.
+11. Pemberitahuan milik Pendonor lain harus ditolak melalui pemeriksaan ownership server-side dan tidak boleh membocorkan isi pesan.
+12. Dashboard menghitung jumlah belum dibaca dari row milik Pendonor dengan `waktu_dibaca IS NULL`.
+13. Dashboard menampilkan maksimal 3 pemberitahuan terbaru milik Pendonor menggunakan urutan yang sama dengan halaman daftar.
+14. Dashboard menyediakan link nyata menuju daftar seluruh pemberitahuan.
+15. Phase 7I tidak membuat atau mengirim row `pemberitahuan`; data tersebut berasal dari proses Petugas yang diimplementasikan pada Phase 8 atau dari fixture test yang valid.
+16. Pendonor tidak memiliki aksi edit pesan, hapus pesan, kirim pesan, tandai belum dibaca, atau tandai semua sudah dibaca.
+17. Phase 7I tidak menambahkan tabel, kolom, enum, index, status pengiriman, kanal eksternal, realtime notification infrastructure, maupun perubahan schema.
+
 ---
 
 ## 41. Riwayat dan Informasi Donor Berikutnya adalah Data Turunan
