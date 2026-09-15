@@ -6,20 +6,17 @@ use App\Support\PendonorDonorBerikutnyaCalculator;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class PendonorDashboardController extends Controller
+class PendonorDonorBerikutnyaController extends Controller
 {
     public function index(
         Request $request,
         PendonorDonorBerikutnyaCalculator $calculator
     ): View {
-        $akun = $request->user();
-        $pendonor = $akun->pendonor()
-            ->with('golonganDarah')
+        $pendonor = $request->user()
+            ->pendonor()
             ->firstOrFail();
 
-        return view('pendonor.dashboard', [
-            'akun' => $akun,
-            'pendonor' => $pendonor,
+        return view('pendonor.donor-berikutnya', [
             'informasiDonorBerikutnya' => $calculator->calculate($pendonor),
         ]);
     }

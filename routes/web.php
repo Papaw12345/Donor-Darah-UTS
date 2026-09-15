@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminPertanyaanKuesionerController;
 use App\Http\Controllers\AdminPetugasController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PendonorDashboardController;
+use App\Http\Controllers\PendonorDonorBerikutnyaController;
 use App\Http\Controllers\PendonorJadwalController;
 use App\Http\Controllers\PendonorKodeCheckinController;
 use App\Http\Controllers\PendonorKuesionerController;
@@ -35,6 +36,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/pendonor', [PendonorDashboardController::class, 'index'])
         ->middleware('role:PENDONOR')
         ->name('pendonor.home');
+
+    Route::get('/pendonor/donor-berikutnya', [PendonorDonorBerikutnyaController::class, 'index'])
+        ->middleware('role:PENDONOR')
+        ->name('pendonor.donor-berikutnya.index');
 
     Route::get('/pendonor/riwayat', [PendonorRiwayatController::class, 'index'])
         ->middleware('role:PENDONOR')

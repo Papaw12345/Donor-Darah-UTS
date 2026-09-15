@@ -33,6 +33,22 @@
             </dl>
         </section>
 
+        <section aria-labelledby="informasi-donor-berikutnya">
+            <h2 id="informasi-donor-berikutnya">Informasi Donor Berikutnya</h2>
+
+            @if ($informasiDonorBerikutnya['donor_pertama'])
+                <p>Anda belum memiliki riwayat donor berhasil. Berdasarkan riwayat, Anda dapat mencoba donor pertama sekarang.</p>
+            @elseif ($informasiDonorBerikutnya['dapat_mencoba_sekarang'])
+                <p>Berdasarkan riwayat donor berhasil, Anda sudah dapat mencoba donor kembali.</p>
+            @else
+                <p>Perkiraan paling awal untuk mencoba donor kembali: {{ $informasiDonorBerikutnya['tanggal_donor_berikutnya']->format('d-m-Y') }}.</p>
+            @endif
+
+            <p>
+                <a href="{{ route('pendonor.donor-berikutnya.index') }}">Lihat Informasi Donor Berikutnya</a>
+            </p>
+        </section>
+
         <p>
             <a href="{{ route('pendonor.profil.show') }}">Profil Saya</a>
         </p>
