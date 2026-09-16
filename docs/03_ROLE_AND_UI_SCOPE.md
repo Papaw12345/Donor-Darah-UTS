@@ -621,6 +621,35 @@ Hasil pelulusan:
 
 Petugas pelulus dan waktu pelulusan dicatat ketika proses pelulusan dilakukan.
 
+#### Keputusan Proyek Phase 8G - Pelulusan Unit
+
+Rincian berikut mengunci perilaku operasional Pelulusan Unit pada Phase 8G tanpa menambah proses laboratorium rinci.
+
+- Phase 8G menyediakan menu global `Pelulusan` bagi Petugas untuk memilih unit yang masih berstatus `MENUNGGU_PELULUSAN`.
+- Route menggunakan `GET /petugas/pelulusan` bernama `petugas.pelulusan.index`, `GET /petugas/pelulusan/{unit}` bernama `petugas.pelulusan.show`, dan `POST /petugas/pelulusan/{unit}` bernama `petugas.pelulusan.store`.
+- Target detail dan mutasi berasal dari route-bound `UnitKomponenDarah`. Identifier unit, Petugas pelulus, sumber penyumbangan, atau workflow lain dari client tidak boleh mengganti target dan authority server.
+- Fungsi hanya tersedia bagi akun terautentikasi dengan `status_akun = AKTIF`, `peran = PETUGAS`, dan relasi profil `petugas` yang valid.
+- `id_petugas_pelulus` selalu berasal dari profil Petugas yang sedang terautentikasi.
+- Halaman index hanya menampilkan unit dengan `status_unit = MENUNGGU_PELULUSAN` sebagai kandidat yang dapat diproses.
+- Hasil pelulusan yang dapat dicatat hanya `TERSEDIA` atau `DITOLAK`.
+- Form mutasi hanya menerima `hasil_pelulusan` dan `catatan_pelulusan`.
+- `catatan_pelulusan` tetap nullable. Nilai kosong setelah trimming disimpan sebagai `NULL` dan tidak diwajibkan khusus untuk hasil `DITOLAK`.
+- `waktu_pelulusan` ditentukan server pada saat transaksi pelulusan berhasil dan bukan input form Petugas.
+- Pelulusan bersifat satu kali terhadap lifecycle unit: hanya `MENUNGGU_PELULUSAN` yang dapat dimutasi menjadi `TERSEDIA` atau `DITOLAK`.
+- Phase 8G tidak menyediakan edit, revisi, undo, relulus, transisi `TERSEDIA` menjadi `DITOLAK`, atau transisi `DITOLAK` menjadi `TERSEDIA`.
+- Unit yang sudah `TERSEDIA`, `DITOLAK`, atau pada phase berikutnya `DIDISTRIBUSIKAN` dapat dibuka melalui halaman detail sebagai riwayat read-only, tetapi tidak menampilkan form pelulusan.
+- Pencatatan pelulusan dilakukan dalam transaction dengan row `unit_komponen_darah` target dikunci menggunakan row-level lock. Setelah lock, status unit diperiksa ulang sebelum mutation.
+- Jika request pelulusan dikirim dua kali atau dua tab memproses unit yang sama, hanya request pertama yang boleh mengubah unit. Request berikutnya membaca state terbaru dan ditolak secara terkendali tanpa menimpa hasil pertama.
+- Kondisi kedaluwarsa tidak mengubah enum `status_unit` dan Phase 8G tidak menambahkan status `KEDALUWARSA`.
+- Phase 8G tidak menjadikan `tanggal_kedaluwarsa` sebagai syarat tambahan untuk menentukan apakah unit `MENUNGGU_PELULUSAN` boleh dicatat hasil pelulusannya. Kondisi kedaluwarsa tetap digunakan pada perhitungan persediaan.
+- Unit yang berakhir `TERSEDIA` hanya dihitung sebagai persediaan apabila belum melewati `tanggal_kedaluwarsa`, sesuai aturan persediaan existing.
+- Phase 8G tidak mengubah `nomor_unit`, sumber penyumbangan, jenis komponen, golongan darah, Petugas pencatat, tanggal pembuatan, tanggal kedaluwarsa, atau `waktu_distribusi`.
+- Phase 8G tidak membuat atau mengedit angka stok. Perubahan persediaan terjadi secara derived dari `status_unit` dan `tanggal_kedaluwarsa`.
+- Sistem tidak menentukan metode pemeriksaan laboratorium. Phase 8G hanya mencatat hasil setelah proses pemeriksaan di luar rincian sistem selesai.
+- Phase 8G tidak menambahkan alat, reagen, IMLTD, metode QC, workflow laboratorium, tabel, field, enum, UNIQUE, foreign key, index, migration, atau package baru.
+- Setelah route nyata tersedia, Dashboard Petugas boleh menampilkan navigasi `Pelulusan`. Tidak boleh ada link Distribusi Phase 8H sebelum route dan fungsinya benar-benar tersedia.
+- Phase 8G berhenti setelah pencatatan hasil pelulusan. Distribusi tetap menjadi Phase 8H.
+
 ### Distribusi Unit
 
 Petugas dapat mencatat unit tersedia yang keluar dari persediaan UDD sebagai `DIDISTRIBUSIKAN`.

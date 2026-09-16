@@ -1931,6 +1931,236 @@ Phase 8F tidak:
 
 Pelulusan unit tetap menjadi Phase 8G. Phase 8F berhenti setelah unit berhasil dicatat dengan status `MENUNGGU_PELULUSAN`.
 
+---
+
+## 49. Keputusan Proyek Phase 8G - Pelulusan Unit
+
+Phase 8G mengimplementasikan pencatatan hasil pelulusan unit komponen darah yang sudah berada pada `MENUNGGU_PELULUSAN`.
+
+### Scope Pelulusan
+
+Sistem tidak menentukan atau menjalankan metode pemeriksaan laboratorium secara rinci.
+
+Setelah proses pemeriksaan yang berada di luar rincian sistem selesai, Petugas hanya mencatat hasil pelulusan unit.
+
+Phase 8G tidak menambahkan:
+
+- alat;
+- reagen;
+- metode IMLTD;
+- metode quality control;
+- hasil laboratorium baru;
+- workflow laboratorium rinci;
+- tabel laboratorium;
+- field laboratorium.
+
+### Akses dan Route
+
+Phase 8G menggunakan tiga route:
+
+1. `GET /petugas/pelulusan` dengan nama `petugas.pelulusan.index`;
+2. `GET /petugas/pelulusan/{unit}` dengan nama `petugas.pelulusan.show`;
+3. `POST /petugas/pelulusan/{unit}` dengan nama `petugas.pelulusan.store`.
+
+Fungsi hanya dapat digunakan oleh akun:
+
+- `status_akun = AKTIF`;
+- `peran = PETUGAS`; dan
+- mempunyai profil `petugas` yang valid.
+
+Parameter `{unit}` adalah target authoritative `UnitKomponenDarah` untuk halaman detail dan mutation.
+
+Identifier client tidak boleh mengganti:
+
+- `id_unit` target;
+- `id_petugas_pelulus`;
+- sumber penyumbangan;
+- Petugas pencatat;
+- field lifecycle lain.
+
+### Halaman Index
+
+Menu `Pelulusan` menampilkan unit yang masih mempunyai:
+
+`status_unit = MENUNGGU_PELULUSAN`
+
+sebagai daftar kandidat yang dapat diproses.
+
+Index bersifat read-only.
+
+Unit `TERSEDIA`, `DITOLAK`, dan `DIDISTRIBUSIKAN` tidak ditampilkan sebagai kandidat baru pada index.
+
+### Detail Unit
+
+Halaman detail menampilkan data unit yang diperlukan untuk keterlacakan, sekurang-kurangnya:
+
+- nomor unit;
+- sumber penyumbangan yang relevan;
+- jenis komponen;
+- golongan darah;
+- tanggal pembuatan;
+- tanggal kedaluwarsa;
+- Petugas pencatat;
+- status unit saat ini.
+
+Jika status masih `MENUNGGU_PELULUSAN`, halaman dapat menampilkan form pelulusan.
+
+Jika unit sudah `TERSEDIA`, `DITOLAK`, atau nanti `DIDISTRIBUSIKAN`, detail tetap dapat dilihat sebagai riwayat read-only dan tidak menampilkan form mutation.
+
+### Hasil Pelulusan
+
+Mutation hanya menerima hasil:
+
+- `TERSEDIA`; atau
+- `DITOLAK`.
+
+Transisi yang diizinkan oleh Phase 8G hanya:
+
+`MENUNGGU_PELULUSAN -> TERSEDIA`
+
+atau:
+
+`MENUNGGU_PELULUSAN -> DITOLAK`.
+
+Tidak ada:
+
+- `TERSEDIA -> DITOLAK`;
+- `DITOLAK -> TERSEDIA`;
+- kembali ke `MENUNGGU_PELULUSAN`;
+- edit hasil;
+- revisi;
+- undo;
+- relulus.
+
+### Authority Petugas dan Waktu
+
+`id_petugas_pelulus` berasal dari profil Petugas yang sedang terautentikasi.
+
+Client tidak dapat memilih atau mengganti Petugas pelulus.
+
+`waktu_pelulusan` ditentukan server ketika transaction pelulusan berhasil.
+
+`waktu_pelulusan` bukan input form.
+
+Phase 8G tidak menambahkan rule temporal medis atau laboratorium lain terhadap timestamp tersebut.
+
+### Catatan Pelulusan
+
+`catatan_pelulusan` bersifat nullable sesuai schema.
+
+Catatan:
+
+- boleh diisi untuk `TERSEDIA`;
+- boleh diisi untuk `DITOLAK`;
+- tidak diwajibkan untuk salah satu hasil;
+- di-trim sebelum disimpan;
+- string kosong setelah trimming disimpan sebagai `NULL`.
+
+Form Phase 8G hanya menerima:
+
+- `hasil_pelulusan`; dan
+- `catatan_pelulusan`.
+
+### Transaction dan Concurrency
+
+Pencatatan pelulusan dilakukan di dalam database transaction.
+
+Urutan minimum mutation:
+
+1. resolve Petugas terautentikasi;
+2. query ulang row `unit_komponen_darah` berdasarkan route-bound unit;
+3. lock row unit menggunakan row-level lock;
+4. periksa ulang `status_unit = MENUNGGU_PELULUSAN`;
+5. validasi hasil `TERSEDIA` atau `DITOLAK`;
+6. simpan `status_unit`, `id_petugas_pelulus`, `waktu_pelulusan`, dan `catatan_pelulusan` secara atomik.
+
+Jika request yang sama dikirim dua kali atau dua tab memproses unit yang sama secara bersamaan:
+
+- request pertama yang memperoleh state valid dapat menyimpan hasil;
+- request berikutnya harus membaca state terbaru setelah lock;
+- request berikutnya tidak boleh mengganti hasil pertama;
+- request berikutnya ditolak secara terkendali jika unit tidak lagi `MENUNGGU_PELULUSAN`.
+
+Phase 8G tidak menambahkan distributed lock, lock table, UNIQUE, index, atau constraint baru.
+
+### Kedaluwarsa
+
+`KEDALUWARSA` tetap bukan nilai `status_unit`.
+
+Kondisi kedaluwarsa tetap derived dari `tanggal_kedaluwarsa`.
+
+Phase 8G tidak menjadikan tanggal kedaluwarsa sebagai syarat tambahan untuk mencatat hasil pelulusan unit yang masih `MENUNGGU_PELULUSAN` karena source tidak menetapkan gate pelulusan tersebut.
+
+Apabila unit dicatat `TERSEDIA` tetapi tanggal kedaluwarsanya sudah lewat, status tetap `TERSEDIA`, tetapi unit tersebut tidak dihitung sebagai persediaan tersedia.
+
+Phase 8G tidak membuat:
+
+- status `KEDALUWARSA`;
+- cron perubahan status;
+- flag kedaluwarsa;
+- mutation expiry otomatis.
+
+### Dampak terhadap Persediaan
+
+Phase 8G tidak membuat row persediaan dan tidak mengedit angka stok.
+
+Persediaan tetap dihitung secara derived berdasarkan unit yang:
+
+- `status_unit = TERSEDIA`; dan
+- belum melewati `tanggal_kedaluwarsa`.
+
+Karena itu perubahan unit dari `MENUNGGU_PELULUSAN` menjadi `TERSEDIA` dapat mengubah hasil query persediaan tanpa mutation angka stok.
+
+Unit `DITOLAK` tidak dihitung sebagai persediaan tersedia.
+
+### Field yang Tidak Diubah
+
+Phase 8G tidak mengubah:
+
+- `nomor_unit`;
+- `id_penyumbangan`;
+- `id_jenis_komponen`;
+- `id_golongan_darah`;
+- `id_petugas_pencatat`;
+- `tanggal_pembuatan`;
+- `tanggal_kedaluwarsa`;
+- `waktu_distribusi`.
+
+Phase 8G hanya memutasi field lifecycle pelulusan yang memang sudah tersedia pada schema:
+
+- `id_petugas_pelulus`;
+- `waktu_pelulusan`;
+- `status_unit`;
+- `catatan_pelulusan`.
+
+### Navigasi
+
+Setelah route Phase 8G benar-benar tersedia, Dashboard Petugas boleh menampilkan link nyata `Pelulusan`.
+
+Menu tersebut harus menuju index Pelulusan yang berfungsi.
+
+Phase 8G tidak menampilkan link atau aksi Distribusi sebelum Phase 8H benar-benar tersedia.
+
+### Batas Implementasi Phase 8G
+
+Phase 8G tidak:
+
+- melakukan distribusi;
+- mengubah unit menjadi `DIDISTRIBUSIKAN`;
+- mengisi `waktu_distribusi`;
+- membuat CRUD persediaan;
+- membuat angka stok manual;
+- membuat atau mengubah ambang persediaan;
+- membuat low-stock mutation;
+- melakukan pemanggilan Pendonor;
+- membuat pemberitahuan;
+- menambahkan rule medis atau laboratorium baru;
+- menambah tabel, field, enum, UNIQUE, FK, index, atau migration;
+- mengubah schema;
+- mengimplementasikan Phase 8H atau phase setelahnya.
+
+Distribusi Unit tetap menjadi Phase 8H.
+
 # C. Aturan Implementasi Berdasarkan Layer
 
 ## Constraint Basis Data
