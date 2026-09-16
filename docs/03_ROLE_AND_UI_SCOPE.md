@@ -496,6 +496,36 @@ Untuk Pendonor baru yang belum memiliki golongan darah terkonfirmasi, Petugas da
 
 Kewenangan ini tidak berarti Petugas dapat mengubah profil Pendonor secara bebas.
 
+#### Keputusan Proyek Phase 8D - Seleksi Donor
+
+Rincian berikut mengunci perilaku operasional Seleksi Donor pada Phase 8D.
+
+- Seleksi diakses berdasarkan `pemesanan_donor` sebagai target utama. Target tidak ditentukan oleh `id_petugas`, `id_pendonor`, `id_seleksi`, `kode_checkin`, atau identifier tambahan dari client.
+- Route Phase 8D menggunakan `GET /petugas/pemesanan/{pemesanan}/seleksi` bernama `petugas.seleksi.show` dan `POST /petugas/pemesanan/{pemesanan}/seleksi` bernama `petugas.seleksi.store`.
+- Fungsi hanya tersedia bagi akun terautentikasi dengan `status_akun = AKTIF`, `peran = PETUGAS`, dan relasi profil `petugas` yang valid.
+- Sistem mencakup satu UDD. Petugas aktif yang valid dapat menangani pemesanan operasional yang memenuhi syarat; pemesanan tidak dimiliki oleh Petugas tertentu.
+- Seleksi baru hanya dapat dibuat untuk pemesanan dengan `status_pemesanan = CHECK_IN` dan `waktu_checkin` yang sudah terisi.
+- Pemesanan `TERJADWAL`, `SELESAI`, `DIBATALKAN`, atau `TIDAK_HADIR` tidak dapat menghasilkan seleksi baru.
+- Pemesanan harus mempunyai `kuesioner_pradonasi` dan minimal satu `jawaban_kuesioner` yang tersimpan. Data yang hilang atau tidak konsisten ditolak secara terkendali dan tidak dibuat atau diperbaiki otomatis.
+- Setelah check-in valid terjadi, tanggal, jam, dan status administratif jadwal tidak diperiksa ulang sebagai syarat pembuatan seleksi.
+- Satu pemesanan maksimal mempunyai satu `seleksi_donor`. Seleksi bersifat satu kali pencatatan: tidak ada edit, delete, revisi, approval tambahan, atau riwayat perubahan seleksi pada prototype.
+- Seleksi yang sudah tersimpan tetap dapat dilihat sebagai riwayat meskipun tanggal jadwal telah lewat atau status pemesanan kemudian berubah.
+- `id_petugas` berasal dari profil Petugas yang sedang terautentikasi dan `waktu_seleksi` ditentukan oleh server ketika transaksi berhasil. Nilai tersebut tidak dipercaya dari request client.
+- Field pemeriksaan mengikuti schema `seleksi_donor`: `berat_badan`, `tekanan_sistolik`, `tekanan_diastolik`, `denyut_nadi`, `suhu_tubuh`, `kadar_hb`, `hasil_pemeriksaan_kesehatan`, `keputusan_seleksi`, dan `alasan_keputusan`.
+- Enam nilai pengukuran utama dan `keputusan_seleksi` wajib diisi. `hasil_pemeriksaan_kesehatan` dan `alasan_keputusan` tetap nullable sesuai schema.
+- Keputusan hanya `LAYAK`, `DITUNDA`, atau `DITOLAK`.
+- Phase 8D tidak menambahkan threshold medis atau rule engine untuk menentukan keputusan dari hasil pengukuran maupun jawaban kuesioner. Keputusan dicatat oleh Petugas.
+- Jawaban kuesioner merupakan informasi pendukung seleksi dan tidak menghasilkan skor risiko atau keputusan otomatis.
+- Jika `pendonor.id_golongan_darah` masih `NULL`, Petugas dapat mencatat golongan darah yang sudah dikonfirmasi menggunakan master `golongan_darah`. Pengisian ini tidak diwajibkan hanya untuk membuat seleksi.
+- Jika Pendonor sudah memiliki `id_golongan_darah`, Phase 8D menampilkannya sebagai data terkonfirmasi dan tidak mengizinkan perubahan melalui request seleksi.
+- Pembuatan seleksi dilakukan secara atomik dengan row `pemesanan_donor` sebagai titik serialisasi. Setelah row dikunci, aplikasi memeriksa ulang state check-in, prasyarat kuesioner, dan keberadaan seleksi sebelum menyimpan.
+- Permintaan ganda atau serentak untuk pemesanan yang sama tidak boleh menghasilkan seleksi kedua atau menimpa seleksi pertama. Constraint UNIQUE `seleksi_donor.id_pemesanan` yang sudah ada tetap menjadi lapisan integritas terakhir.
+- Jika keputusan `LAYAK`, `status_pemesanan` tetap `CHECK_IN` agar proses dapat dilanjutkan ke Penyumbangan pada Phase 8E.
+- Jika keputusan `DITUNDA` atau `DITOLAK`, seleksi dan transisi `status_pemesanan` dari `CHECK_IN` menjadi `SELESAI` disimpan dalam transaksi yang sama karena proses donor pada kesempatan tersebut tidak dilanjutkan.
+- Halaman Kuesioner Petugas boleh menyediakan aksi nyata menuju Seleksi Donor setelah Phase 8D tersedia. Untuk pemesanan yang belum mempunyai seleksi dan masih memenuhi syarat, aksi dapat berupa `Seleksi Donor`; seleksi yang sudah ada dapat dibuka sebagai tampilan read-only.
+- Phase 8D belum menyediakan aksi Penyumbangan. Aksi tersebut baru boleh muncul setelah Phase 8E benar-benar diimplementasikan.
+- Phase 8D tidak membuat `penyumbangan`, unit komponen darah, pelulusan, distribusi, pemberitahuan, tabel baru, kolom baru, index baru, atau perubahan schema.
+
 ### Penyumbangan
 
 Petugas dapat mencatat penyumbangan untuk seleksi yang `LAYAK`.
