@@ -24,6 +24,10 @@
             </dl>
         </section>
 
+        <nav aria-label="Operasional Petugas">
+            <a href="{{ route('petugas.check-in.index') }}">Check-in Pendonor</a>
+        </nav>
+
         <section aria-labelledby="kegiatan-donor-hari-ini">
             <h2 id="kegiatan-donor-hari-ini">Kegiatan Donor Hari Ini</h2>
             <p>Tanggal operasional WIB: {{ $tanggalAcuan }}</p>

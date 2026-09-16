@@ -319,7 +319,7 @@ class Phase8ADashboardPetugasTest extends TestCase
             ->assertDontSee('Belum ada konfigurasi ambang persediaan.');
     }
 
-    public function test_dashboard_get_is_read_only_and_exposes_no_phase_8b_actions(): void
+    public function test_dashboard_get_is_read_only_and_exposes_only_real_checkin_navigation(): void
     {
         $petugas = $this->createPetugas();
         $pendonor = $this->createPendonor();
@@ -359,15 +359,25 @@ class Phase8ADashboardPetugasTest extends TestCase
         $html = $response->getContent();
         $this->assertSame(1, substr_count($html, '<form'));
         $this->assertSame(1, substr_count($html, '<button'));
-        $this->assertSame(0, substr_count($html, '<a '));
+        $this->assertSame(1, substr_count($html, '<a '));
         $response
             ->assertSee(route('logout'), false)
+            ->assertSee(
+                '<a href="'.route('petugas.check-in.index').'">Check-in Pendonor</a>',
+                false
+            )
             ->assertDontSee('name="kode_checkin"', false)
-            ->assertDontSee('href="/petugas/', false)
             ->assertDontSee('action="/petugas/', false)
+            ->assertDontSee('Review Kuesioner')
+            ->assertDontSee('Kuesioner Pradonasi')
             ->assertDontSee('Seleksi Donor')
+            ->assertDontSee('Penyumbangan')
             ->assertDontSee('Buat Unit')
-            ->assertDontSee('Kirim Pemberitahuan');
+            ->assertDontSee('Pelulusan')
+            ->assertDontSee('Distribusi')
+            ->assertDontSee('Pemanggilan Pendonor')
+            ->assertDontSee('Kirim Pemberitahuan')
+            ->assertDontSee('Buat Pemberitahuan');
     }
 
     private function createAccount(string $role = 'PENDONOR', string $status = 'AKTIF'): Akun
