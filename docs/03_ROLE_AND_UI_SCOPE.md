@@ -459,6 +459,25 @@ Petugas dapat melihat jawaban kuesioner Pendonor sebagai salah satu informasi da
 
 Petugas tidak mengelola master pertanyaan kuesioner.
 
+#### Keputusan Proyek Phase 8C - Tampilan Kuesioner Petugas
+
+Phase 8C hanya menambahkan tampilan read-only jawaban kuesioner bagi Petugas setelah check-in dan sebelum seleksi.
+
+- Akses hanya untuk akun `PETUGAS` aktif dengan profil `petugas` yang valid dan berlaku untuk satu UDD.
+- Route menggunakan `GET /petugas/pemesanan/{pemesanan}/kuesioner` dengan nama `petugas.kuesioner.show`.
+- Target ditentukan dari `pemesanan_donor` pada route. `id_petugas`, `id_pendonor`, `id_kuesioner`, dan `kode_checkin` dari client tidak menentukan target.
+- Tampilan diperbolehkan untuk `CHECK_IN` atau `SELESAI` apabila `waktu_checkin` sudah terisi.
+- `TERJADWAL`, `DIBATALKAN`, dan `TIDAK_HADIR` bukan jalur tampilan operasional Phase 8C.
+- Setelah check-in berhasil, tanggal dan status administratif jadwal tidak membatasi tampilan historical kuesioner.
+- Kuesioner dan jawaban harus sudah tersimpan. Data yang hilang atau tidak konsisten tidak dibuat atau diperbaiki otomatis.
+- Daftar jawaban berasal dari row `jawaban_kuesioner` yang benar-benar tersimpan dan tetap menampilkan jawaban untuk pertanyaan yang kemudian `NONAKTIF`.
+- Jawaban diurutkan menurut `pertanyaan_kuesioner.urutan`, kemudian `id_pertanyaan`.
+- Nilai `YA_TIDAK` ditampilkan sebagai `YA` atau `TIDAK`; nilai `TEKS` ditampilkan sebagaimana tersimpan. Tidak ada interpretasi atau aturan medis baru.
+- Halaman bersifat sepenuhnya read-only: tidak mengubah pemesanan, kuesioner, jawaban, pertanyaan, jadwal, Pendonor, atau transaksi lain dan tidak membuat `seleksi_donor`.
+- Karena tidak ada mutation, Phase 8C tidak memakai `DB::transaction()` atau `lockForUpdate()`.
+- Halaman Check-in boleh menampilkan link nyata `Lihat Kuesioner` untuk pemesanan yang sudah `CHECK_IN`.
+- Tombol atau route `Seleksi Donor` belum ditampilkan sampai Phase 8D benar-benar diimplementasikan.
+- Tidak ada tabel review, field review, snapshot/versioning pertanyaan, migration, custom index, service/repository/DTO, AJAX, SPA, atau dependency baru.
 ### Seleksi Donor
 
 Petugas dapat:

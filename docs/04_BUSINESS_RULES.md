@@ -1310,6 +1310,70 @@ Phase 8B juga tidak menambahkan:
 - dependency baru.
 
 ---
+## 45. Keputusan Proyek Phase 8C - Tampilan Kuesioner Petugas
+
+Phase 8C adalah pembacaan data kuesioner yang sudah tersimpan, bukan transaksi review medis baru.
+
+### Akses dan Target
+
+1. Hanya akun aktif dengan `peran = PETUGAS` dan profil `petugas` valid yang dapat mengakses fitur.
+2. Route hanya `GET /petugas/pemesanan/{pemesanan}/kuesioner`, bernama `petugas.kuesioner.show`.
+3. `pemesanan_donor` pada route adalah target utama. Relasi Pendonor, jadwal, kuesioner, jawaban, dan pertanyaan ditentukan server-side.
+4. Identifier Petugas, Pendonor, kuesioner, atau kode check-in tambahan dari client tidak mengubah target.
+
+### State yang Dapat Dilihat
+
+Tampilan diperbolehkan apabila:
+
+- `status_pemesanan = CHECK_IN` dan `waktu_checkin IS NOT NULL`; atau
+- `status_pemesanan = SELESAI` dan `waktu_checkin IS NOT NULL`.
+
+`TERJADWAL`, `DIBATALKAN`, dan `TIDAK_HADIR` ditolak sebagai jalur operasional Phase 8C.
+
+Tanggal jadwal dan `status_jadwal` tidak menjadi filter historical setelah check-in berhasil.
+
+### Data Kuesioner
+
+Pemesanan yang dapat dilihat harus mempunyai `kuesioner_pradonasi` dan minimal satu `jawaban_kuesioner`.
+
+Jika kuesioner atau seluruh jawaban tidak tersedia pada state yang seharusnya sudah lengkap, aplikasi memperlakukan kondisi tersebut sebagai data tidak konsisten dan tidak membuat data pengganti.
+
+Daftar tampilan berasal dari row `jawaban_kuesioner` yang tersimpan, bukan dari seluruh pertanyaan aktif saat ini.
+
+Pertanyaan yang sekarang `NONAKTIF` tetap ditampilkan apabila mempunyai jawaban historical.
+
+Urutan jawaban:
+
+1. `pertanyaan_kuesioner.urutan` ascending;
+2. `pertanyaan_kuesioner.id_pertanyaan` ascending.
+
+Untuk `YA_TIDAK`, tampilkan nilai tersimpan `YA` atau `TIDAK`.
+
+Untuk `TEKS`, tampilkan teks jawaban yang tersimpan.
+
+Tidak ada skor, klasifikasi risiko, diagnosis, rekomendasi, atau business rule medis tambahan.
+
+Schema tetap tidak menyimpan snapshot redaksi atau versioning pertanyaan. Jawaban historical tetap memakai row `pertanyaan_kuesioner` yang saat ini direferensikan.
+
+### Read-Only dan Navigasi
+
+Request Phase 8C tidak boleh:
+
+- mengubah status pemesanan atau `waktu_checkin`;
+- mengubah kuesioner, jawaban, atau master pertanyaan;
+- mengubah Pendonor atau jadwal;
+- membuat `seleksi_donor`, `penyumbangan`, unit komponen, atau pemberitahuan;
+- membuat status/timestamp review.
+
+Karena fitur hanya membaca data, `DB::transaction()` dan `lockForUpdate()` tidak diperlukan.
+
+Setelah pemesanan berhasil `CHECK_IN`, halaman Check-in dapat menampilkan link nyata `Lihat Kuesioner`.
+
+Phase 8C belum menampilkan route atau tombol `Seleksi Donor`. Fitur tersebut tetap Phase 8D.
+
+Tidak ada perubahan schema, migration, custom index, tabel review, field review, snapshot/versioning pertanyaan, service/repository/DTO, AJAX, SPA, atau dependency baru.
+
+---
 # C. Aturan Implementasi Berdasarkan Layer
 
 ## Constraint Basis Data
