@@ -119,6 +119,9 @@
                         @endif
                     </dd>
                 </dl>
+                @if ($penyumbangan->hasil_penyumbangan === 'BERHASIL')
+                    <p><a href="{{ route('petugas.unit-komponen.show', $penyumbangan) }}">Unit Komponen Darah</a></p>
+                @endif
             </section>
         @endif
 
