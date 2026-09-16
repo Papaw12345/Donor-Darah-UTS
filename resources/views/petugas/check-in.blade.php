@@ -74,6 +74,16 @@
                 @else
                     <p role="status">{{ $eligibilityMessage }}</p>
                 @endif
+
+                @if (
+                    $pemesanan->status_pemesanan === 'CHECK_IN'
+                    && $pemesanan->waktu_checkin !== null
+                    && $pemesanan->kuesionerPradonasi !== null
+                )
+                    <p>
+                        <a href="{{ route('petugas.kuesioner.show', $pemesanan) }}">Lihat Kuesioner</a>
+                    </p>
+                @endif
             </section>
         @endif
 
