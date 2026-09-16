@@ -72,6 +72,19 @@
             </table>
         </section>
 
+        @if ($pemesanan->seleksiDonor !== null)
+            <p>
+                <a href="{{ route('petugas.seleksi.show', $pemesanan) }}">Lihat Seleksi</a>
+            </p>
+        @elseif (
+            $pemesanan->status_pemesanan === 'CHECK_IN'
+            && $pemesanan->waktu_checkin !== null
+        )
+            <p>
+                <a href="{{ route('petugas.seleksi.show', $pemesanan) }}">Seleksi Donor</a>
+            </p>
+        @endif
+
         <p><a href="{{ route('petugas.check-in.index') }}">Kembali ke Check-in Pendonor</a></p>
 
         <form method="POST" action="{{ route('logout') }}">

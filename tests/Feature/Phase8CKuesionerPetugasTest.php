@@ -321,7 +321,7 @@ class Phase8CKuesionerPetugasTest extends TestCase
         }
     }
 
-    public function test_checkin_navigation_is_conditional_and_questionnaire_page_has_no_phase_8d_controls(): void
+    public function test_checkin_navigation_is_conditional_and_questionnaire_page_links_to_selection(): void
     {
         $petugas = $this->createPetugas();
         [, $checkedIn] = $this->createValidFixture();
@@ -357,7 +357,8 @@ class Phase8CKuesionerPetugasTest extends TestCase
             ->assertOk()
             ->assertSee(route('petugas.check-in.index'), false)
             ->assertSee(route('logout'), false)
-            ->assertDontSee('Seleksi Donor')
+            ->assertSee(route('petugas.seleksi.show', $checkedIn), false)
+            ->assertSee('Seleksi Donor')
             ->assertDontSee('LAYAK')
             ->assertDontSee('DITUNDA')
             ->assertDontSee('DITOLAK')

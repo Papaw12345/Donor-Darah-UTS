@@ -18,6 +18,7 @@ use App\Http\Controllers\PendonorRiwayatController;
 use App\Http\Controllers\PetugasCheckinController;
 use App\Http\Controllers\PetugasDashboardController;
 use App\Http\Controllers\PetugasKuesionerController;
+use App\Http\Controllers\PetugasSeleksiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -115,6 +116,14 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/petugas/pemesanan/{pemesanan}/kuesioner', [PetugasKuesionerController::class, 'show'])
         ->middleware('role:PETUGAS')
         ->name('petugas.kuesioner.show');
+
+    Route::get('/petugas/pemesanan/{pemesanan}/seleksi', [PetugasSeleksiController::class, 'show'])
+        ->middleware('role:PETUGAS')
+        ->name('petugas.seleksi.show');
+
+    Route::post('/petugas/pemesanan/{pemesanan}/seleksi', [PetugasSeleksiController::class, 'store'])
+        ->middleware('role:PETUGAS')
+        ->name('petugas.seleksi.store');
 
     Route::middleware('role:ADMIN')->group(function () {
         Route::get('/admin', [AdminDashboardController::class, 'index'])
