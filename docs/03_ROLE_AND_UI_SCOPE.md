@@ -417,6 +417,42 @@ Petugas dapat:
 - mencatat waktu check-in;
 - memperbarui status pemesanan sesuai proses.
 
+#### Keputusan Proyek Phase 8B - Check-in Petugas
+
+Phase 8B mengimplementasikan check-in operasional Petugas tanpa menambahkan tabel atau field baru.
+
+Ketentuan Phase 8B dikunci sebagai berikut:
+
+- hanya akun aktif dengan peran `PETUGAS` dan profil `petugas` yang valid yang dapat menggunakan fungsi check-in;
+- fungsi check-in berlaku untuk kunjungan pada satu UDD secara keseluruhan dan tidak dibatasi oleh kepemilikan transaksi terhadap Petugas tertentu;
+- halaman utama menggunakan `GET /petugas/check-in`;
+- pencarian kode pada halaman tersebut bersifat hanya-baca dan tidak mengubah row bisnis;
+- Petugas memasukkan satu `kode_checkin`; input dihapus whitespace awal/akhirnya dan dinormalisasi menjadi huruf besar sebelum validasi dan pencarian;
+- format kode yang diterima tetap format Phase 7F, yaitu `UDD-` diikuti tepat 12 karakter heksadesimal;
+- kode yang valid digunakan untuk menemukan satu `pemesanan_donor` berdasarkan UNIQUE `kode_checkin`;
+- hasil lookup menampilkan informasi kunjungan minimal berupa Pendonor, jadwal, pemesanan, status pemesanan, dan keberadaan kuesioner pradonasi;
+- Phase 8B belum menampilkan atau mengubah jawaban rinci kuesioner sebagai proses review; tampilan jawaban Petugas tetap berada pada phase berikutnya;
+- lookup kode tidak melakukan check-in otomatis. Check-in baru dilakukan melalui aksi konfirmasi `POST`;
+- check-in baru hanya dapat dilakukan untuk pemesanan berstatus tepat `TERJADWAL`;
+- pemesanan `SELESAI`, `DIBATALKAN`, atau `TIDAK_HADIR` tidak dapat ditransisikan menjadi `CHECK_IN`;
+- pemesanan harus memiliki `kode_checkin` yang sesuai dan satu `kuesioner_pradonasi` yang sudah tersimpan;
+- tanggal `jadwal_pelayanan.tanggal` untuk check-in baru harus tepat sama dengan tanggal hari ini menurut WIB (`Asia/Jakarta`);
+- pemesanan dengan tanggal jadwal masa depan atau yang sudah lewat tidak dapat menjalani check-in baru;
+- `status_jadwal = DIBATALKAN` menolak check-in baru;
+- `status_jadwal = DITUTUP` tidak dengan sendirinya menggugurkan pemesanan `TERJADWAL` yang sudah valid dan mempunyai kode check-in;
+- Phase 8B tidak menambahkan pembatasan berdasarkan `jam_mulai` atau `jam_selesai`;
+- check-in berhasil hanya mengubah `status_pemesanan` dari `TERJADWAL` menjadi `CHECK_IN` dan mengisi `waktu_checkin` menggunakan konvensi timestamp aplikasi;
+- check-in tidak mengubah `kode_checkin`, kuesioner, jadwal, pemesanan lain, profil Pendonor, atau transaksi operasional lain;
+- pengiriman ulang untuk kode yang sudah berhasil check-in bersifat idempotent apabila status sudah `CHECK_IN` dan `waktu_checkin` sudah terisi: timestamp pertama dipertahankan dan tidak ada mutation kedua;
+- kombinasi state yang tidak konsisten, misalnya `CHECK_IN` tetapi `waktu_checkin = NULL` atau `TERJADWAL` tetapi `waktu_checkin` sudah terisi, ditolak secara terkendali dan tidak diperbaiki otomatis;
+- mutation check-in dilakukan dalam transaksi basis data dengan row `pemesanan_donor` target sebagai titik serialisasi dan dikunci menggunakan row lock sebelum syarat diperiksa ulang;
+- apabila dua Petugas mengirim check-in untuk kode yang sama secara bersamaan, hanya request pertama yang melakukan transisi; request berikutnya setelah memperoleh lock melihat state `CHECK_IN` dan diperlakukan sebagai pengiriman ulang idempotent;
+- setelah check-in berhasil digunakan pola Post/Redirect/Get sehingga refresh halaman hasil tidak mengulang mutation;
+- setelah route Check-in nyata tersedia, Dashboard Petugas boleh menampilkan navigasi nyata menuju `Check-in Pendonor`;
+- Phase 8B tidak menampilkan link atau aksi operasional Phase 8C dan seterusnya sebelum route tersebut benar-benar tersedia;
+- Phase 8B tidak membuat `seleksi_donor`, `penyumbangan`, unit komponen, pemberitahuan, atau mutation lain di luar check-in;
+- Phase 8B tidak menambahkan tabel check-in, tabel log, field Petugas check-in, status baru, migration, custom index, QR code, barcode, scanner, service/repository architecture, AJAX, SPA, atau dependency baru.
+
 ### Kuesioner Pradonasi
 
 Petugas dapat melihat jawaban kuesioner Pendonor sebagai salah satu informasi dalam proses seleksi.

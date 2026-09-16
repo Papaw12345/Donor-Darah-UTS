@@ -1100,6 +1100,216 @@ Phase 8A juga tidak menambahkan:
 Query agregasi Dashboard Phase 8A dapat tetap berada secara sederhana pada controller. Apabila perhitungan persediaan yang sama kemudian digunakan oleh beberapa fitur, konsistensinya dievaluasi pada Phase 9 dan dapat dipusatkan secara sederhana tanpa over-engineering.
 
 ---
+## 44. Keputusan Proyek Phase 8B - Check-in Petugas
+
+Phase 8B memformalkan rincian operasional check-in Petugas yang sebelumnya belum ditentukan secara presisi.
+
+Aturan yang sudah bersumber tetap berlaku:
+
+- Petugas menggunakan `kode_checkin` ketika Pendonor datang untuk menemukan kunjungan terkait;
+- kode terhubung dengan `pemesanan_donor`;
+- check-in berhasil melakukan transisi `TERJADWAL` -> `CHECK_IN`;
+- `waktu_checkin` diisi pada proses tersebut;
+- tidak ada tabel check-in baru.
+
+Ketentuan berikut merupakan keputusan proyek Phase 8B untuk implementasi operasional.
+
+### Akses dan Scope
+
+1. Fungsi check-in hanya dapat digunakan oleh akun terautentikasi dengan `status_akun = AKTIF`, `peran = PETUGAS`, dan relasi profil `petugas` yang valid.
+2. Check-in merupakan fungsi satu UDD. Pemesanan target tidak dibatasi oleh Petugas mana yang sedang login.
+3. Identifier Petugas atau Pendonor yang dikirim client tidak menentukan target check-in.
+4. Schema tidak mempunyai `id_petugas_checkin`; Phase 8B tidak menambahkan field tersebut hanya untuk mencatat pelaksana check-in.
+
+### Route dan Alur UI
+
+Phase 8B menggunakan alur sederhana dua langkah:
+
+1. `GET /petugas/check-in`
+   - menampilkan form kode;
+   - bila `kode_checkin` diberikan, melakukan lookup hanya-baca;
+   - menampilkan data kunjungan dan kelayakan check-in;
+   - tidak mengubah database.
+
+2. `POST /petugas/check-in`
+   - mengonfirmasi dan menjalankan mutation check-in untuk kode yang dikirim;
+   - seluruh syarat diperiksa ulang pada server;
+   - setelah hasil berhasil atau idempotent, digunakan pola Post/Redirect/Get.
+
+Lookup tidak boleh menjalankan check-in otomatis.
+
+Dashboard Petugas dapat menampilkan link `Check-in Pendonor` setelah route GET tersebut benar-benar tersedia.
+
+### Normalisasi dan Pencarian Kode
+
+Input `kode_checkin`:
+
+1. dihapus whitespace pada awal dan akhirnya;
+2. dinormalisasi menjadi huruf besar;
+3. harus mempunyai format `UDD-` diikuti tepat 12 karakter heksadesimal.
+
+Contoh bentuk:
+
+`UDD-A84C21EF07B9`
+
+Kode dengan format tidak valid atau kode yang tidak ditemukan ditolak secara terkendali dan tidak mengubah row bisnis.
+
+Lookup menggunakan `pemesanan_donor.kode_checkin` yang sudah mempunyai constraint UNIQUE.
+
+Phase 8B tidak menambahkan scanner, QR code, barcode, tabel token, versioning kode, atau field kedaluwarsa kode.
+
+### Data yang Ditampilkan Saat Lookup
+
+Untuk kode yang ditemukan, Petugas dapat melihat data kunjungan minimal:
+
+- identitas Pendonor yang diperlukan;
+- jadwal pelayanan;
+- data/status pemesanan;
+- kode check-in terkait; dan
+- informasi bahwa `kuesioner_pradonasi` terkait tersedia atau tidak.
+
+Phase 8B belum merupakan halaman review jawaban kuesioner.
+
+Jawaban rinci kuesioner untuk Petugas tetap berada pada subphase berikutnya.
+
+### Kelayakan Check-in Baru
+
+Check-in baru hanya dapat dilakukan apabila seluruh kondisi berikut terpenuhi:
+
+1. `pemesanan_donor.status_pemesanan = TERJADWAL`;
+2. `pemesanan_donor.kode_checkin` sesuai dengan kode target;
+3. satu `kuesioner_pradonasi` terkait sudah tersimpan;
+4. `jadwal_pelayanan.tanggal` tepat sama dengan tanggal hari ini menurut WIB (`Asia/Jakarta`);
+5. `jadwal_pelayanan.status_jadwal` bukan `DIBATALKAN`;
+6. `waktu_checkin` masih `NULL`.
+
+Pemesanan dengan tanggal jadwal sebelum hari ini atau setelah hari ini ditolak untuk check-in baru.
+
+Phase 8B tidak menambahkan window waktu berdasarkan `jam_mulai` atau `jam_selesai`.
+
+Jadwal `DITUTUP` tidak dengan sendirinya menolak check-in untuk pemesanan `TERJADWAL` yang sudah valid, memiliki kode, dan memenuhi syarat lain.
+
+Pemesanan berstatus:
+
+- `SELESAI`;
+- `DIBATALKAN`; atau
+- `TIDAK_HADIR`
+
+tidak dapat ditransisikan menjadi `CHECK_IN`.
+
+### Mutation Check-in
+
+Check-in baru yang berhasil hanya melakukan:
+
+`status_pemesanan: TERJADWAL -> CHECK_IN`
+
+dan mengisi:
+
+`waktu_checkin`
+
+dengan waktu keberhasilan check-in menurut konvensi timestamp aplikasi.
+
+Check-in tidak:
+
+- mengubah atau menghapus `kode_checkin`;
+- mengubah kuesioner atau jawaban;
+- mengubah jadwal;
+- mengubah pemesanan lain milik Pendonor yang sama;
+- membuat `seleksi_donor`;
+- membuat `penyumbangan`;
+- membuat unit komponen darah;
+- membuat pemberitahuan; atau
+- memperbarui profil Pendonor.
+
+Prototype tetap tidak mempunyai aturan satu check-in per Pendonor per hari.
+
+### Idempotency
+
+Apabila kode yang sama dikirim kembali setelah check-in berhasil dan row sudah mempunyai:
+
+- `status_pemesanan = CHECK_IN`; dan
+- `waktu_checkin` tidak `NULL`,
+
+request berikutnya diperlakukan sebagai pengiriman ulang idempotent.
+
+Dalam kondisi tersebut:
+
+- tidak ada update kedua;
+- `waktu_checkin` pertama tidak diganti;
+- kode tidak diganti atau dihapus;
+- response memberikan informasi bahwa pemesanan sudah check-in.
+
+Idempotency ini berlaku untuk double-click, resubmit form, refresh melalui alur lama, atau dua tab yang mengirim aksi yang sama.
+
+### State Tidak Konsisten
+
+Aplikasi tidak memperbaiki data workflow yang tidak konsisten secara diam-diam.
+
+Contoh state tidak konsisten:
+
+- `status_pemesanan = CHECK_IN` tetapi `waktu_checkin IS NULL`;
+- `status_pemesanan = TERJADWAL` tetapi `waktu_checkin IS NOT NULL`.
+
+State seperti itu ditolak secara terkendali dan tidak dimutasi oleh Phase 8B.
+
+### Transaksi dan Concurrency
+
+Mutation check-in dilakukan secara atomik dalam transaksi basis data.
+
+Row `pemesanan_donor` target menjadi titik serialisasi:
+
+1. server menormalisasi dan memvalidasi kode;
+2. transaction dimulai;
+3. row dengan `kode_checkin` target diambil dan dikunci menggunakan `lockForUpdate()`;
+4. relasi jadwal dan keberadaan kuesioner diperiksa;
+5. seluruh syarat check-in diperiksa ulang setelah row lock diperoleh;
+6. bila masih `TERJADWAL` dan seluruh syarat terpenuhi, status diubah menjadi `CHECK_IN` dan `waktu_checkin` diisi;
+7. transaction di-commit.
+
+Jika dua Petugas melakukan check-in terhadap kode yang sama secara bersamaan:
+
+- request pertama yang memperoleh lock melakukan mutation;
+- request lain menunggu lock;
+- setelah lock tersedia, request berikutnya membaca state terbaru;
+- jika state sudah `CHECK_IN` dengan `waktu_checkin` terisi, request berikutnya menjadi no-op idempotent.
+
+Tidak ada row check-in kedua dan tidak ada timestamp check-in kedua.
+
+### Batas Phase 8B
+
+Phase 8B hanya mengimplementasikan pencarian kunjungan dan check-in.
+
+Phase 8B belum mengimplementasikan:
+
+- review rinci jawaban kuesioner Petugas;
+- seleksi donor;
+- pembaruan golongan darah dari proses seleksi;
+- penyumbangan;
+- pencatatan unit;
+- pelulusan;
+- distribusi;
+- halaman persediaan lengkap;
+- pemanggilan Pendonor;
+- pembuatan pemberitahuan.
+
+Menu atau tombol Phase 8C dan seterusnya tidak ditampilkan sebelum route dan fungsi masing-masing benar-benar tersedia.
+
+Phase 8B juga tidak menambahkan:
+
+- tabel atau field baru;
+- migration baru;
+- custom index;
+- status pemesanan baru;
+- tabel log check-in;
+- field Petugas check-in;
+- QR code;
+- barcode;
+- scanner;
+- AJAX atau SPA;
+- service/repository/DTO architecture; atau
+- dependency baru.
+
+---
 # C. Aturan Implementasi Berdasarkan Layer
 
 ## Constraint Basis Data
