@@ -1534,6 +1534,174 @@ Phase 8D tidak:
 Tidak ada perubahan schema, migration, custom index, tabel review, field review, snapshot/versioning pertanyaan, service/repository/DTO, AJAX, SPA, atau dependency baru.
 
 ---
+---
+
+## 47. Keputusan Proyek Phase 8E - Penyumbangan
+
+Phase 8E mengimplementasikan pencatatan satu transaksi `penyumbangan` dari satu `seleksi_donor` yang `LAYAK`.
+
+### Akses, Route, dan Target
+
+Route Phase 8E:
+
+1. `GET /petugas/seleksi/{seleksi}/penyumbangan` dengan nama `petugas.penyumbangan.show`;
+2. `POST /petugas/seleksi/{seleksi}/penyumbangan` dengan nama `petugas.penyumbangan.store`.
+
+Parameter `{seleksi}` adalah target authoritative `SeleksiDonor`.
+
+Akses hanya bagi akun:
+
+- `status_akun = AKTIF`;
+- `peran = PETUGAS`; dan
+- mempunyai profil `petugas` yang valid.
+
+`id_petugas_pencatat` berasal dari Petugas terautentikasi.
+
+Client tidak boleh mengganti authority menggunakan `id_seleksi`, `id_pemesanan`, `id_pendonor`, `id_petugas_pencatat`, `id_penyumbangan`, atau identifier workflow lain.
+
+### Prasyarat Penyumbangan Baru
+
+Penyumbangan baru hanya dapat dibuat apabila:
+
+1. `seleksi_donor.keputusan_seleksi = LAYAK`;
+2. seleksi terhubung ke `pemesanan_donor`;
+3. `pemesanan_donor.status_pemesanan = CHECK_IN`;
+4. `pemesanan_donor.waktu_checkin` mempunyai nilai; dan
+5. belum ada `penyumbangan` untuk seleksi tersebut.
+
+Seleksi `DITUNDA` dan `DITOLAK` tidak dapat menghasilkan penyumbangan.
+
+Setelah seleksi `LAYAK`, Phase 8E tidak memeriksa ulang tanggal jadwal, `status_jadwal`, `jam_mulai`, atau `jam_selesai` sebagai filter pencatatan penyumbangan.
+
+### Data Penyumbangan
+
+Phase 8E menggunakan field schema existing:
+
+- `id_penyumbangan`;
+- `id_seleksi`;
+- `id_petugas_pencatat`;
+- `waktu_pengambilan`;
+- `volume_ml`;
+- `hasil_penyumbangan`; dan
+- `alasan_gagal`.
+
+`id_seleksi` berasal dari route-bound `SeleksiDonor` dan `id_petugas_pencatat` berasal dari profil Petugas login.
+
+`waktu_pengambilan` merupakan input operasional Petugas. Nilai tersebut tidak diganti otomatis dengan `now()`.
+
+Phase 8E hanya memvalidasi bahwa `waktu_pengambilan` merupakan datetime yang dapat disimpan dan tidak menambah aturan temporal lain yang tidak ditentukan specification.
+
+`hasil_penyumbangan` hanya `BERHASIL` atau `GAGAL`.
+
+`alasan_gagal` tetap nullable sesuai schema.
+
+### Volume Whole Blood dan Berat Badan
+
+Volume Whole Blood prototype hanya:
+
+- `350` mL; atau
+- `450` mL.
+
+Untuk `hasil_penyumbangan = BERHASIL`:
+
+- `volume_ml` wajib;
+- nilai harus `350` atau `450`.
+
+Untuk `hasil_penyumbangan = GAGAL`:
+
+- `volume_ml` boleh `NULL`;
+- jika diisi, nilai harus `350` atau `450`.
+
+Aturan berat menggunakan `seleksi_donor.berat_badan` yang sudah tersimpan:
+
+- `350` mL memerlukan berat minimal `45` kg;
+- `450` mL memerlukan berat minimal `55` kg.
+
+Berat badan tidak diterima ulang dari request Penyumbangan.
+
+Aturan berat tersebut berlaku setiap kali volume terkait dicatat. Phase 8E tidak menambahkan threshold medis lain.
+
+### Satu Penyumbangan dan Concurrency
+
+Satu `seleksi_donor` maksimal mempunyai satu `penyumbangan`.
+
+Pembuatan penyumbangan harus atomik. Di dalam transaction:
+
+1. `seleksi_donor` target di-query ulang berdasarkan route dan dikunci;
+2. keputusan `LAYAK` diperiksa ulang;
+3. `pemesanan_donor` terkait dikunci;
+4. state `CHECK_IN` dan `waktu_checkin` diperiksa ulang;
+5. keberadaan `penyumbangan` diperiksa ulang;
+6. volume divalidasi terhadap berat badan seleksi;
+7. tepat satu row `penyumbangan` dibuat; dan
+8. lifecycle pemesanan diselesaikan.
+
+Request ganda atau serentak tidak boleh menghasilkan transaksi kedua atau menimpa transaksi pertama.
+
+UNIQUE `penyumbangan.id_seleksi` existing tetap menjadi lapisan integritas terakhir.
+
+Phase 8E tidak menambah UNIQUE, index, constraint, atau migration baru.
+
+Penyumbangan existing tidak diedit, dihapus, direvisi, atau diganti.
+
+### Lifecycle Pemesanan Setelah Penyumbangan
+
+Sebelum pencatatan penyumbangan baru, state valid adalah:
+
+`CHECK_IN`
+
+Setelah penyumbangan `BERHASIL` maupun `GAGAL` berhasil dicatat:
+
+`CHECK_IN` -> `SELESAI`
+
+Create `penyumbangan` dan perubahan `status_pemesanan` menjadi `SELESAI` harus terjadi dalam transaction yang sama.
+
+Transisi ini merupakan keputusan workflow prototype untuk menutup satu kesempatan donor setelah proses Penyumbangan selesai dan bukan aturan medis.
+
+Penyumbangan `GAGAL`:
+
+- tetap merupakan transaksi nyata;
+- tidak dihitung sebagai donor berhasil;
+- tidak menggantikan donor berhasil terakhir; dan
+- tidak dapat menghasilkan unit komponen darah.
+
+### Tampilan dan Riwayat
+
+`GET` Penyumbangan mempunyai dua mode:
+
+1. form pencatatan untuk seleksi yang masih eligible dan belum mempunyai penyumbangan; atau
+2. tampilan read-only untuk transaksi yang sudah tersimpan.
+
+Penyumbangan existing tetap dapat dilihat setelah pemesanan `SELESAI`, tanggal jadwal berlalu, atau status administratif jadwal berubah.
+
+GET existing tidak memperbaiki atau mengubah state workflow.
+
+Setelah Phase 8E tersedia, halaman Seleksi Donor menampilkan:
+
+- `Catat Penyumbangan` untuk seleksi `LAYAK` tanpa penyumbangan;
+- `Lihat Penyumbangan` jika penyumbangan sudah ada.
+
+Seleksi `DITUNDA` atau `DITOLAK` tidak menampilkan aksi Penyumbangan.
+
+### Batas Implementasi Phase 8E
+
+Phase 8E tidak:
+
+- membuat unit komponen darah;
+- melakukan pelulusan unit;
+- melakukan distribusi unit;
+- mengubah persediaan secara manual;
+- membuat pemberitahuan;
+- menyediakan edit atau delete penyumbangan;
+- menambah riwayat revisi;
+- menambah rule medis di luar specification;
+- menambah tabel, field, constraint, index, atau migration;
+- mengubah schema;
+- menambah service, repository, atau DTO hanya untuk workflow ini; atau
+- mengimplementasikan Phase 8F dan phase setelahnya.
+
+Penyumbangan `BERHASIL` baru menjadi sumber untuk Phase 8F Unit Komponen Darah. Phase 8E sendiri belum membuat unit tersebut.
+
 # C. Aturan Implementasi Berdasarkan Layer
 
 ## Constraint Basis Data

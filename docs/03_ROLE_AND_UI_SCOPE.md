@@ -537,6 +537,34 @@ Data yang dicatat mencakup:
 - hasil `BERHASIL` atau `GAGAL`;
 - alasan gagal jika diperlukan.
 
+#### Keputusan Proyek Phase 8E - Penyumbangan
+
+Rincian berikut mengunci perilaku operasional Penyumbangan pada Phase 8E.
+
+- Target utama Phase 8E adalah `seleksi_donor`. Route menggunakan `GET /petugas/seleksi/{seleksi}/penyumbangan` bernama `petugas.penyumbangan.show` dan `POST /petugas/seleksi/{seleksi}/penyumbangan` bernama `petugas.penyumbangan.store`.
+- Fungsi hanya tersedia bagi akun terautentikasi dengan `status_akun = AKTIF`, `peran = PETUGAS`, dan relasi profil `petugas` yang valid.
+- `id_petugas_pencatat` berasal dari Petugas terautentikasi. Identifier Petugas, pemesanan, Pendonor, penyumbangan, atau workflow lain dari client tidak boleh mengganti target route maupun Petugas pencatat.
+- Penyumbangan baru hanya dapat dibuat dari seleksi dengan `keputusan_seleksi = LAYAK`.
+- Pemesanan terkait harus masih `status_pemesanan = CHECK_IN` dan mempunyai `waktu_checkin`.
+- Seleksi `DITUNDA` atau `DITOLAK` tidak dapat menghasilkan penyumbangan.
+- Setelah workflow mencapai seleksi `LAYAK`, tanggal jadwal, jam pelayanan, dan `status_jadwal` tidak diperiksa ulang sebagai filter pencatatan penyumbangan.
+- Satu `seleksi_donor` maksimal mempunyai satu `penyumbangan`. Prototype tidak menyediakan edit, delete, revisi, atau penggantian transaksi penyumbangan.
+- Penyumbangan existing tetap dapat dilihat secara read-only setelah pemesanan menjadi `SELESAI`, tanggal jadwal berlalu, atau status administratif jadwal berubah.
+- `waktu_pengambilan` merupakan data operasional yang dicatat Petugas melalui form. Phase 8E tidak otomatis menggantinya dengan waktu request server.
+- `hasil_penyumbangan` hanya `BERHASIL` atau `GAGAL`.
+- Untuk `BERHASIL`, `volume_ml` wajib dan hanya menggunakan Whole Blood `350` atau `450` mL.
+- Untuk `GAGAL`, `volume_ml` boleh `NULL`; jika dicatat, nilainya tetap hanya `350` atau `450` mL.
+- Volume `350` mL memerlukan `seleksi_donor.berat_badan >= 45` kg dan volume `450` mL memerlukan `seleksi_donor.berat_badan >= 55` kg.
+- Berat badan authoritative berasal dari seleksi yang sudah tersimpan, bukan dari request Penyumbangan.
+- `alasan_gagal` tetap nullable sesuai schema dan tidak diwajibkan oleh Phase 8E.
+- Pembuatan penyumbangan menggunakan transaction dan row locking untuk menjaga satu seleksi hanya menghasilkan satu transaksi.
+- UNIQUE `penyumbangan.id_seleksi` yang sudah ada tetap menjadi lapisan integritas terakhir.
+- Setelah penyumbangan `BERHASIL` maupun `GAGAL` dicatat, `status_pemesanan` berubah dari `CHECK_IN` menjadi `SELESAI` dalam transaksi yang sama.
+- Halaman Seleksi Donor menampilkan `Catat Penyumbangan` untuk seleksi `LAYAK` yang belum mempunyai penyumbangan dan `Lihat Penyumbangan` jika transaksi sudah tersimpan.
+- Seleksi `DITUNDA` atau `DITOLAK` tidak menampilkan aksi Penyumbangan.
+- Phase 8E tidak membuat unit komponen darah. Penyumbangan `BERHASIL` baru dapat menjadi sumber Phase 8F, sedangkan `GAGAL` tidak dapat menghasilkan unit.
+- Phase 8E tidak menambah tabel, kolom, migration, index, notification, pelulusan, distribusi, atau perubahan schema.
+
 ### Unit Komponen Darah
 
 Untuk penyumbangan berhasil, Petugas dapat mencatat satu atau lebih unit komponen darah.
