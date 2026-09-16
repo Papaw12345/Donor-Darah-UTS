@@ -1702,6 +1702,235 @@ Phase 8E tidak:
 
 Penyumbangan `BERHASIL` baru menjadi sumber untuk Phase 8F Unit Komponen Darah. Phase 8E sendiri belum membuat unit tersebut.
 
+---
+
+## 48. Keputusan Proyek Phase 8F - Unit Komponen Darah
+
+Phase 8F mengimplementasikan pencatatan satu atau lebih row `unit_komponen_darah` dari satu `penyumbangan` yang berhasil.
+
+### Akses, Route, dan Target
+
+Phase 8F menggunakan dua route:
+
+1. `GET /petugas/penyumbangan/{penyumbangan}/unit-komponen` dengan nama `petugas.unit-komponen.show`;
+2. `POST /petugas/penyumbangan/{penyumbangan}/unit-komponen` dengan nama `petugas.unit-komponen.store`.
+
+Parameter `{penyumbangan}` adalah target authoritative `Penyumbangan`.
+
+Fungsi hanya dapat digunakan oleh akun:
+
+- `status_akun = AKTIF`;
+- `peran = PETUGAS`; dan
+- mempunyai profil `petugas` yang valid.
+
+`unit_komponen_darah.id_penyumbangan` berasal dari route-bound `Penyumbangan`.
+
+`unit_komponen_darah.id_petugas_pencatat` berasal dari profil Petugas yang sedang terautentikasi.
+
+Identifier client seperti `id_penyumbangan`, `id_petugas_pencatat`, `id_pendonor`, `id_pemesanan`, atau identifier workflow lain tidak boleh mengganti target atau authority server.
+
+### Prasyarat Sumber Unit
+
+Unit baru hanya dapat dibuat apabila:
+
+1. row `penyumbangan` target benar-benar ada; dan
+2. `penyumbangan.hasil_penyumbangan = BERHASIL`.
+
+Penyumbangan `GAGAL` tidak dapat menghasilkan unit komponen darah.
+
+Setelah penyumbangan `BERHASIL` tersimpan, Phase 8F tidak memeriksa ulang:
+
+- `pemesanan_donor.status_pemesanan`;
+- tanggal jadwal;
+- `status_jadwal`;
+- `jam_mulai`; atau
+- `jam_selesai`
+
+sebagai filter pencatatan unit.
+
+### Kardinalitas dan Satu POST
+
+Satu `penyumbangan` yang berhasil dapat menghasilkan satu atau lebih row `unit_komponen_darah`.
+
+Satu request `POST` Phase 8F membuat tepat satu unit.
+
+Untuk membuat unit lain dari penyumbangan yang sama, Petugas melakukan pencatatan berikutnya melalui form yang sama.
+
+Tidak ada batas jumlah unit per penyumbangan yang ditambahkan oleh Phase 8F.
+
+Tidak ada UNIQUE `(id_penyumbangan, id_jenis_komponen)`.
+
+Karena itu, dua unit berbeda dari penyumbangan yang sama boleh menggunakan jenis komponen yang sama selama `nomor_unit` berbeda.
+
+### Field yang Dicatat
+
+Form Phase 8F hanya menerima:
+
+- `nomor_unit`;
+- `id_jenis_komponen`;
+- `id_golongan_darah`;
+- `tanggal_pembuatan`; dan
+- `tanggal_kedaluwarsa`.
+
+Field authority berikut tidak berasal dari client:
+
+- `id_penyumbangan`; dan
+- `id_petugas_pencatat`.
+
+Field lifecycle phase berikutnya juga tidak dapat ditentukan client pada Phase 8F:
+
+- `id_petugas_pelulus`;
+- `waktu_pelulusan`;
+- `status_unit` selain status awal;
+- `catatan_pelulusan`; dan
+- `waktu_distribusi`.
+
+### Nomor Unit
+
+`nomor_unit`:
+
+- wajib diisi;
+- di-trim sebelum disimpan;
+- maksimal 50 karakter sesuai schema;
+- harus unik secara global sesuai UNIQUE existing `unit_komponen_darah.nomor_unit`.
+
+Specification tidak menentukan format khusus `nomor_unit`.
+
+Phase 8F tidak:
+
+- membuat prefix tertentu;
+- membuat nomor otomatis;
+- menggunakan random token;
+- menggunakan barcode atau QR code;
+- menurunkan nomor dari ID Pendonor, ID penyumbangan, atau ID unit.
+
+### Jenis Komponen
+
+`id_jenis_komponen` harus mereferensikan master `jenis_komponen_darah` existing.
+
+Jenis komponen yang berada dalam scope prototype:
+
+- `WB` - Whole Blood;
+- `PRC` - Packed Red Cell;
+- `TC` - Thrombocyte Concentrate;
+- `FFP` - Fresh Frozen Plasma.
+
+Server harus memastikan pilihan jenis komponen berasal dari master dan mempunyai salah satu kode tersebut.
+
+Phase 8F tidak menambahkan:
+
+- prosedur pemisahan komponen;
+- rule laboratorium rinci;
+- batas jumlah hasil komponen;
+- kombinasi jenis komponen otomatis; atau
+- rule medis lain.
+
+### Golongan Darah Unit
+
+`id_golongan_darah` dipilih dari master `golongan_darah` existing dan wajib mereferensikan row master yang valid.
+
+Golongan darah unit merupakan field transaksi `unit_komponen_darah` sendiri.
+
+Phase 8F tidak otomatis mengubah `pendonor.id_golongan_darah` ketika unit dibuat.
+
+Client tidak dapat menggunakan pilihan golongan darah unit untuk mengubah profil Pendonor.
+
+### Tanggal Pembuatan dan Kedaluwarsa
+
+`tanggal_pembuatan` dan `tanggal_kedaluwarsa`:
+
+- wajib diisi;
+- berasal dari input Petugas;
+- harus merupakan nilai tanggal yang dapat disimpan pada kolom `date` existing.
+
+Phase 8F tidak menghitung `tanggal_kedaluwarsa` otomatis.
+
+Master `jenis_komponen_darah` tidak mempunyai field `masa_simpan_hari`, sehingga Phase 8F tidak menambahkan atau mengasumsikan masa simpan komponen dari pengetahuan umum.
+
+Specification saat ini tidak mengunci relasi urutan antara `tanggal_pembuatan` dan `tanggal_kedaluwarsa`. Karena itu Phase 8F tidak menambahkan rule seperti `tanggal_kedaluwarsa >= tanggal_pembuatan` tanpa keputusan requirement baru.
+
+### Status Awal dan Field Phase Berikutnya
+
+Setiap unit baru harus disimpan dengan:
+
+`status_unit = MENUNGGU_PELULUSAN`
+
+Nilai status awal ditentukan server dan tidak dipercaya dari request.
+
+Ketika unit pertama kali dibuat pada Phase 8F:
+
+- `id_petugas_pelulus = NULL`;
+- `waktu_pelulusan = NULL`;
+- `catatan_pelulusan = NULL`;
+- `waktu_distribusi = NULL`.
+
+Unit `MENUNGGU_PELULUSAN` belum dihitung sebagai persediaan tersedia.
+
+Phase 8F tidak mengubah unit langsung menjadi `TERSEDIA`, `DITOLAK`, atau `DIDISTRIBUSIKAN`.
+
+### Transaction, Duplicate, dan Concurrency
+
+Pembuatan unit dilakukan dalam transaction dengan row `penyumbangan` target sebagai titik serialisasi untuk request pada sumber penyumbangan yang sama.
+
+Di dalam transaction:
+
+1. row `penyumbangan` target di-query ulang berdasarkan identifier route dan dikunci;
+2. hasil penyumbangan `BERHASIL` diperiksa ulang;
+3. `nomor_unit` diperiksa ulang terhadap unit yang sudah ada;
+4. master jenis komponen dan golongan darah yang dipilih harus valid;
+5. tepat satu row `unit_komponen_darah` dibuat dengan authority dan status awal dari server.
+
+Jika form yang sama terkirim dua kali untuk penyumbangan yang sama dengan `nomor_unit` yang sama:
+
+- hanya satu row unit boleh tersimpan;
+- unit pertama tidak boleh ditimpa;
+- request berikutnya harus ditolak secara terkendali setelah state terbaru dibaca.
+
+UNIQUE `unit_komponen_darah.nomor_unit` existing tetap menjadi lapisan integritas terakhir.
+
+Phase 8F tidak menambah lock table, distributed lock, UNIQUE, index, atau constraint baru.
+
+Nomor unit berbeda tetap merupakan pencatatan unit yang berbeda dan diperbolehkan untuk sumber penyumbangan yang sama.
+
+### Tampilan dan Navigasi
+
+`GET` Unit Komponen bersifat read-only terhadap unit yang sudah tersimpan.
+
+Untuk penyumbangan `BERHASIL`, halaman menampilkan:
+
+- konteks penyumbangan yang diperlukan;
+- daftar unit yang sudah dibuat dari penyumbangan tersebut; dan
+- form pencatatan satu unit baru.
+
+Unit existing tidak diedit, dihapus, diganti, atau direvisi pada Phase 8F.
+
+Setelah route Phase 8F tersedia, halaman Penyumbangan `BERHASIL` boleh menampilkan link nyata `Unit Komponen Darah`.
+
+Penyumbangan `GAGAL` tidak menampilkan aksi pencatatan Unit Komponen.
+
+### Batas Implementasi Phase 8F
+
+Phase 8F tidak:
+
+- melakukan pelulusan unit;
+- mengisi Petugas pelulus;
+- mengisi waktu pelulusan;
+- mengisi catatan pelulusan;
+- mengubah unit menjadi `TERSEDIA` atau `DITOLAK`;
+- melakukan distribusi;
+- mengubah unit menjadi `DIDISTRIBUSIKAN`;
+- mengisi waktu distribusi;
+- membuat persediaan manual;
+- menghitung atau mengubah low-stock sebagai mutation;
+- membuat pemberitahuan;
+- menambahkan proses laboratorium rinci;
+- menambahkan edit/delete/revisi unit;
+- menambah tabel, field, enum, UNIQUE, FK, index, atau migration;
+- mengubah schema; atau
+- mengimplementasikan Phase 8G dan phase setelahnya.
+
+Pelulusan unit tetap menjadi Phase 8G. Phase 8F berhenti setelah unit berhasil dicatat dengan status `MENUNGGU_PELULUSAN`.
+
 # C. Aturan Implementasi Berdasarkan Layer
 
 ## Constraint Basis Data
