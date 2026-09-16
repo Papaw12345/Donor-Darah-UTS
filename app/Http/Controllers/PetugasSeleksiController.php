@@ -23,6 +23,7 @@ class PetugasSeleksiController extends Controller
             'jadwalPelayanan',
             'kuesionerPradonasi.jawabanKuesioner',
             'seleksiDonor.petugas',
+            'seleksiDonor.penyumbangan',
         ]);
 
         $seleksi = $pemesanan->seleksiDonor;

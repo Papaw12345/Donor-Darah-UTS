@@ -182,6 +182,14 @@
                     <dt>Waktu Seleksi</dt>
                     <dd>{{ $seleksi->waktu_seleksi->format('Y-m-d H:i:s') }}</dd>
                 </dl>
+
+                @if ($seleksi->keputusan_seleksi === 'LAYAK')
+                    <p>
+                        <a href="{{ route('petugas.penyumbangan.show', $seleksi) }}">
+                            {{ $seleksi->penyumbangan === null ? 'Catat Penyumbangan' : 'Lihat Penyumbangan' }}
+                        </a>
+                    </p>
+                @endif
             </section>
         @endif
 
