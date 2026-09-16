@@ -658,6 +658,30 @@ Waktu distribusi dicatat.
 
 Distribusi tidak dimodelkan secara rinci sampai rumah sakit atau pasien.
 
+#### Keputusan Proyek Phase 8H - Distribusi Unit
+
+Rincian berikut mengunci perilaku operasional Distribusi Unit pada Phase 8H tanpa menambah tujuan penerima atau proses logistik rinci.
+
+- Phase 8H menyediakan menu global `Distribusi` bagi Petugas untuk memilih unit yang masih `TERSEDIA` dan belum kedaluwarsa.
+- Route menggunakan `GET /petugas/distribusi` bernama `petugas.distribusi.index`, `GET /petugas/distribusi/{unit}` bernama `petugas.distribusi.show`, dan `POST /petugas/distribusi/{unit}` bernama `petugas.distribusi.store`.
+- Target detail dan mutasi berasal dari route-bound `UnitKomponenDarah`. Identifier unit, status, waktu distribusi, atau workflow lain dari client tidak boleh mengganti target dan authority server.
+- Fungsi hanya tersedia bagi akun terautentikasi dengan `status_akun = AKTIF`, `peran = PETUGAS`, dan relasi profil `petugas` yang valid.
+- Schema tidak mempunyai `id_petugas_distributor`. Phase 8H tidak menambah field atau tabel audit distributor hanya untuk mencatat Petugas yang melakukan distribusi.
+- Tanggal acuan distribusi adalah tanggal kalender hari ini menurut WIB (`Asia/Jakarta`). Kandidat distribusi harus mempunyai `status_unit = TERSEDIA` dan `tanggal_kedaluwarsa >= tanggal_acuan`; tanggal kedaluwarsa yang sama dengan tanggal acuan masih valid.
+- Index hanya menampilkan kandidat distribusi yang valid, diurutkan berdasarkan `id_unit` menaik, dan bersifat read-only.
+- Unit `DIDISTRIBUSIKAN` tetap dapat dibuka sebagai riwayat read-only dan menampilkan `waktu_distribusi`. Unit `TERSEDIA` yang sudah kedaluwarsa juga hanya dapat dilihat tanpa aksi distribusi.
+- Phase 8H tidak menerima field bisnis baru. `POST` hanya menyatakan permintaan untuk mendistribusikan unit authoritative pada route apabila masih eligible.
+- `waktu_distribusi` ditentukan server ketika transaction distribusi berhasil dan bukan input Petugas.
+- Transisi yang diizinkan hanya `TERSEDIA -> DIDISTRIBUSIKAN`. Mutation hanya mengubah `status_unit` dan `waktu_distribusi`.
+- Distribusi dilakukan dalam database transaction dengan row unit dikunci menggunakan row-level lock. Setelah lock, status `TERSEDIA` dan batas kedaluwarsa terhadap tanggal WIB diperiksa ulang.
+- Jika request dikirim dua kali atau dua tab memproses unit yang sama, hanya request pertama yang boleh berhasil. Request berikutnya membaca state terbaru, ditolak secara terkendali, dan tidak menimpa `waktu_distribusi` pertama.
+- Distribusi bersifat one-shot. Phase 8H tidak menyediakan redistribusi, edit waktu distribusi, revisi, undo, atau transisi `DIDISTRIBUSIKAN -> TERSEDIA`.
+- `KEDALUWARSA` tetap bukan nilai `status_unit`. Kedaluwarsa merupakan kondisi derived dan menjadi gate distribusi tanpa membuat status, flag, cron, atau mutation expiry otomatis.
+- Phase 8H tidak membuat row atau angka persediaan manual. Setelah status menjadi `DIDISTRIBUSIKAN`, unit tidak lagi termasuk query persediaan derived yang hanya menghitung unit `TERSEDIA` dan belum kedaluwarsa.
+- Setelah route nyata tersedia, Dashboard Petugas boleh menampilkan navigasi `Distribusi`. Phase 8H tidak menampilkan navigasi mati untuk Persediaan Phase 8I atau phase setelahnya.
+- Phase 8H tidak menambahkan tabel distribusi, distributor, rumah sakit, pasien, permintaan darah, tujuan, crossmatch, transfusi, cold chain, logistik rinci, inventory CRUD, field, enum, FK, UNIQUE, index, migration, package, atau arsitektur baru.
+- Phase 8H berhenti setelah `status_unit = DIDISTRIBUSIKAN` dan `waktu_distribusi` tersimpan. Persediaan tetap menjadi Phase 8I.
+
 ### Persediaan Darah
 
 Petugas dapat melihat jumlah persediaan berdasarkan:
