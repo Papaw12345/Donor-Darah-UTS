@@ -2733,6 +2733,253 @@ Phase 8J tidak mengubah schema yang tetap terdiri dari 15 tabel bisnis dan 97 fi
 
 Phase 8J berhenti pada halaman monitoring read-only Persediaan Rendah. Pemanggilan Pendonor dan pemberitahuan tetap menjadi phase berikutnya.
 
+---
+
+## 53. Keputusan Proyek Phase 8K - Pemanggilan Pendonor
+
+Phase 8K ditetapkan sebagai halaman read-only yang membantu Petugas mengidentifikasi Pendonor yang relevan ketika satu kombinasi persediaan darah yang dikonfigurasi sedang berada pada atau di bawah ambang. Candidate dan eligibility tetap merupakan informasi derived dari data existing; Phase 8K tidak membuat entitas bisnis baru.
+
+### Scope dan Akses
+
+Fungsi hanya dapat digunakan oleh akun:
+
+- terautentikasi;
+- `status_akun = AKTIF`;
+- `peran = PETUGAS`; dan
+- mempunyai profil `petugas` yang valid.
+
+Authorization diperiksa server-side. Identifier Petugas yang dikirim client tidak menentukan authority, ownership, atau cakupan data. Pemanggilan berlaku untuk satu UDD secara keseluruhan.
+
+Phase 8K bukan patient matching, transfusion compatibility matching, crossmatch, hospital request matching, clinical decision support, keputusan kelayakan medis akhir, ataupun pembuatan/pengiriman pemberitahuan.
+
+### Route dan Sifat Read-Only
+
+Phase 8K menggunakan satu route:
+
+`GET /petugas/pemanggilan` dengan nama `petugas.pemanggilan.index`.
+
+Phase 8K tidak menambahkan route `POST`, `PATCH`, `PUT`, atau `DELETE`. Halaman dan seluruh perubahan konteks melalui query parameter bersifat read-only terhadap business data.
+
+### Konteks Persediaan Rendah dan Input id_ambang
+
+Konteks berwenang untuk satu kondisi persediaan rendah adalah row existing `ambang_persediaan` yang dipilih melalui query parameter GET `id_ambang`.
+
+Nilai `id_ambang` dari client hanya merupakan permintaan untuk memilih konteks. Nilai tersebut tidak membuktikan bahwa row ada atau bahwa kondisi masih rendah. Server wajib:
+
+1. memuat row `ambang_persediaan` existing;
+2. menghitung ulang `jumlah_persediaan` saat request;
+3. membandingkan hasil tersebut dengan `jumlah_minimum`; dan
+4. hanya melanjutkan ke kandidat jika kondisi saat ini memenuhi aturan persediaan rendah.
+
+Server tidak boleh menggunakan halaman Phase 8J yang pernah dirender sebagai bukti bahwa state masih rendah.
+
+Jika tidak ada `id_ambang` yang dipilih, halaman boleh menampilkan daftar kondisi yang saat ini rendah dan meminta Petugas memilih satu kondisi. Sistem tidak otomatis memilih row pertama dan tidak menggabungkan kandidat beberapa golongan darah. Tampilkan:
+
+`Pilih kondisi persediaan rendah untuk melihat kandidat Pendonor.`
+
+### Rekalkulasi Persediaan Rendah
+
+Daftar konteks dan validasi ambang terpilih menggunakan semantik Phase 8J tanpa perubahan:
+
+- evaluasi hanya dimulai dari row `ambang_persediaan` existing;
+- tanggal acuan adalah tanggal kalender hari ini menurut WIB (`Asia/Jakarta`);
+- hanya unit dengan `status_unit = TERSEDIA` dan `tanggal_kedaluwarsa >= tanggal_acuan` yang dihitung;
+- batas kedaluwarsa bersifat inklusif;
+- unit `MENUNGGU_PELULUSAN`, `DITOLAK`, `DIDISTRIBUSIKAN`, dan unit `TERSEDIA` yang sudah kedaluwarsa tidak dihitung;
+- kombinasi ambang tanpa unit eligible mempunyai `jumlah_persediaan = 0`;
+- tidak ada ambang default atau hardcoded bagi kombinasi yang tidak dikonfigurasi; dan
+- kondisi rendah berlaku tepat ketika `jumlah_persediaan <= jumlah_minimum`.
+
+Daftar konteks boleh menampilkan sekurang-kurangnya kode/nama komponen, ABO, Rhesus, `jumlah_persediaan`, dan `jumlah_minimum`. Ini merupakan konteks untuk pemanggilan, bukan aturan stok baru.
+
+### Golongan Darah Relevan
+
+Untuk prototype ini, `golongan darah relevan` berarti kecocokan tepat:
+
+`pendonor.id_golongan_darah = ambang_persediaan.id_golongan_darah`
+
+Master `golongan_darah` yang sama menentukan ABO dan Rhesus sekaligus. Phase 8K tidak menerapkan:
+
+- matriks kompatibilitas donor-penerima;
+- universal donor atau universal recipient;
+- substitusi antargolongan darah;
+- kompatibilitas transfusi spesifik komponen;
+- crossmatch;
+- patient matching; atau
+- clinical matching.
+
+Keputusan ini adalah penyederhanaan operasional prototype dan bukan klaim kompatibilitas klinis.
+
+### Komponen sebagai Konteks
+
+Row ambang terpilih tetap mempunyai `id_jenis_komponen` karena persediaan dipantau per pasangan komponen dan golongan darah. Komponen hanya menjadi alasan atau konteks persediaan rendah.
+
+Schema tidak mempunyai field yang menyatakan komponen apa yang dapat dihasilkan oleh seorang Pendonor. Karena itu, candidate filtering menggunakan kecocokan tepat golongan darah confirmed dan eligibility historis donor ulang, tanpa menambahkan aturan kemampuan donor untuk WB, PRC, TC, atau FFP.
+
+### Persyaratan Akun dan Profil Pendonor
+
+Kandidat harus merupakan row `pendonor` existing yang terhubung dengan akun:
+
+- `peran = PENDONOR`; dan
+- `status_akun = AKTIF`.
+
+Pendonor yang terhubung dengan akun `NONAKTIF` bukan kandidat. Pendonor dengan `id_golongan_darah = NULL` juga bukan kandidat karena kecocokan tepat ABO/Rhesus belum terkonfirmasi.
+
+Phase 8K tidak membuat Pendonor, memperbaiki relasi akun/profil, mengaktifkan akun, atau mengubah golongan darah Pendonor.
+
+### Eligibility Historis Berdasarkan Phase 7H
+
+Phase 8K memakai ulang semantik donor-repeat Phase 7H untuk kondisi saat ini. Tanggal acuan adalah tanggal kalender hari ini menurut WIB (`Asia/Jakarta`).
+
+Riwayat yang berwenang hanya penyumbangan yang:
+
+- mempunyai `hasil_penyumbangan = BERHASIL`; dan
+- bertanggal sampai dengan tanggal acuan.
+
+Penyumbangan berhasil di masa depan setelah tanggal acuan tidak memengaruhi eligibility historis saat ini. Penyumbangan `GAGAL` tidak dihitung dalam frekuensi, tidak menggantikan penyumbangan berhasil terbaru, dan tidak menambahkan masa tunggu.
+
+Keputusan seleksi `DITUNDA` atau `DITOLAK` tidak membuat tanggal defer-until dan tidak secara mandiri mengecualikan Pendonor. `seleksi_donor.alasan_keputusan` tidak digunakan sebagai tanggal eligibility. Field `ditunda_sampai` atau field baru lain tidak ditambahkan.
+
+### Interval Dua Bulan Kalender
+
+Jika Pendonor mempunyai penyumbangan berhasil sebelumnya:
+
+`tanggal_pemenuhan_interval = tanggal penyumbangan berhasil terbaru + 2 bulan kalender`
+
+Penambahan menggunakan perilaku tanpa overflow yang sama seperti Phase 7D dan Phase 7H. Interval tidak ditafsirkan sebagai 60 hari tetap, jumlah jam tetap, atau aturan medis baru.
+
+### Frekuensi Tahun Kalender
+
+Jumlah donor tahun berjalan menghitung penyumbangan `BERHASIL` dalam tahun kalender tanggal acuan sampai dengan tanggal acuan.
+
+Batas tetap:
+
+- `LAKI_LAKI`: maksimum 6 penyumbangan berhasil dalam tahun kalender;
+- `PEREMPUAN`: maksimum 4 penyumbangan berhasil dalam tahun kalender.
+
+Jika hitungan tahun berjalan sudah mencapai batas, tanggal paling awal dari sisi frekuensi adalah 1 Januari tahun kalender berikutnya. Phase 8K tidak menambah kategori jenis kelamin atau limit baru.
+
+### Pendonor Pertama Kali
+
+Pendonor tanpa riwayat `hasil_penyumbangan = BERHASIL` boleh menjadi kandidat Phase 8K apabila:
+
+- akunnya aktif dengan `peran = PENDONOR`; dan
+- golongan darah confirmed-nya cocok tepat dengan golongan darah pada ambang terpilih.
+
+Pendonor pertama kali tersebut tidak mempunyai pembatasan interval atau frekuensi historis untuk kesempatan donor pertamanya. Hal ini memakai aturan Phase 7H dan tidak menyatakan kelayakan medis akhir.
+
+### Eligibility Historis Saat Ini
+
+Secara konseptual:
+
+`tanggal_donor_berikutnya = maksimum dari tanggal_acuan, tanggal_pemenuhan_interval bila ada, dan 1 Januari tahun berikutnya bila batas frekuensi tercapai`
+
+Pendonor menjadi kandidat hanya jika aturan interval dan frekuensi sama-sama sudah terpenuhi pada tanggal acuan WIB. Nilai `tanggal_donor_berikutnya` tetap derived, dihitung ketika diperlukan, dan tidak disimpan.
+
+Hasil hanya menyatakan eligibility historis untuk pemanggilan atau kesempatan mencoba donor kembali. Hasil tidak boleh diberi label yang menyiratkan `kelayakan medis akhir`. Pendonor tetap menjalani booking, kuesioner, check-in, dan seleksi sebagaimana berlaku.
+
+### Data Kandidat dan Ordering
+
+Setiap kandidat menampilkan data minimal:
+
+- `pendonor.nomor_donor`;
+- `pendonor.nama_lengkap`;
+- ABO;
+- Rhesus;
+- tanggal penyumbangan berhasil terbaru, atau `-` jika belum ada; dan
+- jumlah penyumbangan `BERHASIL` dalam tahun kalender berjalan sampai tanggal acuan.
+
+Phase 8K tidak menampilkan NIK, alamat lengkap, tempat lahir, tanggal lahir, pekerjaan, alamat kantor, password/auth data, atau data profil lain hanya karena tersedia. Nomor telepon tidak diperlukan karena Phase 8K tidak mengimplementasikan telepon, SMS, WhatsApp, email, atau kanal eksternal.
+
+Kandidat diurutkan secara deterministik berdasarkan:
+
+1. `pendonor.nama_lengkap ASC`; dan
+2. `pendonor.id_pendonor ASC`.
+
+Tidak ada ranking medis berdasarkan umur, frekuensi donor, recency donor terakhir, jenis kelamin, ketersediaan nomor telepon, skor, atau prioritas klinis.
+
+### Empty State dan Kondisi Tidak Valid
+
+Phase 8K mengunci state berikut:
+
+1. Jika tidak ada kondisi persediaan rendah saat ini, tampilkan `Tidak ada kondisi persediaan rendah yang memerlukan pemanggilan Pendonor.`
+2. Jika kondisi rendah ada tetapi belum dipilih, tampilkan `Pilih kondisi persediaan rendah untuk melihat kandidat Pendonor.`
+3. Jika kondisi terpilih saat ini rendah tetapi tidak mempunyai kandidat, tampilkan `Tidak ada Pendonor yang memenuhi kriteria pemanggilan untuk kondisi persediaan ini.`
+4. Jika row ambang existing yang dipilih tidak lagi rendah saat dihitung ulang, tampilkan `Kondisi persediaan yang dipilih tidak sedang berada pada atau di bawah ambang.`
+
+Pada state keempat, kandidat tidak ditampilkan sebagai valid dan state rendah lama tidak digunakan. `id_ambang` yang tidak ada harus ditangani secara terkendali serta tidak boleh membuka data Pendonor yang tidak berkaitan.
+
+### Read-Only dan Tanpa Efek Samping
+
+Membuka halaman atau mengganti konteks GET tidak boleh:
+
+- membuat, memperbarui, atau menghapus row;
+- mengubah `unit_komponen_darah` atau `ambang_persediaan`;
+- mengubah `pendonor` atau `akun`;
+- mengubah `penyumbangan` atau `seleksi_donor`;
+- membuat atau memperbarui `pemberitahuan`;
+- menyimpan kandidat terpilih; atau
+- menyimpan hasil eligibility, tanggal donor berikutnya, hitungan donor, maupun state low-stock.
+
+Tidak diperlukan transaction atau row lock hanya untuk pembacaan dan kalkulasi Phase 8K.
+
+### Pemisahan dari Phase 8L
+
+Phase 8K menentukan dan menampilkan kandidat valid sebagai konteks dari mana Petugas kelak dapat memilih target pemberitahuan. Phase 8K tidak menyimpan state perantara `selected donor`.
+
+Phase 8L kelak menyediakan aksi/form nyata untuk memilih kandidat sebagai target, membuat row `pemberitahuan`, mencatat Petugas terautentikasi sebagai pengirim, serta melakukan pembuatan/pengiriman pemberitahuan in-app.
+
+Sebelum Phase 8L tersedia, Phase 8K tidak menambahkan:
+
+- tombol `Kirim` yang mati;
+- form pemberitahuan yang mati;
+- route POST pemilihan kandidat;
+- checkbox submission tanpa tujuan yang bekerja;
+- penyimpanan kandidat sementara pada tabel atau session; atau
+- mutation `pemberitahuan` apa pun.
+
+Phase 8K juga tidak mengisi `waktu_dibuat` atau `waktu_dibaca`, memilih `id_petugas_pengirim` untuk persistence, mengirim SMS/WhatsApp/email, menggunakan Laravel Notification infrastructure, menambah status delivery eksternal, atau membuat realtime push.
+
+### Navigasi
+
+Setelah route Phase 8K benar-benar tersedia, Dashboard Petugas boleh menampilkan link nyata `Pemanggilan Pendonor` menuju `petugas.pemanggilan.index`.
+
+Phase 8J Persediaan Rendah juga boleh menyediakan link nyata dari row yang rendah saat ini menuju:
+
+`petugas.pemanggilan.index?id_ambang=<existing id_ambang>`
+
+Server tetap wajib menghitung ulang kondisi low-stock. Dashboard tidak menampilkan dead link `Pemberitahuan Petugas` sebelum route Phase 8L tersedia.
+
+### Batas Implementasi dan Course/UTS
+
+Phase 8K harus tetap dapat dijelaskan menggunakan konsep biasa yang sesuai scope mata kuliah:
+
+- tabel relasional dan relasi FK;
+- `JOIN`;
+- `COUNT`;
+- `GROUP BY` bila berguna;
+- aggregate query;
+- subquery atau `EXISTS` bila berguna;
+- `ORDER BY`;
+- derived value yang dihitung ketika diperlukan;
+- Laravel Controller;
+- Query Builder dan/atau Eloquent sederhana; dan
+- Blade.
+
+Phase 8K tidak memerlukan search/filter framework, pagination architecture, AJAX, SPA, realtime, background job, queue, View, Stored Procedure, Trigger, custom index, service, repository, DTO, event/listener, cache, package, atau frontend framework. Teknik tersebut tidak ditambahkan hanya untuk menunjukkan kompleksitas.
+
+Phase 8K tidak menambahkan atau mengubah tabel, field, PK, FK, UNIQUE, enum, index, migration, timestamp, soft delete, atau `remember_token`. Tidak dibuat tabel `pemanggilan`, `kandidat_pendonor`, candidate selection, atau penyimpanan sementara; tidak dibuat field eligibility, tanggal donor terakhir, jumlah donor, tanggal donor berikutnya, status low-stock, maupun selected donor.
+
+Schema tetap terdiri dari 15 tabel bisnis dan 97 field.
+
+### Konsistensi Antar-Phase
+
+Semantik historical eligibility Phase 8K harus tetap sama dengan Phase 7H. Phase 8K tidak menciptakan aturan donor-repeat kedua.
+
+Semantik low-stock Phase 8K harus tetap sama dengan Phase 8J. Phase 8K tidak menciptakan aturan stok/ambang kedua.
+
+Task dokumentasi Phase 8K tidak merefaktor implementasi Phase 7H atau Phase 8J untuk DRY. Jika kalkulasi berulang perlu dikonsolidasikan, Phase 9 menjadi tempat untuk mengevaluasi konsolidasi sederhana tanpa arsitektur berlebihan.
+
 # C. Aturan Implementasi Berdasarkan Layer
 
 ## Constraint Basis Data
