@@ -11,6 +11,10 @@
         <p>Petugas: {{ $petugas->nama_petugas }}</p>
         <p>Tanggal acuan WIB: {{ $tanggalAcuan }}</p>
 
+        @if (session('success'))
+            <p>{{ session('success') }}</p>
+        @endif
+
         <section aria-labelledby="kondisi-persediaan-rendah">
             <h2 id="kondisi-persediaan-rendah">Kondisi Persediaan Rendah Saat Ini</h2>
 
@@ -74,6 +78,7 @@
                                 <th>Rhesus</th>
                                 <th>Donor Berhasil Terakhir</th>
                                 <th>Donor Berhasil Tahun Ini</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -85,6 +90,9 @@
                                     <td>{{ $kandidat->rhesus }}</td>
                                     <td>{{ $kandidat->tanggal_donor_terakhir?->format('d-m-Y') ?? '-' }}</td>
                                     <td>{{ $kandidat->jumlah_donor_tahun_ini }}</td>
+                                    <td>
+                                        <a href="{{ route('petugas.pemberitahuan.create', ['ambang' => $ambangTerpilih->id_ambang, 'pendonor' => $kandidat->id_pendonor]) }}">Buat Pemberitahuan</a>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

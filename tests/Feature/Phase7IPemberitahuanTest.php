@@ -403,7 +403,7 @@ class Phase7IPemberitahuanTest extends TestCase
         }
     }
 
-    public function test_no_application_route_creates_notifications(): void
+    public function test_pendonor_cannot_create_notifications(): void
     {
         $pendonor = $this->createPendonor();
 
@@ -415,6 +415,7 @@ class Phase7IPemberitahuanTest extends TestCase
 
         $this->assertDatabaseCount('pemberitahuan', 0);
         $this->assertFalse(Route::has('pendonor.pemberitahuan.store'));
+        $this->assertTrue(Route::has('petugas.pemberitahuan.store'));
     }
 
     public function test_visible_mark_read_form_uses_existing_patch_route(): void

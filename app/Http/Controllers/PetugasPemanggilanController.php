@@ -170,6 +170,7 @@ class PetugasPemanggilanController extends Controller
                 }
 
                 return (object) [
+                    'id_pendonor' => $pendonor->id_pendonor,
                     'nomor_donor' => $pendonor->nomor_donor,
                     'nama_lengkap' => $pendonor->nama_lengkap,
                     'abo' => $pendonor->golonganDarah->abo,

@@ -330,7 +330,7 @@ class Phase8KPemanggilanPendonorTest extends TestCase
         }
     }
 
-    public function test_candidate_order_display_and_repeated_get_are_read_only_without_phase_8l_controls(): void
+    public function test_candidate_order_display_and_repeated_get_are_read_only_with_phase_8l_links(): void
     {
         $petugas = $this->createPetugas();
         $component = $this->createComponent('PRC', 'Packed Red Cell');
@@ -352,7 +352,7 @@ class Phase8KPemanggilanPendonorTest extends TestCase
             ->assertSee('01-05-2026')
             ->assertSee('Daftar ini berdasarkan eligibility historis dan bukan keputusan kelayakan medis akhir.')
             ->assertDontSee('Kirim Pemberitahuan')
-            ->assertDontSee('Buat Pemberitahuan')
+            ->assertSee('Buat Pemberitahuan')
             ->assertDontSee('Pemberitahuan Petugas');
         $this->actingAs($petugas->akun)->get($url)->assertOk();
 
@@ -366,6 +366,12 @@ class Phase8KPemanggilanPendonorTest extends TestCase
         $this->assertNull($response->viewData('kandidatPendonor')[1]->tanggal_donor_terakhir);
         $this->assertSame('B', $response->viewData('kandidatPendonor')->first()->abo);
         $this->assertSame('POSITIF', $response->viewData('kandidatPendonor')->first()->rhesus);
+        foreach ([$alphaFirst, $alphaSecond, $zeta] as $candidate) {
+            $response->assertSee(route('petugas.pemberitahuan.create', [
+                'ambang' => $threshold->id_ambang,
+                'pendonor' => $candidate->id_pendonor,
+            ]), false);
+        }
         $this->assertEquals($before, $this->businessSnapshots());
 
         $html = $response->getContent();
