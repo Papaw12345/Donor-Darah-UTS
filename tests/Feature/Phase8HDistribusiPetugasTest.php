@@ -347,7 +347,7 @@ class Phase8HDistribusiPetugasTest extends TestCase
         $this->assertStringContainsString('Total unit tersedia: 0', $after->getContent());
     }
 
-    public function test_dashboard_exposes_exactly_the_four_current_real_petugas_links(): void
+    public function test_dashboard_exposes_exactly_the_five_current_real_petugas_links(): void
     {
         $petugas = $this->createPetugas();
         $response = $this->actingAs($petugas->akun)
@@ -357,10 +357,10 @@ class Phase8HDistribusiPetugasTest extends TestCase
             ->assertSee('<a href="'.route('petugas.pelulusan.index').'">Pelulusan</a>', false)
             ->assertSee('<a href="'.route('petugas.distribusi.index').'">Distribusi</a>', false)
             ->assertSee('<a href="'.route('petugas.persediaan.index').'">Persediaan</a>', false)
-            ->assertDontSee('>Persediaan Rendah</a>', false)
+            ->assertSee('<a href="'.route('petugas.persediaan-rendah.index').'">Persediaan Rendah</a>', false)
             ->assertDontSee('Pemanggilan Pendonor');
 
-        $this->assertSame(4, substr_count($response->getContent(), '<a '));
+        $this->assertSame(5, substr_count($response->getContent(), '<a '));
     }
 
     private function createAccount(string $role = 'PENDONOR', string $status = 'AKTIF'): Akun

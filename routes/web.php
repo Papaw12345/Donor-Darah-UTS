@@ -22,6 +22,7 @@ use App\Http\Controllers\PetugasKuesionerController;
 use App\Http\Controllers\PetugasPenyumbanganController;
 use App\Http\Controllers\PetugasPelulusanController;
 use App\Http\Controllers\PetugasPersediaanController;
+use App\Http\Controllers\PetugasPersediaanRendahController;
 use App\Http\Controllers\PetugasSeleksiController;
 use App\Http\Controllers\PetugasUnitKomponenController;
 use Illuminate\Support\Facades\Route;
@@ -164,6 +165,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/petugas/persediaan', [PetugasPersediaanController::class, 'index'])
         ->middleware('role:PETUGAS')
         ->name('petugas.persediaan.index');
+
+    Route::get('/petugas/persediaan-rendah', [PetugasPersediaanRendahController::class, 'index'])
+        ->middleware('role:PETUGAS')
+        ->name('petugas.persediaan-rendah.index');
 
     Route::middleware('role:ADMIN')->group(function () {
         Route::get('/admin', [AdminDashboardController::class, 'index'])
