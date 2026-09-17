@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\JadwalPelayanan;
 use App\Models\PemesananDonor;
 use App\Models\Pendonor;
+use App\Support\PendonorDonorBerikutnyaCalculator;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,13 +15,6 @@ use Illuminate\View\View;
 
 class PendonorPemesananController extends Controller
 {
-    private const CAPACITY_STATUSES = [
-        'TERJADWAL',
-        'CHECK_IN',
-        'SELESAI',
-        'TIDAK_HADIR',
-    ];
-
     private const SAME_SCHEDULE_BLOCKING_STATUSES = [
         'TERJADWAL',
         'CHECK_IN',
@@ -54,12 +48,21 @@ class PendonorPemesananController extends Controller
         ]);
     }
 
-    public function store(Request $request, JadwalPelayanan $jadwal): RedirectResponse
+    public function store(
+        Request $request,
+        JadwalPelayanan $jadwal,
+        PendonorDonorBerikutnyaCalculator $calculator
+    ): RedirectResponse
     {
         $akun = $request->user();
         $pendonorTerautentikasi = $akun->pendonor()->firstOrFail();
 
-        DB::transaction(function () use ($akun, $jadwal, $pendonorTerautentikasi): void {
+        DB::transaction(function () use (
+            $akun,
+            $jadwal,
+            $pendonorTerautentikasi,
+            $calculator
+        ): void {
             $pendonor = Pendonor::query()
                 ->whereKey($pendonorTerautentikasi->id_pendonor)
                 ->where('id_akun', $akun->id_akun)
@@ -86,7 +89,10 @@ class PendonorPemesananController extends Controller
 
             $jumlahPemesanan = PemesananDonor::query()
                 ->where('id_jadwal', $jadwalTerkunci->id_jadwal)
-                ->whereIn('status_pemesanan', self::CAPACITY_STATUSES)
+                ->whereIn(
+                    'status_pemesanan',
+                    PemesananDonor::CAPACITY_CONSUMING_STATUSES
+                )
                 ->count();
 
             if ($jumlahPemesanan >= $jadwalTerkunci->kapasitas) {
@@ -103,44 +109,17 @@ class PendonorPemesananController extends Controller
                 $this->reject('Pemesanan untuk jadwal ini sudah pernah dibuat.');
             }
 
-            $riwayatBerhasil = DB::table('penyumbangan')
-                ->join(
-                    'seleksi_donor',
-                    'seleksi_donor.id_seleksi',
-                    '=',
-                    'penyumbangan.id_seleksi'
-                )
-                ->join(
-                    'pemesanan_donor',
-                    'pemesanan_donor.id_pemesanan',
-                    '=',
-                    'seleksi_donor.id_pemesanan'
-                )
-                ->where('pemesanan_donor.id_pendonor', $pendonor->id_pendonor)
-                ->where('penyumbangan.hasil_penyumbangan', 'BERHASIL')
-                ->whereDate('penyumbangan.waktu_pengambilan', '<=', $tanggalJadwal->toDateString());
+            $informasiDonorBerikutnya = $calculator->calculate(
+                $pendonor,
+                $tanggalJadwal
+            );
 
-            $waktuDonorTerakhir = (clone $riwayatBerhasil)
-                ->max('penyumbangan.waktu_pengambilan');
+            if (! $informasiDonorBerikutnya['interval_terpenuhi']) {
+                $this->reject('Jadwal belum memenuhi interval donor minimal dua bulan.');
+            }
 
-            if ($waktuDonorTerakhir !== null) {
-                $tanggalBolehDonorLagi = CarbonImmutable::parse(
-                    (string) $waktuDonorTerakhir,
-                    'Asia/Jakarta'
-                )->startOfDay()->addMonthsNoOverflow(2);
-
-                if ($tanggalJadwal->lt($tanggalBolehDonorLagi)) {
-                    $this->reject('Jadwal belum memenuhi interval donor minimal dua bulan.');
-                }
-
-                $jumlahDonorTahunan = (clone $riwayatBerhasil)
-                    ->whereYear('penyumbangan.waktu_pengambilan', $tanggalJadwal->year)
-                    ->count();
-                $batasTahunan = $pendonor->jenis_kelamin === 'LAKI_LAKI' ? 6 : 4;
-
-                if ($jumlahDonorTahunan >= $batasTahunan) {
-                    $this->reject('Batas frekuensi donor tahun kalender tersebut sudah tercapai.');
-                }
+            if (! $informasiDonorBerikutnya['frekuensi_terpenuhi']) {
+                $this->reject('Batas frekuensi donor tahun kalender tersebut sudah tercapai.');
             }
 
             PemesananDonor::create([

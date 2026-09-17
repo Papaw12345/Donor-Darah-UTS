@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\PersediaanDarahQuery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PetugasPersediaanController extends Controller
 {
-    public function index(Request $request): View
+    public function index(
+        Request $request,
+        PersediaanDarahQuery $persediaanQuery
+    ): View
     {
         $petugas = $request->user()->petugas()->first();
 
@@ -20,15 +24,8 @@ class PetugasPersediaanController extends Controller
 
         $tanggalAcuan = now('Asia/Jakarta')->toDateString();
 
-        $jumlahPerKombinasi = DB::table('unit_komponen_darah')
-            ->where('status_unit', 'TERSEDIA')
-            ->whereDate('tanggal_kedaluwarsa', '>=', $tanggalAcuan)
-            ->select([
-                'id_jenis_komponen',
-                'id_golongan_darah',
-            ])
-            ->selectRaw('COUNT(*) AS jumlah_persediaan')
-            ->groupBy('id_jenis_komponen', 'id_golongan_darah');
+        $jumlahPerKombinasi = $persediaanQuery
+            ->countsByCombinationQuery($tanggalAcuan);
 
         $persediaan = DB::query()
             ->fromSub($jumlahPerKombinasi, 'persediaan')

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\PersediaanDarahQuery;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -9,7 +10,10 @@ use Illuminate\View\View;
 
 class PetugasDashboardController extends Controller
 {
-    public function index(Request $request): View
+    public function index(
+        Request $request,
+        PersediaanDarahQuery $persediaanQuery
+    ): View
     {
         $akun = $request->user();
         $petugas = $akun->petugas()->first();
@@ -52,57 +56,20 @@ class PetugasDashboardController extends Controller
             ->distinct()
             ->count('id_pendonor');
 
-        $totalPersediaanTersedia = DB::table('unit_komponen_darah')
-            ->where('status_unit', 'TERSEDIA')
-            ->whereDate('tanggal_kedaluwarsa', '>=', $tanggalAcuan)
+        $totalPersediaanTersedia = $persediaanQuery
+            ->eligibleUnitsQuery($tanggalAcuan)
             ->count();
 
-        $ambangPersediaan = DB::table('ambang_persediaan')
-            ->join(
-                'jenis_komponen_darah',
-                'jenis_komponen_darah.id_jenis_komponen',
-                '=',
-                'ambang_persediaan.id_jenis_komponen'
-            )
-            ->join(
-                'golongan_darah',
-                'golongan_darah.id_golongan_darah',
-                '=',
-                'ambang_persediaan.id_golongan_darah'
-            )
-            ->select([
-                'ambang_persediaan.id_ambang',
-                'ambang_persediaan.id_jenis_komponen',
-                'ambang_persediaan.id_golongan_darah',
-                'ambang_persediaan.jumlah_minimum',
-                'jenis_komponen_darah.kode_komponen',
-                'jenis_komponen_darah.nama_komponen',
-                'golongan_darah.abo',
-                'golongan_darah.rhesus',
-            ])
+        $jumlahAmbangPersediaan = DB::table('ambang_persediaan')->count();
+
+        $persediaanRendah = $persediaanQuery
+            ->lowStockBaseQuery($tanggalAcuan)
             ->orderBy('jenis_komponen_darah.kode_komponen')
             ->orderBy('jenis_komponen_darah.nama_komponen')
             ->orderBy('golongan_darah.abo')
             ->orderBy('golongan_darah.rhesus')
             ->orderBy('ambang_persediaan.id_ambang')
             ->get();
-
-        $persediaanRendah = $ambangPersediaan
-            ->map(function (object $ambang) use ($tanggalAcuan): object {
-                $ambang->jumlah_persediaan = DB::table('unit_komponen_darah')
-                    ->where('status_unit', 'TERSEDIA')
-                    ->whereDate('tanggal_kedaluwarsa', '>=', $tanggalAcuan)
-                    ->where('id_jenis_komponen', $ambang->id_jenis_komponen)
-                    ->where('id_golongan_darah', $ambang->id_golongan_darah)
-                    ->count();
-
-                return $ambang;
-            })
-            ->filter(
-                fn (object $ambang): bool => $ambang->jumlah_persediaan
-                    <= $ambang->jumlah_minimum
-            )
-            ->values();
 
         return view('petugas.dashboard', [
             'akun' => $akun,
@@ -111,7 +78,7 @@ class PetugasDashboardController extends Controller
             'kegiatanHariIni' => $kegiatanHariIni,
             'jumlahPendonorDiproses' => $jumlahPendonorDiproses,
             'totalPersediaanTersedia' => $totalPersediaanTersedia,
-            'jumlahAmbangPersediaan' => $ambangPersediaan->count(),
+            'jumlahAmbangPersediaan' => $jumlahAmbangPersediaan,
             'persediaanRendah' => $persediaanRendah,
         ]);
     }

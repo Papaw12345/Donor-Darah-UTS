@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\JadwalPelayanan;
+use App\Models\PemesananDonor;
 use Illuminate\View\View;
 
 class PendonorJadwalController extends Controller
@@ -14,12 +15,10 @@ class PendonorJadwalController extends Controller
             ->whereDate('tanggal', '>=', today('Asia/Jakarta'))
             ->withCount([
                 'pemesananDonor as jumlah_pemesanan_berlaku' => function ($query) {
-                    $query->whereIn('status_pemesanan', [
-                        'TERJADWAL',
-                        'CHECK_IN',
-                        'SELESAI',
-                        'TIDAK_HADIR',
-                    ]);
+                    $query->whereIn(
+                        'status_pemesanan',
+                        PemesananDonor::CAPACITY_CONSUMING_STATUSES
+                    );
                 },
             ])
             ->orderBy('tanggal')

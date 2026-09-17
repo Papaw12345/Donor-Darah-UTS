@@ -8,6 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PemesananDonor extends Model
 {
+    public const CAPACITY_CONSUMING_STATUSES = [
+        'TERJADWAL',
+        'CHECK_IN',
+        'SELESAI',
+        'TIDAK_HADIR',
+    ];
+
     protected $table = 'pemesanan_donor';
 
     protected $primaryKey = 'id_pemesanan';

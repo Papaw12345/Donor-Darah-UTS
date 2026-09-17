@@ -7,10 +7,10 @@ use App\Models\Pemberitahuan;
 use App\Models\Pendonor;
 use App\Models\Petugas;
 use App\Support\PendonorDonorBerikutnyaCalculator;
+use App\Support\PersediaanDarahQuery;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PetugasPemberitahuanController extends Controller
@@ -19,7 +19,8 @@ class PetugasPemberitahuanController extends Controller
         Request $request,
         AmbangPersediaan $ambang,
         Pendonor $pendonor,
-        PendonorDonorBerikutnyaCalculator $calculator
+        PendonorDonorBerikutnyaCalculator $calculator,
+        PersediaanDarahQuery $persediaanQuery
     ): View|Response {
         $petugas = $this->authenticatedPetugas($request);
 
@@ -30,7 +31,11 @@ class PetugasPemberitahuanController extends Controller
             );
         }
 
-        $jumlahPersediaan = $this->currentInventoryCount($ambang);
+        $jumlahPersediaan = $persediaanQuery->countForCombination(
+            (int) $ambang->id_jenis_komponen,
+            (int) $ambang->id_golongan_darah,
+            now('Asia/Jakarta')->toDateString()
+        );
 
         if ($jumlahPersediaan > $ambang->jumlah_minimum) {
             return response(
@@ -61,7 +66,8 @@ class PetugasPemberitahuanController extends Controller
         Request $request,
         AmbangPersediaan $ambang,
         Pendonor $pendonor,
-        PendonorDonorBerikutnyaCalculator $calculator
+        PendonorDonorBerikutnyaCalculator $calculator,
+        PersediaanDarahQuery $persediaanQuery
     ): RedirectResponse|Response {
         $petugas = $this->authenticatedPetugas($request);
 
@@ -72,7 +78,11 @@ class PetugasPemberitahuanController extends Controller
             );
         }
 
-        $jumlahPersediaan = $this->currentInventoryCount($ambang);
+        $jumlahPersediaan = $persediaanQuery->countForCombination(
+            (int) $ambang->id_jenis_komponen,
+            (int) $ambang->id_golongan_darah,
+            now('Asia/Jakarta')->toDateString()
+        );
 
         if ($jumlahPersediaan > $ambang->jumlah_minimum) {
             return response(
@@ -116,20 +126,6 @@ class PetugasPemberitahuanController extends Controller
     private function authenticatedPetugas(Request $request): ?Petugas
     {
         return $request->user()->petugas()->first();
-    }
-
-    private function currentInventoryCount(AmbangPersediaan $ambang): int
-    {
-        return DB::table('unit_komponen_darah')
-            ->where('id_jenis_komponen', $ambang->id_jenis_komponen)
-            ->where('id_golongan_darah', $ambang->id_golongan_darah)
-            ->where('status_unit', 'TERSEDIA')
-            ->whereDate(
-                'tanggal_kedaluwarsa',
-                '>=',
-                now('Asia/Jakarta')->toDateString()
-            )
-            ->count();
     }
 
     private function isValidCandidate(

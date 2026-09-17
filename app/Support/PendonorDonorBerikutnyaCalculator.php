@@ -9,9 +9,14 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PendonorDonorBerikutnyaCalculator
 {
-    public function calculate(Pendonor $pendonor): array
+    public function calculate(
+        Pendonor $pendonor,
+        ?CarbonImmutable $tanggalAcuan = null
+    ): array
     {
-        $tanggalAcuan = CarbonImmutable::now('Asia/Jakarta')->startOfDay();
+        $tanggalAcuan = ($tanggalAcuan ?? CarbonImmutable::now('Asia/Jakarta'))
+            ->setTimezone('Asia/Jakarta')
+            ->startOfDay();
 
         $riwayatBerhasil = Penyumbangan::query()
             ->whereHas(

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Petugas;
 use App\Models\UnitKomponenDarah;
+use App\Support\PersediaanDarahQuery;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,15 +12,17 @@ use Illuminate\View\View;
 
 class PetugasDistribusiController extends Controller
 {
-    public function index(Request $request): View
+    public function index(
+        Request $request,
+        PersediaanDarahQuery $persediaanQuery
+    ): View
     {
         $petugas = $this->authenticatedPetugas($request);
         $tanggalAcuan = $this->tanggalAcuan();
 
-        $units = UnitKomponenDarah::query()
+        $units = $persediaanQuery
+            ->eligibleUnitsQuery($tanggalAcuan)
             ->with(['jenisKomponenDarah', 'golonganDarah'])
-            ->where('status_unit', 'TERSEDIA')
-            ->whereDate('tanggal_kedaluwarsa', '>=', $tanggalAcuan)
             ->orderBy('id_unit')
             ->get();
 
@@ -30,13 +33,17 @@ class PetugasDistribusiController extends Controller
         ));
     }
 
-    public function show(Request $request, UnitKomponenDarah $unit): View
+    public function show(
+        Request $request,
+        UnitKomponenDarah $unit,
+        PersediaanDarahQuery $persediaanQuery
+    ): View
     {
         $petugas = $this->authenticatedPetugas($request);
         $tanggalAcuan = $this->tanggalAcuan();
 
         $unit->load(['jenisKomponenDarah', 'golonganDarah']);
-        $eligible = $this->isEligible($unit, $tanggalAcuan);
+        $eligible = $persediaanQuery->isUnitEligible($unit, $tanggalAcuan);
 
         return view('petugas.distribusi-show', compact(
             'petugas',
@@ -46,18 +53,25 @@ class PetugasDistribusiController extends Controller
         ));
     }
 
-    public function store(Request $request, UnitKomponenDarah $unit): RedirectResponse
+    public function store(
+        Request $request,
+        UnitKomponenDarah $unit,
+        PersediaanDarahQuery $persediaanQuery
+    ): RedirectResponse
     {
         $this->authenticatedPetugas($request);
 
-        DB::transaction(function () use ($unit): void {
+        DB::transaction(function () use ($unit, $persediaanQuery): void {
             $lockedUnit = UnitKomponenDarah::query()
                 ->whereKey($unit->getKey())
                 ->lockForUpdate()
                 ->firstOrFail();
 
             abort_unless(
-                $this->isEligible($lockedUnit, $this->tanggalAcuan()),
+                $persediaanQuery->isUnitEligible(
+                    $lockedUnit,
+                    $this->tanggalAcuan()
+                ),
                 409,
                 'Unit tidak lagi memenuhi syarat untuk didistribusikan.'
             );
@@ -89,11 +103,5 @@ class PetugasDistribusiController extends Controller
     private function tanggalAcuan(): string
     {
         return now('Asia/Jakarta')->toDateString();
-    }
-
-    private function isEligible(UnitKomponenDarah $unit, string $tanggalAcuan): bool
-    {
-        return $unit->status_unit === 'TERSEDIA'
-            && $unit->tanggal_kedaluwarsa->toDateString() >= $tanggalAcuan;
     }
 }
