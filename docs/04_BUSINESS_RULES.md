@@ -2980,6 +2980,238 @@ Semantik low-stock Phase 8K harus tetap sama dengan Phase 8J. Phase 8K tidak men
 
 Task dokumentasi Phase 8K tidak merefaktor implementasi Phase 7H atau Phase 8J untuk DRY. Jika kalkulasi berulang perlu dikonsolidasikan, Phase 9 menjadi tempat untuk mengevaluasi konsolidasi sederhana tanpa arsitektur berlebihan.
 
+## 54. Keputusan Proyek Phase 8L - Pemberitahuan Petugas
+
+### Scope Phase 8L
+
+Phase 8L hanya mengimplementasikan pembuatan satu pemberitahuan in-app oleh Petugas untuk satu kandidat Pendonor dari alur Pemanggilan Pendonor. Membuat row pada tabel existing `pemberitahuan` merupakan arti "mengirim" di dalam prototype ini.
+
+Phase 8L bukan:
+
+- SMS, WhatsApp, atau email;
+- realtime/WebSocket push;
+- Laravel Notification infrastructure;
+- background job atau queue workflow;
+- external delivery tracking;
+- patient matching, crossmatch, transfusion compatibility, hospital request matching, atau clinical decision support.
+
+Phase 8L tidak membuat entitas bisnis baru untuk pengiriman, pemanggilan, kandidat, atau pilihan sementara.
+
+### Akses dan Authority
+
+Hanya akun terautentikasi yang memenuhi semua syarat berikut dapat menggunakan Phase 8L:
+
+- `status_akun = AKTIF`;
+- `peran = PETUGAS`; dan
+- mempunyai relasi profil `petugas` yang valid.
+
+Authorization dilakukan server-side. Pengirim selalu profil Petugas dari akun yang sedang terautentikasi. Input client tidak boleh menentukan atau menimpa:
+
+- `id_petugas_pengirim`;
+- identitas pengirim;
+- `waktu_dibuat`; atau
+- `waktu_dibaca`.
+
+Identifier Petugas dari client tidak mempunyai authority.
+
+### Entry Point dari Phase 8K
+
+Phase 8K tetap menjadi sumber identifikasi kandidat. Untuk setiap kandidat yang masih valid pada konteks low-stock terpilih, implementasi Phase 8L boleh menampilkan aksi nyata `Buat Pemberitahuan` yang menuju form Phase 8L.
+
+GET Phase 8K tetap read-only. Pemilihan target tidak disimpan sebagai state perantara di session, tabel, field, atau temporary business entity.
+
+### Kontrak Route
+
+Phase 8L mengunci tepat dua route:
+
+1. `GET /petugas/pemanggilan/{ambang}/pendonor/{pendonor}/pemberitahuan`, bernama `petugas.pemberitahuan.create`, untuk menampilkan form pembuatan pemberitahuan.
+2. `POST /petugas/pemanggilan/{ambang}/pendonor/{pendonor}/pemberitahuan`, bernama `petugas.pemberitahuan.store`, untuk memvalidasi authority/state saat ini dan membuat tepat satu row `pemberitahuan`.
+
+Kedua route dilindungi middleware:
+
+- `web`;
+- `auth`;
+- `active`; dan
+- `role:PETUGAS`.
+
+Phase 8L tidak menambahkan route `PATCH`, `PUT`, `DELETE`, bulk-send, atau notification-management CRUD untuk Petugas.
+
+### Resource Route Bukan Authority
+
+Resource `{ambang}` dan `{pendonor}` hanya mengidentifikasi konteks dan target yang diminta. Keberadaan keduanya dalam URL bukan bukti bahwa ambang masih low-stock atau Pendonor masih menjadi kandidat.
+
+GET form dan POST store wajib memvalidasi ulang keadaan saat request di server. Hidden field atau request value tidak menjadi authority untuk:
+
+- `id_pendonor`;
+- `id_ambang`;
+- `id_petugas_pengirim`;
+- golongan darah;
+- jumlah stok;
+- eligibility historis; atau
+- timestamp.
+
+### Revalidasi Persediaan Rendah
+
+Pada GET dan POST, row existing `ambang_persediaan` yang dipilih harus dihitung ulang dengan semantik Phase 8J dan Phase 8K.
+
+Tanggal acuan adalah tanggal kalender hari ini menurut `Asia/Jakarta` dan tidak bergantung pada timezone server secara implisit. Unit hanya dihitung jika:
+
+- `status_unit = TERSEDIA`; dan
+- `tanggal_kedaluwarsa >= tanggal_acuan`.
+
+Batas kedaluwarsa bersifat inklusif. Stok dikelompokkan tepat berdasarkan `id_jenis_komponen` dan `id_golongan_darah`. Evaluasi dimulai dari row existing `ambang_persediaan`; tidak adanya unit eligible menghasilkan `jumlah_persediaan = 0`. Tidak ada ambang default dan tidak ada kombinasi tanpa konfigurasi yang disintesis.
+
+Kondisi low-stock tepat ketika:
+
+`jumlah_persediaan <= jumlah_minimum`
+
+Jika resource route tidak ada, hasilnya HTTP 404. Jika row ambang existing tidak lagi low-stock, GET maupun POST menghasilkan HTTP 409 dengan pesan tepat:
+
+`Kondisi persediaan yang dipilih tidak sedang berada pada atau di bawah ambang.`
+
+Pada keadaan tersebut, pemberitahuan tidak dibuat.
+
+### Revalidasi Kandidat Pendonor
+
+GET dan POST juga wajib memvalidasi ulang target Pendonor pada saat request. Pendonor harus:
+
+- merupakan row existing;
+- mempunyai `id_golongan_darah` yang sama tepat dengan `ambang_persediaan.id_golongan_darah` terpilih;
+- terhubung dengan akun `peran = PENDONOR`;
+- terhubung dengan akun `status_akun = AKTIF`; dan
+- memenuhi eligibility historis donor ulang Phase 7H pada tanggal acuan WIB saat ini.
+
+Semantik historical eligibility yang dipakai sama dengan Phase 7H dan Phase 8K:
+
+- hanya penyumbangan `BERHASIL` sampai tanggal acuan yang dihitung;
+- penyumbangan berhasil setelah tanggal acuan diabaikan;
+- penyumbangan `GAGAL` tidak dihitung dan tidak mengganti riwayat berhasil terbaru;
+- interval memakai tanggal penyumbangan berhasil terbaru ditambah 2 bulan kalender tanpa overflow;
+- batas tahunan tetap 6 untuk `LAKI_LAKI` dan 4 untuk `PEREMPUAN`; dan
+- Pendonor tanpa riwayat berhasil dapat memenuhi kriteria untuk kesempatan donor pertama.
+
+Hasil tersebut hanya menyatakan eligibility historis untuk pemanggilan, bukan kelayakan medis akhir. Jenis komponen tetap menjadi konteks persediaan rendah dan tidak menciptakan aturan kemampuan medis Pendonor untuk menghasilkan WB, PRC, TC, atau FFP.
+
+Jika Pendonor existing tidak lagi memenuhi kriteria, GET maupun POST menghasilkan HTTP 409 dengan pesan tepat:
+
+`Pendonor tidak lagi memenuhi kriteria pemanggilan untuk kondisi persediaan ini.`
+
+Tidak ada pemberitahuan yang dibuat pada keadaan tersebut.
+
+### Form dan Data yang Ditampilkan
+
+Form GET boleh menampilkan konteks low-stock terpilih dan informasi minimum untuk memastikan target:
+
+- `nomor_donor`;
+- `nama_lengkap`;
+- ABO;
+- Rhesus;
+- komponen/konteks persediaan rendah terpilih;
+- jumlah persediaan derived saat ini; dan
+- `jumlah_minimum` dari konfigurasi ambang.
+
+Form tidak menampilkan NIK, alamat lengkap, nomor telepon, email, tempat lahir, tanggal lahir, pekerjaan, alamat kantor, password, atau data autentikasi hanya karena data tersebut tersedia.
+
+Satu-satunya input bisnis untuk pembuatan pemberitahuan adalah `isi_pesan`. Tidak ada checkbox multi-select atau batch send; satu form membuat satu pemberitahuan untuk satu Pendonor.
+
+### Validasi Isi Pesan
+
+`isi_pesan` harus:
+
+- berupa string;
+- di-trim oleh server; dan
+- tidak kosong setelah trimming.
+
+Schema menggunakan tipe `TEXT` dan spesifikasi saat ini tidak menetapkan batas panjang bisnis. Phase 8L tidak menciptakan maximum length arbitrer dan tidak menambahkan title, subject, template entity, category, priority, delivery channel, atau status.
+
+### Row Pemberitahuan yang Dibuat
+
+POST yang berhasil membuat tepat satu row `pemberitahuan` dengan:
+
+- `id_pendonor` dari target yang telah divalidasi ulang server;
+- `id_petugas_pengirim` dari profil Petugas yang sedang terautentikasi;
+- `isi_pesan` berupa nilai yang telah divalidasi dan di-trim;
+- `waktu_dibuat` dari waktu server menurut konvensi timestamp aplikasi yang sudah berlaku; dan
+- `waktu_dibaca = NULL`.
+
+Phase 8L tidak menandai pesan sebagai sudah dibaca. Hanya alur Pendonor Phase 7I yang mengelola `waktu_dibaca`.
+
+### Alur Setelah Berhasil
+
+Setelah row berhasil dibuat, redirect kembali ke:
+
+`petugas.pemanggilan.index?id_ambang=<selected existing threshold>`
+
+dengan success flash tepat:
+
+`Pemberitahuan berhasil dikirim kepada Pendonor.`
+
+### POST Valid yang Diulang
+
+Setiap POST harus melewati revalidasi authority, low-stock, dan kandidat secara independen. POST valid yang diulang boleh membuat row pemberitahuan baru karena schema tidak memiliki uniqueness yang menghubungkan pemberitahuan dengan ambang, Pendonor, atau calling event, dan requirement tidak menetapkan one-message-only.
+
+Phase 8L tidak menambahkan idempotency token, deduplication table, UNIQUE constraint, field `already_notified`, session deduplication, atau hidden notification lifecycle state. Ketentuan ini tidak mengizinkan request gagal atau invalid untuk disubmit ulang secara diam-diam.
+
+### Tanpa Riwayat Kirim atau CRUD Petugas
+
+Phase 8L tidak membuat:
+
+- index atau detail riwayat pemberitahuan Petugas;
+- sent-message page;
+- edit, delete, resend, atau draft;
+- aksi mark read/unread untuk Petugas; atau
+- menu CRUD bagi tabel `pemberitahuan`.
+
+Aksi pemberitahuan tetap menjadi bagian dari alur Pemanggilan Pendonor. Dashboard Petugas tidak memperoleh menu/link terpisah `Pemberitahuan Petugas`; Phase 8L dicapai melalui aksi kandidat yang benar-benar bekerja.
+
+### Integrasi Receiver Phase 7I
+
+Perilaku Pendonor pada Phase 7I tetap:
+
+- Pendonor hanya melihat pemberitahuan miliknya sendiri;
+- ordering list tetap `waktu_dibuat DESC`, lalu `id_pemberitahuan DESC`;
+- GET list dan detail tetap read-only;
+- PATCH secara eksplisit menandai pesan dibaca;
+- unread count tetap derived dari `waktu_dibaca IS NULL`; dan
+- Dashboard Pendonor menampilkan maksimum 3 pemberitahuan terbaru miliknya.
+
+Row yang dibuat Phase 8L harus terlihat secara alami melalui query existing Phase 7I tanpa mengubah aturan ownership receiver. Ketika implementasi Phase 8L dikerjakan, expectation test Phase 7I yang menyatakan tidak ada route aplikasi pembuat pemberitahuan perlu diperbarui karena route store Petugas menjadi jalur creation yang memang diotorisasi. Task docs-only ini tidak mengubah test tersebut.
+
+### Batas Mutation dan Transaction
+
+Mutation bisnis Phase 8L adalah satu `INSERT` ke tabel `pemberitahuan`. Pembuatan tersebut tidak mengubah:
+
+- `ambang_persediaan`;
+- `unit_komponen_darah`;
+- `pendonor`;
+- `akun`;
+- `penyumbangan`;
+- `seleksi_donor`; atau
+- `pemesanan_donor`.
+
+Tidak ada decrement stok manual, reservasi stok, atau reservasi kandidat. Transaction atau row lock tidak diwajibkan hanya untuk satu insert setelah revalidasi.
+
+### Batas Implementasi dan Course/UTS
+
+Implementasi Phase 8L harus tetap dapat dijelaskan dengan konsep biasa yang sesuai scope mata kuliah:
+
+- relasi PK/FK;
+- server-side authorization;
+- `SELECT`, `JOIN`, dan aggregate untuk revalidasi;
+- validation;
+- `INSERT`;
+- Eloquent dan/atau Query Builder sederhana;
+- Laravel Controller; dan
+- Blade.
+
+Phase 8L tidak menambahkan service architecture semata-mata untuk phase ini, repository, DTO, event/listener, queue, job, notification package/framework, SPA/AJAX, WebSocket/realtime, search framework, pagination architecture, atau external messaging provider. Jika kalkulasi low-stock/kandidat yang berulang perlu dikonsolidasikan, Phase 9 tetap menjadi tempat evaluasi konsolidasi sederhana; docs task ini tidak merefaktor Phase 8J/8K.
+
+### Guardrail Schema
+
+Phase 8L tidak mengubah schema. Schema tetap terdiri dari 15 tabel bisnis dan 97 field.
+
+Tidak ditambahkan tabel, field, PK, FK, UNIQUE, custom index, enum, migration, timestamp field, soft delete, atau `remember_token`. Tidak dibuat tabel `pemanggilan`, `candidate`, `notification_delivery`, `sent_notifications`, atau `message_template`.
+
 # C. Aturan Implementasi Berdasarkan Layer
 
 ## Constraint Basis Data
