@@ -229,8 +229,10 @@ class Phase8GPelulusanPetugasTest extends TestCase
             ->assertOk()->assertSee(route('petugas.check-in.index'), false)->assertSee('Check-in Pendonor')
             ->assertSee(route('petugas.pelulusan.index'), false)->assertSee('Pelulusan')
             ->assertSee(route('petugas.distribusi.index'), false)->assertSee('Distribusi')
-            ->assertDontSee('>Persediaan</a>', false);
-        $this->assertSame(3, substr_count($response->getContent(), '<a '));
+            ->assertSee(route('petugas.persediaan.index'), false)->assertSee('Persediaan')
+            ->assertDontSee('>Persediaan Rendah</a>', false)
+            ->assertDontSee('Pemanggilan Pendonor');
+        $this->assertSame(4, substr_count($response->getContent(), '<a '));
     }
 
     private function payload(string $result = 'TERSEDIA', ?string $note = null): array
