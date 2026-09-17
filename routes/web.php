@@ -17,6 +17,7 @@ use App\Http\Controllers\PendonorProfileController;
 use App\Http\Controllers\PendonorRiwayatController;
 use App\Http\Controllers\PetugasCheckinController;
 use App\Http\Controllers\PetugasDashboardController;
+use App\Http\Controllers\PetugasDistribusiController;
 use App\Http\Controllers\PetugasKuesionerController;
 use App\Http\Controllers\PetugasPenyumbanganController;
 use App\Http\Controllers\PetugasPelulusanController;
@@ -146,6 +147,18 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/petugas/pelulusan', [PetugasPelulusanController::class, 'index'])->middleware('role:PETUGAS')->name('petugas.pelulusan.index');
     Route::get('/petugas/pelulusan/{unit}', [PetugasPelulusanController::class, 'show'])->middleware('role:PETUGAS')->name('petugas.pelulusan.show');
     Route::post('/petugas/pelulusan/{unit}', [PetugasPelulusanController::class, 'store'])->middleware('role:PETUGAS')->name('petugas.pelulusan.store');
+
+    Route::get('/petugas/distribusi', [PetugasDistribusiController::class, 'index'])
+        ->middleware('role:PETUGAS')
+        ->name('petugas.distribusi.index');
+
+    Route::get('/petugas/distribusi/{unit}', [PetugasDistribusiController::class, 'show'])
+        ->middleware('role:PETUGAS')
+        ->name('petugas.distribusi.show');
+
+    Route::post('/petugas/distribusi/{unit}', [PetugasDistribusiController::class, 'store'])
+        ->middleware('role:PETUGAS')
+        ->name('petugas.distribusi.store');
 
     Route::middleware('role:ADMIN')->group(function () {
         Route::get('/admin', [AdminDashboardController::class, 'index'])

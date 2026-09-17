@@ -27,6 +27,7 @@
         <nav aria-label="Operasional Petugas">
             <a href="{{ route('petugas.check-in.index') }}">Check-in Pendonor</a>
             <a href="{{ route('petugas.pelulusan.index') }}">Pelulusan</a>
+            <a href="{{ route('petugas.distribusi.index') }}">Distribusi</a>
         </nav>
 
         <section aria-labelledby="kegiatan-donor-hari-ini">

@@ -359,7 +359,7 @@ class Phase8ADashboardPetugasTest extends TestCase
         $html = $response->getContent();
         $this->assertSame(1, substr_count($html, '<form'));
         $this->assertSame(1, substr_count($html, '<button'));
-        $this->assertSame(2, substr_count($html, '<a '));
+        $this->assertSame(3, substr_count($html, '<a '));
         $response
             ->assertSee(route('logout'), false)
             ->assertSee(
@@ -370,6 +370,10 @@ class Phase8ADashboardPetugasTest extends TestCase
                 '<a href="'.route('petugas.pelulusan.index').'">Pelulusan</a>',
                 false
             )
+            ->assertSee(
+                '<a href="'.route('petugas.distribusi.index').'">Distribusi</a>',
+                false
+            )
             ->assertDontSee('name="kode_checkin"', false)
             ->assertDontSee('action="/petugas/', false)
             ->assertDontSee('Review Kuesioner')
@@ -377,7 +381,8 @@ class Phase8ADashboardPetugasTest extends TestCase
             ->assertDontSee('Seleksi Donor')
             ->assertDontSee('Penyumbangan')
             ->assertDontSee('Buat Unit')
-            ->assertDontSee('Distribusi')
+            ->assertDontSee('>Persediaan</a>', false)
+            ->assertDontSee('>Persediaan Rendah</a>', false)
             ->assertDontSee('Pemanggilan Pendonor')
             ->assertDontSee('Kirim Pemberitahuan')
             ->assertDontSee('Buat Pemberitahuan');
