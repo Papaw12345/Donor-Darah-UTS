@@ -30,6 +30,7 @@
             <a href="{{ route('petugas.distribusi.index') }}">Distribusi</a>
             <a href="{{ route('petugas.persediaan.index') }}">Persediaan</a>
             <a href="{{ route('petugas.persediaan-rendah.index') }}">Persediaan Rendah</a>
+            <a href="{{ route('petugas.pemanggilan.index') }}">Pemanggilan Pendonor</a>
         </nav>
 
         <section aria-labelledby="kegiatan-donor-hari-ini">
