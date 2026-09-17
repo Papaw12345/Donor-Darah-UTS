@@ -696,6 +696,30 @@ Persediaan dihitung dari unit yang:
 
 Tidak ada CRUD angka stok manual.
 
+#### Keputusan Proyek Phase 8I - Persediaan Darah
+
+Rincian berikut mengunci halaman ringkasan Persediaan Darah yang bersifat read-only pada Phase 8I.
+
+- Phase 8I menyediakan halaman ringkasan persediaan aktual yang tersedia bagi Petugas, bukan CRUD unit individual atau angka stok.
+- Fungsi hanya tersedia bagi akun terautentikasi dengan `status_akun = AKTIF`, `peran = PETUGAS`, dan relasi profil `petugas` yang valid.
+- Route menggunakan `GET /petugas/persediaan` dengan nama `petugas.persediaan.index`. Phase 8I tidak menyediakan route `POST`, `PATCH`, `PUT`, atau `DELETE` untuk persediaan.
+- Tanggal acuan adalah tanggal kalender hari ini menurut WIB (`Asia/Jakarta`).
+- Unit dihitung sebagai persediaan hanya apabila `status_unit = TERSEDIA` dan `tanggal_kedaluwarsa >= tanggal_acuan`. Batas tanggal bersifat inklusif.
+- Unit `MENUNGGU_PELULUSAN`, `DITOLAK`, `DIDISTRIBUSIKAN`, serta unit `TERSEDIA` dengan `tanggal_kedaluwarsa < tanggal_acuan` tidak dihitung.
+- Jumlah persediaan dihitung dan dikelompokkan berdasarkan pasangan tepat `id_jenis_komponen` dan `id_golongan_darah`.
+- Halaman hanya menampilkan kelompok dengan `jumlah_persediaan > 0` dan tidak membentuk seluruh kemungkinan kombinasi master jenis komponen dan golongan darah.
+- Setiap kelompok menampilkan sekurang-kurangnya kode dan nama jenis komponen, ABO, Rhesus, serta `jumlah_persediaan`.
+- Daftar diurutkan berdasarkan `jenis_komponen_darah.kode_komponen`, kemudian `golongan_darah.abo`, kemudian `golongan_darah.rhesus`, seluruhnya menaik. ID existing hanya boleh digunakan sebagai tie-breaker deterministik jika diperlukan.
+- Jika tidak ada unit yang memenuhi syarat, halaman menampilkan empty state yang terkendali.
+- Phase 8I tidak menampilkan atau menghitung output bisnis Phase 8J seperti `jumlah_minimum`, klasifikasi atau badge persediaan rendah, aksi pemanggilan Pendonor, atau pengiriman pemberitahuan.
+- Membuka halaman tidak membuat, mengubah, atau menghapus row; tidak mengubah status unit, tanggal kedaluwarsa, ambang persediaan, atau pemberitahuan; serta tidak memerlukan database transaction atau row lock.
+- `jumlah_persediaan` tetap merupakan data turunan, tidak disimpan, dan tidak dapat diedit manual.
+- Setelah route Phase 8I benar-benar tersedia, Dashboard Petugas boleh menampilkan navigasi nyata `Persediaan`.
+- Dashboard tidak boleh menampilkan dead link `Persediaan Rendah`, `Pemanggilan Pendonor`, atau `Pemberitahuan Petugas` sebelum phase terkait benar-benar diimplementasikan.
+- Phase 8I tidak menambah tabel, field, enum, migration, FK, UNIQUE, custom index, View, Stored Procedure, Trigger, cache stok, cron expiry, package, frontend framework, atau arsitektur service/repository/DTO.
+- Phase 8I tidak membuat tabel `persediaan`, status `KEDALUWARSA`, atau penyimpanan `jumlah_persediaan`.
+- Phase 8I tidak merefaktor logika persediaan Dashboard Petugas Phase 8A hanya untuk sentralisasi. Konsolidasi lintas fitur dapat dipertimbangkan kemudian pada integrasi/Phase 9.
+
 ### Persediaan Rendah
 
 Petugas dapat melihat kombinasi jenis komponen dan golongan darah yang jumlah persediaannya berada pada atau di bawah ambang minimum.
