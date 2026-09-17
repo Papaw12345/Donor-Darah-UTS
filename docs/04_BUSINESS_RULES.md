@@ -2519,6 +2519,220 @@ Phase 8I tidak merefaktor logika persediaan existing pada Dashboard Petugas Phas
 
 Phase 8I berhenti pada ringkasan jumlah persediaan aktual per jenis komponen dan golongan darah. Persediaan Rendah tetap menjadi Phase 8J.
 
+---
+
+## 52. Keputusan Proyek Phase 8J - Persediaan Rendah
+
+Phase 8J ditetapkan sebagai halaman monitoring read-only untuk mengidentifikasi dan menampilkan kombinasi persediaan yang berada pada atau di bawah ambang minimum pada satu UDD.
+
+### Scope dan Akses
+
+Fungsi hanya dapat digunakan oleh akun:
+
+- terautentikasi;
+- `status_akun = AKTIF`;
+- `peran = PETUGAS`; dan
+- mempunyai profil `petugas` yang valid.
+
+Authorization tetap diperiksa server-side. Identifier Petugas dari client tidak menentukan ownership atau akses.
+
+Monitoring Persediaan Rendah berlaku untuk satu UDD secara keseluruhan dan tidak dibatasi oleh Petugas yang mencatat atau meluluskan unit.
+
+### Route
+
+Phase 8J menggunakan satu route:
+
+`GET /petugas/persediaan-rendah` dengan nama `petugas.persediaan-rendah.index`.
+
+Halaman bersifat read-only. Phase 8J tidak menambahkan route `POST`, `PATCH`, `PUT`, atau `DELETE`.
+
+### Tanggal Acuan dan Eligibility Unit
+
+Tanggal acuan adalah tanggal kalender hari ini menurut WIB (`Asia/Jakarta`). Tanggal tersebut ditentukan saat request dan tidak disimpan.
+
+`jumlah_persediaan` untuk evaluasi persediaan rendah hanya menghitung unit yang memenuhi kedua kondisi berikut:
+
+1. `status_unit = TERSEDIA`; dan
+2. `tanggal_kedaluwarsa >= tanggal_acuan`.
+
+Batas kedaluwarsa bersifat inklusif. Unit dengan `tanggal_kedaluwarsa = tanggal_acuan` tetap dihitung.
+
+Unit berikut tidak dihitung:
+
+- `MENUNGGU_PELULUSAN`;
+- `DITOLAK`;
+- `DIDISTRIBUSIKAN`; dan
+- `TERSEDIA` dengan `tanggal_kedaluwarsa < tanggal_acuan`.
+
+Unit yang sudah kedaluwarsa tidak dimutasi. `KEDALUWARSA` tetap bukan nilai `status_unit` dan tidak dibuat sebagai status atau flag.
+
+### Basis Evaluasi Ambang
+
+Evaluasi Phase 8J dimulai dari setiap row existing pada `ambang_persediaan`.
+
+Setiap row ambang mewakili satu kombinasi yang dikonfigurasi berdasarkan pasangan tepat:
+
+- `id_jenis_komponen`; dan
+- `id_golongan_darah`.
+
+Untuk setiap kombinasi tersebut, sistem menghitung `jumlah_persediaan` terkini dari `unit_komponen_darah` yang memenuhi eligibility.
+
+Hanya kombinasi yang mempunyai row `ambang_persediaan` dapat diklasifikasikan sebagai persediaan rendah. Kombinasi tanpa konfigurasi ambang tidak mempunyai nilai default, tidak diberi angka hardcoded, dan tidak diklasifikasikan sebagai low-stock.
+
+### Stok Nol
+
+Jika satu kombinasi yang dikonfigurasi tidak mempunyai unit eligible, nilai derived-nya adalah:
+
+`jumlah_persediaan = 0`
+
+Nilai nol tetap dibandingkan dengan `jumlah_minimum`. Kombinasi yang dikonfigurasi tidak boleh dihilangkan hanya karena tidak mempunyai unit yang cocok.
+
+Ketentuan ini sengaja berbeda dari halaman Persediaan Phase 8I, yang hanya menampilkan kelompok actual available inventory dengan `jumlah_persediaan > 0`.
+
+### Kondisi Persediaan Rendah
+
+Satu kombinasi yang dikonfigurasi diklasifikasikan sebagai persediaan rendah tepat ketika:
+
+`jumlah_persediaan <= jumlah_minimum`
+
+Operator yang digunakan adalah `<=`, bukan `<`.
+
+Phase 8J tidak menambahkan warning tier, severity level, persentase, atau klasifikasi lain.
+
+### Data yang Ditampilkan
+
+Halaman hanya menampilkan kombinasi yang memenuhi kondisi persediaan rendah.
+
+Setiap row menampilkan sekurang-kurangnya:
+
+- `jenis_komponen_darah.kode_komponen`;
+- `jenis_komponen_darah.nama_komponen`;
+- `golongan_darah.abo`;
+- `golongan_darah.rhesus`;
+- `jumlah_persediaan`; dan
+- `jumlah_minimum`.
+
+`jumlah_persediaan` merupakan nilai derived dan tidak disimpan. `jumlah_minimum` berasal dari row `ambang_persediaan`.
+
+Petugas boleh melihat `jumlah_minimum`, tetapi Phase 8J tidak menyediakan kontrol untuk mengubah stok atau ambang.
+
+### Ordering
+
+Daftar diurutkan secara deterministik berdasarkan:
+
+1. `jenis_komponen_darah.kode_komponen` menaik;
+2. `golongan_darah.abo` menaik; dan
+3. `golongan_darah.rhesus` menaik.
+
+ID existing boleh digunakan hanya sebagai tie-breaker deterministik apabila secara teknis diperlukan.
+
+Phase 8J tidak menggunakan urutan ABO medis khusus. Ordering mengikuti pengurutan ascending biasa pada basis data.
+
+### Empty State
+
+Phase 8J mempunyai dua empty state yang berbeda.
+
+Jika tidak ada konfigurasi `ambang_persediaan` sama sekali, tampilkan:
+
+`Belum ada konfigurasi ambang persediaan.`
+
+Jika konfigurasi ambang tersedia tetapi tidak ada kombinasi yang memenuhi `jumlah_persediaan <= jumlah_minimum`, tampilkan:
+
+`Tidak ada persediaan yang berada pada atau di bawah ambang.`
+
+Sistem tidak membuat row buatan hanya untuk menghindari empty state.
+
+### Read-Only dan Tanpa Efek Samping
+
+Membuka halaman Persediaan Rendah tidak boleh:
+
+- membuat row;
+- memperbarui row;
+- menghapus row;
+- mengubah `status_unit`;
+- mengubah `tanggal_kedaluwarsa`;
+- mengubah `ambang_persediaan`;
+- mengubah `jumlah_minimum`;
+- membuat `pemberitahuan`;
+- memilih Pendonor; atau
+- memicu pemanggilan Pendonor.
+
+Karena hanya melakukan pembacaan dan perhitungan, Phase 8J tidak memerlukan database transaction atau row lock.
+
+### Pemisahan dari Phase 8K dan Phase 8L
+
+Phase 8J berhenti pada identifikasi dan tampilan kombinasi persediaan rendah.
+
+Phase 8J tidak mencakup:
+
+- Pemanggilan Pendonor;
+- daftar kandidat Pendonor;
+- checkbox atau form pemilihan Pendonor;
+- filter kelayakan donor ulang untuk pemanggilan;
+- form pemberitahuan;
+- pembuatan pemberitahuan;
+- pengiriman pemberitahuan;
+- SMS;
+- WhatsApp;
+- email; atau
+- clinical donor-patient matching.
+
+Pemanggilan Pendonor tetap menjadi Phase 8K. Pembuatan dan pengiriman pemberitahuan Petugas tetap menjadi Phase 8L.
+
+### Navigasi
+
+Setelah route Phase 8J benar-benar tersedia, Dashboard Petugas boleh menampilkan link nyata `Persediaan Rendah` menuju `petugas.persediaan-rendah.index`.
+
+Dashboard tidak boleh menampilkan dead link untuk `Pemanggilan Pendonor` atau `Pemberitahuan Petugas` sebelum route terkait benar-benar tersedia.
+
+### Konsistensi dengan Dashboard Phase 8A
+
+Semantik Persediaan Rendah harus konsisten antara Dashboard Petugas Phase 8A dan halaman dedicated Phase 8J:
+
+- evaluasi dimulai dari kombinasi yang mempunyai row `ambang_persediaan`;
+- kombinasi terkonfigurasi dengan stok nol tetap dievaluasi;
+- kombinasi tanpa ambang tidak diklasifikasikan; dan
+- kondisi rendah menggunakan `jumlah_persediaan <= jumlah_minimum`.
+
+Phase 8J tidak mewajibkan refactor `PetugasDashboardController` hanya untuk DRY atau sentralisasi. Konsolidasi lintas fitur dapat dipertimbangkan kembali pada integrasi/Phase 9 sebagaimana sudah diizinkan oleh implementation plan.
+
+### Query dan Batas Course/UTS
+
+Phase 8J tetap merupakan perhitungan derived dan harus dapat dijelaskan dengan konsep basis data serta Laravel yang sederhana:
+
+- `ambang_persediaan` sebagai driving rows yang dikonfigurasi;
+- `LEFT JOIN` atau ekuivalen agar kombinasi tanpa unit eligible tetap tersedia;
+- `COUNT` aggregate;
+- `GROUP BY` atau subquery;
+- `COALESCE` untuk merepresentasikan tidak adanya unit eligible sebagai nol;
+- perbandingan `jumlah_persediaan <= jumlah_minimum`;
+- `JOIN` ke `jenis_komponen_darah` dan `golongan_darah`;
+- `ORDER BY`; dan
+- Laravel Controller, Query Builder, serta Blade.
+
+Ketentuan ini mengunci perilaku dan batas kompleksitas, bukan kode implementasi pada task dokumentasi ini.
+
+### Batas Implementasi Phase 8J
+
+Phase 8J tidak menambahkan:
+
+- tabel `persediaan`, tabel low-stock, atau tabel riwayat stok;
+- field derived untuk stok atau status low-stock;
+- expiry flag atau status `KEDALUWARSA`;
+- cache stok atau cron expiry updater;
+- Trigger, Stored Procedure, View, atau custom index;
+- migration, tabel, field, FK, atau UNIQUE;
+- penyimpanan `jumlah_persediaan`;
+- package;
+- service, repository, atau DTO;
+- event/listener atau queue;
+- stock editing atau threshold editing; atau
+- arsitektur besar lain.
+
+Phase 8J tidak mengubah schema yang tetap terdiri dari 15 tabel bisnis dan 97 field.
+
+Phase 8J berhenti pada halaman monitoring read-only Persediaan Rendah. Pemanggilan Pendonor dan pemberitahuan tetap menjadi phase berikutnya.
+
 # C. Aturan Implementasi Berdasarkan Layer
 
 ## Constraint Basis Data
