@@ -1,91 +1,64 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Jadwal Pelayanan</title>
-</head>
-<body>
-    <main>
-        <h1>Edit Jadwal Pelayanan</h1>
+@extends('layouts.app')
 
-        @if ($errors->any())
-            <div role="alert">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+@section('title', 'Edit Jadwal Pelayanan | Donor Darah UDD')
+
+@section('content')
+    <div class="container page-shell page-shell-narrow">
+        <header class="page-header">
+            <div class="page-header-main">
+                <p class="eyebrow">Konfigurasi Pelayanan</p>
+                <h1 class="page-title">Edit Jadwal Pelayanan</h1>
+                <p class="page-description">Perbarui waktu, kapasitas, atau status jadwal.</p>
             </div>
-        @endif
+            <a class="button button-secondary" href="{{ route('admin.jadwal.index') }}">Batal</a>
+        </header>
 
-        <form method="POST" action="{{ route('admin.jadwal.update', $jadwal) }}">
-            @csrf
-            @method('PUT')
+        @include('partials.alerts')
 
-            <div>
-                <label for="tanggal">Tanggal</label>
-                <input
-                    id="tanggal"
-                    type="date"
-                    name="tanggal"
-                    value="{{ old('tanggal', $jadwal->tanggal->format('Y-m-d')) }}"
-                    required
-                >
+        <section class="page-section" aria-labelledby="form-jadwal">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title" id="form-jadwal">Data Jadwal</h2>
+                    <p class="section-description">Gunakan status DIBUKA, DITUTUP, atau DIBATALKAN sesuai kondisi pelayanan.</p>
+                </div>
             </div>
 
-            <div>
-                <label for="jam_mulai">Jam Mulai</label>
-                <input
-                    id="jam_mulai"
-                    type="time"
-                    name="jam_mulai"
-                    value="{{ old('jam_mulai', substr($jadwal->jam_mulai, 0, 5)) }}"
-                    required
-                >
-            </div>
+            <form class="form-panel" method="POST" action="{{ route('admin.jadwal.update', $jadwal) }}">
+                @csrf
+                @method('PUT')
 
-            <div>
-                <label for="jam_selesai">Jam Selesai</label>
-                <input
-                    id="jam_selesai"
-                    type="time"
-                    name="jam_selesai"
-                    value="{{ old('jam_selesai', substr($jadwal->jam_selesai, 0, 5)) }}"
-                    required
-                >
-            </div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="tanggal">Tanggal</label>
+                        <input id="tanggal" type="date" name="tanggal" value="{{ old('tanggal', $jadwal->tanggal->format('Y-m-d')) }}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="kapasitas">Kapasitas</label>
+                        <input id="kapasitas" type="number" name="kapasitas" value="{{ old('kapasitas', $jadwal->kapasitas) }}" min="1" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="jam_mulai">Jam Mulai</label>
+                        <input id="jam_mulai" type="time" name="jam_mulai" value="{{ old('jam_mulai', substr($jadwal->jam_mulai, 0, 5)) }}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="jam_selesai">Jam Selesai</label>
+                        <input id="jam_selesai" type="time" name="jam_selesai" value="{{ old('jam_selesai', substr($jadwal->jam_selesai, 0, 5)) }}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="status_jadwal">Status</label>
+                        <select id="status_jadwal" name="status_jadwal" required>
+                            @foreach (['DIBUKA', 'DITUTUP', 'DIBATALKAN'] as $status)
+                                <option value="{{ $status }}" @selected(old('status_jadwal', $jadwal->status_jadwal) === $status)>{{ $status }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
 
-            <div>
-                <label for="kapasitas">Kapasitas</label>
-                <input
-                    id="kapasitas"
-                    type="number"
-                    name="kapasitas"
-                    value="{{ old('kapasitas', $jadwal->kapasitas) }}"
-                    min="1"
-                    required
-                >
-            </div>
-
-            <div>
-                <label for="status_jadwal">Status</label>
-                <select id="status_jadwal" name="status_jadwal" required>
-                    @foreach (['DIBUKA', 'DITUTUP', 'DIBATALKAN'] as $status)
-                        <option
-                            value="{{ $status }}"
-                            @selected(old('status_jadwal', $jadwal->status_jadwal) === $status)
-                        >
-                            {{ $status }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <button type="submit">Perbarui Jadwal</button>
-        </form>
-
-        <a href="{{ route('admin.jadwal.index') }}">Batal</a>
-    </main>
-</body>
-</html>
+                <div class="form-actions">
+                    <button class="button button-primary" type="submit">Perbarui Jadwal</button>
+                    <a class="button button-secondary" href="{{ route('admin.jadwal.index') }}">Batal</a>
+                </div>
+            </form>
+        </section>
+    </div>
+@endsection

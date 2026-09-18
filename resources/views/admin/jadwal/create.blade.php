@@ -1,69 +1,63 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tambah Jadwal Pelayanan</title>
-</head>
-<body>
-    <main>
-        <h1>Tambah Jadwal Pelayanan</h1>
+@extends('layouts.app')
 
-        @if ($errors->any())
-            <div role="alert">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+@section('title', 'Tambah Jadwal Pelayanan | Donor Darah UDD')
+
+@section('content')
+    <div class="container page-shell page-shell-narrow">
+        <header class="page-header">
+            <div class="page-header-main">
+                <p class="eyebrow">Konfigurasi Pelayanan</p>
+                <h1 class="page-title">Tambah Jadwal Pelayanan</h1>
+                <p class="page-description">Tentukan waktu, kapasitas, dan status jadwal donor.</p>
             </div>
-        @endif
+            <a class="button button-secondary" href="{{ route('admin.jadwal.index') }}">Batal</a>
+        </header>
 
-        <form method="POST" action="{{ route('admin.jadwal.store') }}">
-            @csrf
+        @include('partials.alerts')
 
-            <div>
-                <label for="tanggal">Tanggal</label>
-                <input id="tanggal" type="date" name="tanggal" value="{{ old('tanggal') }}" required>
+        <section class="page-section" aria-labelledby="form-jadwal">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title" id="form-jadwal">Data Jadwal</h2>
+                    <p class="section-description">Jadwal DIBUKA dapat digunakan Pendonor sesuai aturan kapasitas.</p>
+                </div>
             </div>
 
-            <div>
-                <label for="jam_mulai">Jam Mulai</label>
-                <input id="jam_mulai" type="time" name="jam_mulai" value="{{ old('jam_mulai') }}" required>
-            </div>
+            <form class="form-panel" method="POST" action="{{ route('admin.jadwal.store') }}">
+                @csrf
 
-            <div>
-                <label for="jam_selesai">Jam Selesai</label>
-                <input id="jam_selesai" type="time" name="jam_selesai" value="{{ old('jam_selesai') }}" required>
-            </div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="tanggal">Tanggal</label>
+                        <input id="tanggal" type="date" name="tanggal" value="{{ old('tanggal') }}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="kapasitas">Kapasitas</label>
+                        <input id="kapasitas" type="number" name="kapasitas" value="{{ old('kapasitas') }}" min="1" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="jam_mulai">Jam Mulai</label>
+                        <input id="jam_mulai" type="time" name="jam_mulai" value="{{ old('jam_mulai') }}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="jam_selesai">Jam Selesai</label>
+                        <input id="jam_selesai" type="time" name="jam_selesai" value="{{ old('jam_selesai') }}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="status_jadwal">Status</label>
+                        <select id="status_jadwal" name="status_jadwal" required>
+                            @foreach (['DIBUKA', 'DITUTUP', 'DIBATALKAN'] as $status)
+                                <option value="{{ $status }}" @selected(old('status_jadwal', 'DIBUKA') === $status)>{{ $status }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
 
-            <div>
-                <label for="kapasitas">Kapasitas</label>
-                <input
-                    id="kapasitas"
-                    type="number"
-                    name="kapasitas"
-                    value="{{ old('kapasitas') }}"
-                    min="1"
-                    required
-                >
-            </div>
-
-            <div>
-                <label for="status_jadwal">Status</label>
-                <select id="status_jadwal" name="status_jadwal" required>
-                    @foreach (['DIBUKA', 'DITUTUP', 'DIBATALKAN'] as $status)
-                        <option value="{{ $status }}" @selected(old('status_jadwal', 'DIBUKA') === $status)>
-                            {{ $status }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <button type="submit">Simpan Jadwal</button>
-        </form>
-
-        <a href="{{ route('admin.jadwal.index') }}">Batal</a>
-    </main>
-</body>
-</html>
+                <div class="form-actions">
+                    <button class="button button-primary" type="submit">Simpan Jadwal</button>
+                    <a class="button button-secondary" href="{{ route('admin.jadwal.index') }}">Batal</a>
+                </div>
+            </form>
+        </section>
+    </div>
+@endsection

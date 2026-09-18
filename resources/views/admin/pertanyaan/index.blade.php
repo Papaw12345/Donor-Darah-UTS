@@ -1,60 +1,64 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pertanyaan Kuesioner</title>
-</head>
-<body>
-    <main>
-        <h1>Pertanyaan Kuesioner</h1>
+@extends('layouts.app')
 
-        @if (session('success'))
-            <div role="status">
-                {{ session('success') }}
+@section('title', 'Pertanyaan Kuesioner | Donor Darah UDD')
+
+@section('content')
+    <div class="container page-shell">
+        <header class="page-header">
+            <div class="page-header-main">
+                <p class="eyebrow">Konfigurasi Kuesioner</p>
+                <h1 class="page-title">Pertanyaan Kuesioner</h1>
+                <p class="page-description">Kelola pertanyaan yang digunakan pada kuesioner pradonasi.</p>
             </div>
-        @endif
+            <a class="button button-primary" href="{{ route('admin.pertanyaan.create') }}">Tambah Pertanyaan</a>
+        </header>
 
-        <nav aria-label="Navigasi Admin">
-            <a href="{{ route('admin.home') }}">Dashboard Admin</a>
-            <a href="{{ route('admin.pertanyaan.create') }}">Tambah Pertanyaan</a>
-        </nav>
+        @include('partials.alerts')
 
-        @if ($pertanyaan->isEmpty())
-            <p>Belum ada pertanyaan kuesioner.</p>
-        @else
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">Urutan</th>
-                        <th scope="col">Pertanyaan</th>
-                        <th scope="col">Kategori</th>
-                        <th scope="col">Jenis Jawaban</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($pertanyaan as $item)
-                        <tr>
-                            <td>{{ $item->urutan }}</td>
-                            <td>{{ $item->teks_pertanyaan }}</td>
-                            <td>{{ $item->kategori ?? '-' }}</td>
-                            <td>{{ $item->jenis_jawaban }}</td>
-                            <td>{{ $item->status_aktif ? 'Aktif' : 'Nonaktif' }}</td>
-                            <td>
-                                <a href="{{ route('admin.pertanyaan.edit', $item) }}">Edit</a>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
+        <section class="page-section" aria-labelledby="daftar-pertanyaan">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title" id="daftar-pertanyaan">Daftar Pertanyaan</h2>
+                    <p class="section-description">Pertanyaan nonaktif tetap disimpan untuk menjaga riwayat jawaban.</p>
+                </div>
+            </div>
 
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit">Logout</button>
-        </form>
-    </main>
-</body>
-</html>
+            @if ($pertanyaan->isEmpty())
+                <div class="empty-state">Belum ada pertanyaan kuesioner.</div>
+            @else
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Urutan</th>
+                                <th scope="col">Pertanyaan</th>
+                                <th scope="col">Kategori</th>
+                                <th scope="col">Jenis Jawaban</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($pertanyaan as $item)
+                                <tr>
+                                    <td>{{ $item->urutan }}</td>
+                                    <td class="message-cell">{{ $item->teks_pertanyaan }}</td>
+                                    <td>{{ $item->kategori ?? '-' }}</td>
+                                    <td>{{ $item->jenis_jawaban }}</td>
+                                    <td>
+                                        <span class="status-badge {{ $item->status_aktif ? 'status-success' : 'status-neutral' }}">
+                                            {{ $item->status_aktif ? 'Aktif' : 'Nonaktif' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a class="button button-secondary button-small" href="{{ route('admin.pertanyaan.edit', $item) }}">Edit</a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </section>
+    </div>
+@endsection

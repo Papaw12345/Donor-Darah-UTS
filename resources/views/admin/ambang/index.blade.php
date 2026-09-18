@@ -1,62 +1,56 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ambang Persediaan</title>
-</head>
-<body>
-    <main>
-        <h1>Ambang Persediaan</h1>
+@extends('layouts.app')
 
-        @if (session('success'))
-            <div role="status">
-                {{ session('success') }}
+@section('title', 'Ambang Persediaan | Donor Darah UDD')
+
+@section('content')
+    <div class="container page-shell">
+        <header class="page-header">
+            <div class="page-header-main">
+                <p class="eyebrow">Konfigurasi Persediaan</p>
+                <h1 class="page-title">Ambang Persediaan</h1>
+                <p class="page-description">Atur jumlah minimum untuk setiap kombinasi komponen dan golongan darah.</p>
             </div>
-        @endif
+            <a class="button button-primary" href="{{ route('admin.ambang.create') }}">Tambah Ambang</a>
+        </header>
 
-        <nav aria-label="Navigasi Admin">
-            <a href="{{ route('admin.home') }}">Dashboard Admin</a>
-            <a href="{{ route('admin.ambang.create') }}">Tambah Ambang</a>
-        </nav>
+        @include('partials.alerts')
 
-        @if ($ambang->isEmpty())
-            <p>Belum ada ambang persediaan yang dikonfigurasi.</p>
-        @else
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">Jenis Komponen</th>
-                        <th scope="col">Golongan Darah</th>
-                        <th scope="col">Jumlah Minimum</th>
-                        <th scope="col">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($ambang as $item)
-                        <tr>
-                            <td>
-                                {{ $item->jenisKomponenDarah->kode_komponen }}
-                                - {{ $item->jenisKomponenDarah->nama_komponen }}
-                            </td>
-                            <td>
-                                {{ $item->golonganDarah->abo }}
-                                {{ ucfirst(strtolower($item->golonganDarah->rhesus)) }}
-                            </td>
-                            <td>{{ $item->jumlah_minimum }}</td>
-                            <td>
-                                <a href="{{ route('admin.ambang.edit', $item) }}">Edit</a>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
+        <section class="page-section" aria-labelledby="daftar-ambang">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title" id="daftar-ambang">Daftar Ambang</h2>
+                    <p class="section-description">Setiap kombinasi hanya dapat memiliki satu konfigurasi ambang.</p>
+                </div>
+            </div>
 
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit">Logout</button>
-        </form>
-    </main>
-</body>
-</html>
+            @if ($ambang->isEmpty())
+                <div class="empty-state">Belum ada ambang persediaan yang dikonfigurasi.</div>
+            @else
+                <div class="table-container">
+                    <table class="data-table table-compact">
+                        <thead>
+                            <tr>
+                                <th scope="col">Jenis Komponen</th>
+                                <th scope="col">Golongan Darah</th>
+                                <th scope="col">Jumlah Minimum</th>
+                                <th scope="col">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($ambang as $item)
+                                <tr>
+                                    <td>{{ $item->jenisKomponenDarah->kode_komponen }} - {{ $item->jenisKomponenDarah->nama_komponen }}</td>
+                                    <td>{{ $item->golonganDarah->abo }} {{ ucfirst(strtolower($item->golonganDarah->rhesus)) }}</td>
+                                    <td>{{ $item->jumlah_minimum }}</td>
+                                    <td>
+                                        <a class="button button-secondary button-small" href="{{ route('admin.ambang.edit', $item) }}">Edit</a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </section>
+    </div>
+@endsection

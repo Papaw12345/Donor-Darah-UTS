@@ -1,58 +1,57 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Ambang Persediaan</title>
-</head>
-<body>
-    <main>
-        <h1>Edit Ambang Persediaan</h1>
+@extends('layouts.app')
 
-        @if ($errors->any())
-            <div role="alert">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+@section('title', 'Edit Ambang Persediaan | Donor Darah UDD')
+
+@section('content')
+    <div class="container page-shell page-shell-narrow">
+        <header class="page-header">
+            <div class="page-header-main">
+                <p class="eyebrow">Konfigurasi Persediaan</p>
+                <h1 class="page-title">Edit Ambang Persediaan</h1>
+                <p class="page-description">Perbarui jumlah minimum untuk kombinasi yang sudah ditetapkan.</p>
             </div>
-        @endif
+            <a class="button button-secondary" href="{{ route('admin.ambang.index') }}">Batal</a>
+        </header>
 
-        <dl>
-            <dt>Jenis Komponen</dt>
-            <dd>
-                {{ $ambang->jenisKomponenDarah->kode_komponen }}
-                - {{ $ambang->jenisKomponenDarah->nama_komponen }}
-            </dd>
+        @include('partials.alerts')
 
-            <dt>Golongan Darah</dt>
-            <dd>
-                {{ $ambang->golonganDarah->abo }}
-                {{ ucfirst(strtolower($ambang->golonganDarah->rhesus)) }}
-            </dd>
+        <dl class="context-strip">
+            <div>
+                <dt>Jenis Komponen</dt>
+                <dd>{{ $ambang->jenisKomponenDarah->kode_komponen }} - {{ $ambang->jenisKomponenDarah->nama_komponen }}</dd>
+            </div>
+            <div>
+                <dt>Golongan Darah</dt>
+                <dd>{{ $ambang->golonganDarah->abo }} {{ ucfirst(strtolower($ambang->golonganDarah->rhesus)) }}</dd>
+            </div>
+            <div>
+                <dt>Jumlah Minimum Saat Ini</dt>
+                <dd>{{ $ambang->jumlah_minimum }}</dd>
+            </div>
         </dl>
 
-        <form method="POST" action="{{ route('admin.ambang.update', $ambang) }}">
-            @csrf
-            @method('PUT')
-
-            <div>
-                <label for="jumlah_minimum">Jumlah Minimum</label>
-                <input
-                    id="jumlah_minimum"
-                    type="number"
-                    name="jumlah_minimum"
-                    value="{{ old('jumlah_minimum', $ambang->jumlah_minimum) }}"
-                    min="0"
-                    required
-                >
+        <section class="page-section" aria-labelledby="form-ambang">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title" id="form-ambang">Jumlah Minimum</h2>
+                    <p class="section-description">Jenis komponen dan golongan darah tidak diubah dari halaman ini.</p>
+                </div>
             </div>
 
-            <button type="submit">Perbarui Ambang</button>
-        </form>
+            <form class="form-panel" method="POST" action="{{ route('admin.ambang.update', $ambang) }}">
+                @csrf
+                @method('PUT')
 
-        <a href="{{ route('admin.ambang.index') }}">Batal</a>
-    </main>
-</body>
-</html>
+                <div class="form-field">
+                    <label for="jumlah_minimum">Jumlah Minimum</label>
+                    <input id="jumlah_minimum" type="number" name="jumlah_minimum" value="{{ old('jumlah_minimum', $ambang->jumlah_minimum) }}" min="0" required>
+                </div>
+
+                <div class="form-actions">
+                    <button class="button button-primary" type="submit">Perbarui Ambang</button>
+                    <a class="button button-secondary" href="{{ route('admin.ambang.index') }}">Batal</a>
+                </div>
+            </form>
+        </section>
+    </div>
+@endsection

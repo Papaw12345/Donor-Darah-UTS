@@ -1,73 +1,67 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tambah Ambang Persediaan</title>
-</head>
-<body>
-    <main>
-        <h1>Tambah Ambang Persediaan</h1>
+@extends('layouts.app')
 
-        @if ($errors->any())
-            <div role="alert">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+@section('title', 'Tambah Ambang Persediaan | Donor Darah UDD')
+
+@section('content')
+    <div class="container page-shell page-shell-narrow">
+        <header class="page-header">
+            <div class="page-header-main">
+                <p class="eyebrow">Konfigurasi Persediaan</p>
+                <h1 class="page-title">Tambah Ambang Persediaan</h1>
+                <p class="page-description">Buat konfigurasi jumlah minimum untuk satu kombinasi komponen dan golongan darah.</p>
             </div>
-        @endif
+            <a class="button button-secondary" href="{{ route('admin.ambang.index') }}">Batal</a>
+        </header>
 
-        <form method="POST" action="{{ route('admin.ambang.store') }}">
-            @csrf
+        @include('partials.alerts')
 
-            <div>
-                <label for="id_jenis_komponen">Jenis Komponen</label>
-                <select id="id_jenis_komponen" name="id_jenis_komponen" required>
-                    <option value="">Pilih jenis komponen</option>
-                    @foreach ($jenisKomponen as $jenis)
-                        <option
-                            value="{{ $jenis->id_jenis_komponen }}"
-                            @selected((string) old('id_jenis_komponen') === (string) $jenis->id_jenis_komponen)
-                        >
-                            {{ $jenis->kode_komponen }} - {{ $jenis->nama_komponen }}
-                        </option>
-                    @endforeach
-                </select>
+        <section class="page-section" aria-labelledby="form-ambang">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title" id="form-ambang">Data Ambang</h2>
+                    <p class="section-description">Kombinasi yang sama tidak dapat dibuat lebih dari satu kali.</p>
+                </div>
             </div>
 
-            <div>
-                <label for="id_golongan_darah">Golongan Darah</label>
-                <select id="id_golongan_darah" name="id_golongan_darah" required>
-                    <option value="">Pilih golongan darah</option>
-                    @foreach ($golonganDarah as $golongan)
-                        <option
-                            value="{{ $golongan->id_golongan_darah }}"
-                            @selected((string) old('id_golongan_darah') === (string) $golongan->id_golongan_darah)
-                        >
-                            {{ $golongan->abo }} {{ ucfirst(strtolower($golongan->rhesus)) }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            <form class="form-panel" method="POST" action="{{ route('admin.ambang.store') }}">
+                @csrf
 
-            <div>
-                <label for="jumlah_minimum">Jumlah Minimum</label>
-                <input
-                    id="jumlah_minimum"
-                    type="number"
-                    name="jumlah_minimum"
-                    value="{{ old('jumlah_minimum') }}"
-                    min="0"
-                    required
-                >
-            </div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="id_jenis_komponen">Jenis Komponen</label>
+                        <select id="id_jenis_komponen" name="id_jenis_komponen" required>
+                            <option value="">Pilih jenis komponen</option>
+                            @foreach ($jenisKomponen as $jenis)
+                                <option value="{{ $jenis->id_jenis_komponen }}" @selected((string) old('id_jenis_komponen') === (string) $jenis->id_jenis_komponen)>
+                                    {{ $jenis->kode_komponen }} - {{ $jenis->nama_komponen }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-            <button type="submit">Simpan Ambang</button>
-        </form>
+                    <div class="form-field">
+                        <label for="id_golongan_darah">Golongan Darah</label>
+                        <select id="id_golongan_darah" name="id_golongan_darah" required>
+                            <option value="">Pilih golongan darah</option>
+                            @foreach ($golonganDarah as $golongan)
+                                <option value="{{ $golongan->id_golongan_darah }}" @selected((string) old('id_golongan_darah') === (string) $golongan->id_golongan_darah)>
+                                    {{ $golongan->abo }} {{ ucfirst(strtolower($golongan->rhesus)) }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-        <a href="{{ route('admin.ambang.index') }}">Batal</a>
-    </main>
-</body>
-</html>
+                    <div class="form-field">
+                        <label for="jumlah_minimum">Jumlah Minimum</label>
+                        <input id="jumlah_minimum" type="number" name="jumlah_minimum" value="{{ old('jumlah_minimum') }}" min="0" required>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="button button-primary" type="submit">Simpan Ambang</button>
+                    <a class="button button-secondary" href="{{ route('admin.ambang.index') }}">Batal</a>
+                </div>
+            </form>
+        </section>
+    </div>
+@endsection
