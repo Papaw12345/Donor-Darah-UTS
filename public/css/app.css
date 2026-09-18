@@ -148,11 +148,13 @@ img {
 }
 
 .page-header-main {
+    min-width: 0;
     max-width: 48rem;
 }
 
 .page-title {
     margin: 0;
+    overflow-wrap: anywhere;
     font-size: clamp(2.15rem, 5vw, 3.8rem);
     letter-spacing: -0.045em;
     line-height: 1.04;
@@ -177,8 +179,13 @@ img {
     margin-bottom: 1.15rem;
 }
 
+.section-header > div {
+    min-width: 0;
+}
+
 .section-title {
     margin: 0;
+    overflow-wrap: anywhere;
     font-size: clamp(1.35rem, 3vw, 1.8rem);
     letter-spacing: -0.025em;
     line-height: 1.2;
@@ -474,6 +481,7 @@ img {
 .nav-actions {
     display: flex;
     flex: 1 1 34rem;
+    min-width: 0;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
@@ -502,6 +510,11 @@ img {
 
 .nav-form {
     margin: 0;
+}
+
+.nav-actions .button[aria-current="page"] {
+    outline: 2px solid var(--color-primary-dark);
+    outline-offset: 2px;
 }
 
 /* 5. Hero */
@@ -586,6 +599,7 @@ img {
 /* 6. Buttons */
 .button {
     display: inline-flex;
+    max-width: 100%;
     min-height: 2.85rem;
     align-items: center;
     justify-content: center;
@@ -596,6 +610,7 @@ img {
     cursor: pointer;
     font-weight: 750;
     line-height: 1.1;
+    overflow-wrap: anywhere;
     text-align: center;
     text-decoration: none;
     transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
@@ -972,6 +987,7 @@ img {
 
 /* 10. Tables */
 .table-container {
+    max-width: 100%;
     overflow-x: auto;
     border: 1px solid var(--color-border);
     border-radius: 4px;
@@ -989,6 +1005,7 @@ img {
 .data-table td {
     padding: 0.9rem 1rem;
     border-bottom: 1px solid var(--color-border);
+    overflow-wrap: anywhere;
     vertical-align: top;
 }
 
@@ -1042,12 +1059,14 @@ img {
 /* 11. Status */
 .status-badge {
     display: inline-block;
+    max-width: 100%;
     padding: 0.3rem 0.55rem;
     border: 1px solid transparent;
     border-radius: 4px;
     font-size: 0.75rem;
     font-weight: 800;
     line-height: 1.2;
+    overflow-wrap: anywhere;
 }
 
 .status-success {
