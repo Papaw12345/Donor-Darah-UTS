@@ -1,144 +1,74 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Saya</title>
-</head>
-<body>
-    <main>
-        <h1>Profil Saya</h1>
+@extends('layouts.app')
 
-        <p>
-            <a href="{{ route('pendonor.home') }}">Kembali ke Dashboard</a>
-        </p>
+@section('title', 'Profil Saya | Donor Darah UDD')
 
-        @if (session('success'))
-            <p>{{ session('success') }}</p>
-        @endif
-
-        @if ($errors->any())
-            <div role="alert">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+@section('content')
+    <div class="container page-shell">
+        <header class="page-header">
+            <div class="page-header-main">
+                <p class="eyebrow">Profil Pendonor</p>
+                <h1 class="page-title">Profil Saya</h1>
+                <p class="page-description">Lihat data identitas dan perbarui informasi pribadi yang diizinkan.</p>
             </div>
-        @endif
+            <a class="button button-secondary" href="{{ route('pendonor.home') }}">Kembali ke Dashboard</a>
+        </header>
 
-        <section aria-labelledby="data-tetap">
-            <h2 id="data-tetap">Data Identitas</h2>
+        @include('partials.alerts')
 
-            <dl>
-                <dt>Email akun</dt>
-                <dd>{{ $akun->email }}</dd>
-
-                <dt>NIK</dt>
-                <dd>{{ $pendonor->nik }}</dd>
-
-                <dt>Nomor donor</dt>
-                <dd>{{ $pendonor->nomor_donor ?? 'Belum tersedia' }}</dd>
-
-                <dt>Jenis kelamin</dt>
-                <dd>
-                    {{ $pendonor->jenis_kelamin === 'LAKI_LAKI' ? 'Laki-laki' : 'Perempuan' }}
-                </dd>
-
-                <dt>Tanggal lahir</dt>
-                <dd>{{ $pendonor->tanggal_lahir->format('d-m-Y') }}</dd>
-
-                <dt>Golongan darah</dt>
-                <dd>
-                    @if ($pendonor->golonganDarah)
-                        {{ $pendonor->golonganDarah->abo }}
-                        {{ $pendonor->golonganDarah->rhesus === 'POSITIF' ? '+' : '-' }}
-                    @else
-                        Belum dikonfirmasi UDD
-                    @endif
-                </dd>
+        <section class="page-section" aria-labelledby="data-tetap">
+            <div class="section-header"><div><h2 class="section-title" id="data-tetap">Data Identitas</h2><p class="section-description">Data berikut hanya dapat dilihat dan tidak dapat diubah dari halaman ini.</p></div></div>
+            <dl class="info-grid">
+                <div class="info-block"><dt>Email akun</dt><dd>{{ $akun->email }}</dd></div>
+                <div class="info-block"><dt>NIK</dt><dd>{{ $pendonor->nik }}</dd></div>
+                <div class="info-block"><dt>Nomor donor</dt><dd>{{ $pendonor->nomor_donor ?? 'Belum tersedia' }}</dd></div>
+                <div class="info-block"><dt>Jenis kelamin</dt><dd>{{ $pendonor->jenis_kelamin === 'LAKI_LAKI' ? 'Laki-laki' : 'Perempuan' }}</dd></div>
+                <div class="info-block"><dt>Tanggal lahir</dt><dd>{{ $pendonor->tanggal_lahir->format('d-m-Y') }}</dd></div>
+                <div class="info-block">
+                    <dt>Golongan darah</dt>
+                    <dd>
+                        @if ($pendonor->golonganDarah)
+                            {{ $pendonor->golonganDarah->abo }} {{ $pendonor->golonganDarah->rhesus === 'POSITIF' ? '+' : '-' }}
+                        @else
+                            Belum dikonfirmasi UDD
+                        @endif
+                    </dd>
+                </div>
             </dl>
         </section>
 
-        <section aria-labelledby="data-dapat-diubah">
-            <h2 id="data-dapat-diubah">Data yang Dapat Diperbarui</h2>
-
-            <form method="POST" action="{{ route('pendonor.profil.update') }}">
+        <section class="page-section" aria-labelledby="data-dapat-diubah">
+            <div class="section-header"><div><h2 class="section-title" id="data-dapat-diubah">Data yang Dapat Diperbarui</h2><p class="section-description">Perbarui data profil, kontak, dan pekerjaan Anda.</p></div></div>
+            <form class="form-panel" method="POST" action="{{ route('pendonor.profil.update') }}">
                 @csrf
                 @method('PUT')
-
-                <div>
-                    <label for="nama_lengkap">Nama Lengkap</label>
-                    <input
-                        id="nama_lengkap"
-                        type="text"
-                        name="nama_lengkap"
-                        value="{{ old('nama_lengkap', $pendonor->nama_lengkap) }}"
-                        maxlength="150"
-                        required
-                    >
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="nama_lengkap">Nama Lengkap</label>
+                        <input id="nama_lengkap" type="text" name="nama_lengkap" value="{{ old('nama_lengkap', $pendonor->nama_lengkap) }}" maxlength="150" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="tempat_lahir">Tempat Lahir</label>
+                        <input id="tempat_lahir" type="text" name="tempat_lahir" value="{{ old('tempat_lahir', $pendonor->tempat_lahir) }}" maxlength="100" required>
+                    </div>
+                    <div class="form-field form-field-full">
+                        <label for="alamat">Alamat</label>
+                        <textarea id="alamat" name="alamat" required>{{ old('alamat', $pendonor->alamat) }}</textarea>
+                    </div>
+                    <div class="form-field">
+                        <label for="nomor_telepon">Nomor Telepon</label>
+                        <input id="nomor_telepon" type="text" name="nomor_telepon" value="{{ old('nomor_telepon', $pendonor->nomor_telepon) }}" maxlength="20" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="pekerjaan">Pekerjaan <span class="form-hint">(opsional)</span></label>
+                        <input id="pekerjaan" type="text" name="pekerjaan" value="{{ old('pekerjaan', $pendonor->pekerjaan) }}" maxlength="100">
+                    </div>
+                    <div class="form-field form-field-full">
+                        <label for="alamat_kantor">Alamat Kantor <span class="form-hint">(opsional)</span></label>
+                        <textarea id="alamat_kantor" name="alamat_kantor">{{ old('alamat_kantor', $pendonor->alamat_kantor) }}</textarea>
+                    </div>
                 </div>
-
-                <div>
-                    <label for="tempat_lahir">Tempat Lahir</label>
-                    <input
-                        id="tempat_lahir"
-                        type="text"
-                        name="tempat_lahir"
-                        value="{{ old('tempat_lahir', $pendonor->tempat_lahir) }}"
-                        maxlength="100"
-                        required
-                    >
-                </div>
-
-                <div>
-                    <label for="alamat">Alamat</label>
-                    <textarea
-                        id="alamat"
-                        name="alamat"
-                        required
-                    >{{ old('alamat', $pendonor->alamat) }}</textarea>
-                </div>
-
-                <div>
-                    <label for="nomor_telepon">Nomor Telepon</label>
-                    <input
-                        id="nomor_telepon"
-                        type="text"
-                        name="nomor_telepon"
-                        value="{{ old('nomor_telepon', $pendonor->nomor_telepon) }}"
-                        maxlength="20"
-                        required
-                    >
-                </div>
-
-                <div>
-                    <label for="pekerjaan">Pekerjaan (opsional)</label>
-                    <input
-                        id="pekerjaan"
-                        type="text"
-                        name="pekerjaan"
-                        value="{{ old('pekerjaan', $pendonor->pekerjaan) }}"
-                        maxlength="100"
-                    >
-                </div>
-
-                <div>
-                    <label for="alamat_kantor">Alamat Kantor (opsional)</label>
-                    <textarea
-                        id="alamat_kantor"
-                        name="alamat_kantor"
-                    >{{ old('alamat_kantor', $pendonor->alamat_kantor) }}</textarea>
-                </div>
-
-                <button type="submit">Simpan Perubahan</button>
+                <div class="form-actions"><button class="button button-primary" type="submit">Simpan Perubahan</button></div>
             </form>
         </section>
-
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit">Logout</button>
-        </form>
-    </main>
-</body>
-</html>
+    </div>
+@endsection

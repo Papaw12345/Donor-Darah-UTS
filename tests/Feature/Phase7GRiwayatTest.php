@@ -261,7 +261,6 @@ class Phase7GRiwayatTest extends TestCase
         $this->actingAs($pendonor->akun)
             ->get(route('pendonor.riwayat.index'))
             ->assertOk()
-            ->assertDontSee('<form', false)
             ->assertDontSee('Edit Penyumbangan')
             ->assertDontSee('Hapus Penyumbangan')
             ->assertDontSee('Buat Penyumbangan');

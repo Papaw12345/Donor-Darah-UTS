@@ -1,135 +1,139 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Pendonor</title>
-</head>
-<body>
-    <main>
-        <h1>Dashboard Pendonor</h1>
+@extends('layouts.app')
 
-        <section aria-labelledby="informasi-pendonor">
-            <h2 id="informasi-pendonor">Informasi Pendonor</h2>
+@section('title', 'Dashboard Pendonor | Donor Darah UDD')
 
-            <dl>
-                <dt>Nama lengkap</dt>
-                <dd>{{ $pendonor->nama_lengkap }}</dd>
+@section('content')
+    <div class="container page-shell">
+        <header class="page-header">
+            <div class="page-header-main">
+                <p class="eyebrow">Area Pendonor</p>
+                <h1 class="page-title">Selamat datang, {{ $pendonor->nama_lengkap }}</h1>
+                <p class="page-description">Lihat ringkasan pemesanan, informasi donor berikutnya, dan pemberitahuan Anda.</p>
+            </div>
+            <div class="action-group">
+                <a class="button button-secondary" href="{{ route('pendonor.riwayat.index') }}">Riwayat Donor</a>
+                <a class="button button-secondary" href="{{ route('pendonor.profil.show') }}">Lihat Profil</a>
+            </div>
+        </header>
 
-                <dt>Email akun</dt>
-                <dd>{{ $akun->email }}</dd>
+        @include('partials.alerts')
 
-                <dt>Nomor donor</dt>
-                <dd>{{ $pendonor->nomor_donor ?? 'Belum tersedia' }}</dd>
+        {{-- Ringkasan --}}
+        <section class="summary-grid" aria-label="Ringkasan Pendonor">
+            <article class="summary-block">
+                <p class="summary-label">Donor berikutnya</p>
+                @if ($informasiDonorBerikutnya['donor_pertama'])
+                    <p class="summary-value">Dapat mencoba donor pertama</p>
+                    <p class="summary-text">Anda belum memiliki riwayat donor berhasil. Berdasarkan riwayat, Anda dapat mencoba donor pertama sekarang.</p>
+                @elseif ($informasiDonorBerikutnya['dapat_mencoba_sekarang'])
+                    <p class="summary-value">Dapat mencoba donor kembali</p>
+                    <p class="summary-text">Berdasarkan riwayat donor berhasil, Anda sudah dapat mencoba donor kembali.</p>
+                @else
+                    <p class="summary-value">{{ $informasiDonorBerikutnya['tanggal_donor_berikutnya']->format('d-m-Y') }}</p>
+                    <p class="summary-text">Perkiraan paling awal untuk mencoba donor kembali.</p>
+                @endif
+                <a class="text-link" href="{{ route('pendonor.donor-berikutnya.index') }}">Lihat Informasi Donor Berikutnya</a>
+            </article>
 
-                <dt>Golongan darah</dt>
-                <dd>
-                    @if ($pendonor->golonganDarah)
-                        {{ $pendonor->golonganDarah->abo }} {{ $pendonor->golonganDarah->rhesus === 'POSITIF' ? '+' : '-' }}
-                    @else
-                        Belum dikonfirmasi UDD
-                    @endif
-                </dd>
+            <article class="summary-block">
+                <p class="summary-label">Pemesanan aktif</p>
+                <p class="summary-value">
+                    {{ $pemesananAktif->isEmpty() ? 'Tidak ada pemesanan aktif' : 'Pemesanan aktif tersedia' }}
+                </p>
+                <p class="summary-text">Status aktif mencakup TERJADWAL dan CHECK_IN.</p>
+                <a class="text-link" href="{{ route('pendonor.pemesanan.index') }}">Lihat Semua Pemesanan</a>
+            </article>
+
+            <article class="summary-block">
+                <p class="summary-label">Pemberitahuan</p>
+                <p class="summary-value">Belum dibaca: {{ $jumlahPemberitahuanBelumDibaca }}</p>
+                <p class="summary-text">Pemberitahuan terbaru dari Petugas UDD.</p>
+                <a class="text-link" href="{{ route('pendonor.pemberitahuan.index') }}">Lihat Semua Pemberitahuan</a>
+            </article>
+        </section>
+
+        <section class="page-section" aria-labelledby="informasi-pendonor">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title" id="informasi-pendonor">Informasi Pendonor</h2>
+                    <p class="section-description">Informasi akun dan identitas donor yang tercatat.</p>
+                </div>
+            </div>
+
+            <dl class="info-grid">
+                <div class="info-block"><dt>Nama lengkap</dt><dd>{{ $pendonor->nama_lengkap }}</dd></div>
+                <div class="info-block"><dt>Email akun</dt><dd>{{ $akun->email }}</dd></div>
+                <div class="info-block"><dt>Nomor donor</dt><dd>{{ $pendonor->nomor_donor ?? 'Belum tersedia' }}</dd></div>
+                <div class="info-block">
+                    <dt>Golongan darah</dt>
+                    <dd>
+                        @if ($pendonor->golonganDarah)
+                            {{ $pendonor->golonganDarah->abo }} {{ $pendonor->golonganDarah->rhesus === 'POSITIF' ? '+' : '-' }}
+                        @else
+                            Belum dikonfirmasi UDD
+                        @endif
+                    </dd>
+                </div>
             </dl>
         </section>
 
-        <section aria-labelledby="pemesanan-aktif">
-            <h2 id="pemesanan-aktif">Pemesanan Aktif</h2>
+        {{-- Pemesanan aktif --}}
+        <section class="page-section" aria-labelledby="pemesanan-aktif">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title" id="pemesanan-aktif">Pemesanan Aktif</h2>
+                    <p class="section-description">Seluruh pemesanan Anda yang masih berstatus TERJADWAL atau CHECK_IN.</p>
+                </div>
+                <a class="button button-secondary button-small" href="{{ route('pendonor.pemesanan.index') }}">Lihat Semua Pemesanan</a>
+            </div>
 
             @if ($pemesananAktif->isEmpty())
-                <p>Tidak ada pemesanan donor aktif.</p>
+                <div class="empty-state">Tidak ada pemesanan donor aktif.</div>
             @else
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Tanggal</th>
-                            <th>Jam Pelayanan</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($pemesananAktif as $pemesanan)
-                            <tr>
-                                <td>{{ $pemesanan->jadwalPelayanan->tanggal->format('d-m-Y') }}</td>
-                                <td>
-                                    {{ substr($pemesanan->jadwalPelayanan->jam_mulai, 0, 5) }}
-                                    -
-                                    {{ substr($pemesanan->jadwalPelayanan->jam_selesai, 0, 5) }}
-                                </td>
-                                <td>{{ $pemesanan->status_pemesanan }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table class="data-table table-compact">
+                        <thead><tr><th scope="col">Tanggal</th><th scope="col">Jam Pelayanan</th><th scope="col">Status</th></tr></thead>
+                        <tbody>
+                            @foreach ($pemesananAktif as $pemesanan)
+                                <tr>
+                                    <td>{{ $pemesanan->jadwalPelayanan->tanggal->format('d-m-Y') }}</td>
+                                    <td>{{ substr($pemesanan->jadwalPelayanan->jam_mulai, 0, 5) }} - {{ substr($pemesanan->jadwalPelayanan->jam_selesai, 0, 5) }}</td>
+                                    <td><span class="status-badge {{ $pemesanan->status_pemesanan === 'CHECK_IN' ? 'status-success' : 'status-warning' }}">{{ $pemesanan->status_pemesanan }}</span></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             @endif
-
-            <p>
-                <a href="{{ route('pendonor.pemesanan.index') }}">Lihat Semua Pemesanan</a>
-            </p>
         </section>
 
-        <section aria-labelledby="informasi-donor-berikutnya">
-            <h2 id="informasi-donor-berikutnya">Informasi Donor Berikutnya</h2>
-
-            @if ($informasiDonorBerikutnya['donor_pertama'])
-                <p>Anda belum memiliki riwayat donor berhasil. Berdasarkan riwayat, Anda dapat mencoba donor pertama sekarang.</p>
-            @elseif ($informasiDonorBerikutnya['dapat_mencoba_sekarang'])
-                <p>Berdasarkan riwayat donor berhasil, Anda sudah dapat mencoba donor kembali.</p>
-            @else
-                <p>Perkiraan paling awal untuk mencoba donor kembali: {{ $informasiDonorBerikutnya['tanggal_donor_berikutnya']->format('d-m-Y') }}.</p>
-            @endif
-
-            <p>
-                <a href="{{ route('pendonor.donor-berikutnya.index') }}">Lihat Informasi Donor Berikutnya</a>
-            </p>
-        </section>
-
-        <section aria-labelledby="pemberitahuan-terbaru">
-            <h2 id="pemberitahuan-terbaru">Pemberitahuan</h2>
-
-            <p>Belum dibaca: {{ $jumlahPemberitahuanBelumDibaca }}</p>
+        {{-- Pemberitahuan terbaru --}}
+        <section class="page-section" aria-labelledby="pemberitahuan-terbaru">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title" id="pemberitahuan-terbaru">Pemberitahuan</h2>
+                    <p class="section-description">Belum dibaca: {{ $jumlahPemberitahuanBelumDibaca }}</p>
+                </div>
+                <a class="button button-secondary button-small" href="{{ route('pendonor.pemberitahuan.index') }}">Lihat Semua Pemberitahuan</a>
+            </div>
 
             @if ($pemberitahuanTerbaru->isEmpty())
-                <p>Belum ada pemberitahuan.</p>
+                <div class="empty-state">Belum ada pemberitahuan.</div>
             @else
-                <ul>
+                <div class="notification-list">
                     @foreach ($pemberitahuanTerbaru as $item)
-                        <li>
-                            {{ $item->waktu_dibuat->format('d-m-Y H:i') }}
-                            - {{ $item->petugasPengirim?->nama_petugas ?? '-' }}
-                            - {{ $item->isi_pesan }}
-                            - {{ $item->waktu_dibaca === null ? 'Belum dibaca' : 'Sudah dibaca' }}
-                            - <a href="{{ route('pendonor.pemberitahuan.show', $item) }}">Lihat</a>
-                        </li>
+                        <article class="notification-item {{ $item->waktu_dibaca === null ? 'is-unread' : '' }}">
+                            <div class="notification-meta">
+                                <span>{{ $item->waktu_dibuat->format('d-m-Y H:i') }}</span>
+                                <span>{{ $item->petugasPengirim?->nama_petugas ?? '-' }}</span>
+                                <span class="status-badge {{ $item->waktu_dibaca === null ? 'status-warning' : 'status-neutral' }}">{{ $item->waktu_dibaca === null ? 'Belum dibaca' : 'Sudah dibaca' }}</span>
+                            </div>
+                            <p class="notification-message">{{ $item->isi_pesan }}</p>
+                            <a class="text-link" href="{{ route('pendonor.pemberitahuan.show', $item) }}">Lihat Detail</a>
+                        </article>
                     @endforeach
-                </ul>
+                </div>
             @endif
-
-            <p>
-                <a href="{{ route('pendonor.pemberitahuan.index') }}">Lihat Semua Pemberitahuan</a>
-            </p>
         </section>
-
-        <p>
-            <a href="{{ route('pendonor.profil.show') }}">Profil Saya</a>
-        </p>
-
-        <p>
-            <a href="{{ route('pendonor.jadwal.index') }}">Jadwal Donor</a>
-        </p>
-
-        <p>
-            <a href="{{ route('pendonor.pemesanan.index') }}">Pemesanan Donor Saya</a>
-        </p>
-
-        <p>
-            <a href="{{ route('pendonor.riwayat.index') }}">Riwayat Donor</a>
-        </p>
-
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit">Logout</button>
-        </form>
-    </main>
-</body>
-</html>
+    </div>
+@endsection

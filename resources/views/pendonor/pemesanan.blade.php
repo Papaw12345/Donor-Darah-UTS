@@ -1,87 +1,61 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pemesanan Donor Saya</title>
-</head>
-<body>
-    <main>
-        <h1>Pemesanan Donor Saya</h1>
+@extends('layouts.app')
 
-        @if (session('success'))
-            <div role="status">
-                {{ session('success') }}
+@section('title', 'Pemesanan Donor Saya | Donor Darah UDD')
+
+@section('content')
+    <div class="container page-shell">
+        <header class="page-header">
+            <div class="page-header-main">
+                <p class="eyebrow">Pemesanan Donor</p>
+                <h1 class="page-title">Pemesanan Donor Saya</h1>
+                <p class="page-description">Lihat status pemesanan dan lanjutkan tahapan pradonasi yang tersedia.</p>
             </div>
-        @endif
+            <a class="button button-primary" href="{{ route('pendonor.jadwal.index') }}">Lihat Jadwal Donor</a>
+        </header>
 
-        @if ($errors->any())
-            <div role="alert">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+        @include('partials.alerts')
 
-        @if ($pemesanan->isEmpty())
-            <p>Belum ada pemesanan donor.</p>
-        @else
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">Tanggal</th>
-                        <th scope="col">Jam Mulai</th>
-                        <th scope="col">Jam Selesai</th>
-                        <th scope="col">Waktu Pemesanan</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($pemesanan as $item)
-                        <tr>
-                            <td>{{ $item->jadwalPelayanan->tanggal->format('d-m-Y') }}</td>
-                            <td>{{ substr($item->jadwalPelayanan->jam_mulai, 0, 5) }}</td>
-                            <td>{{ substr($item->jadwalPelayanan->jam_selesai, 0, 5) }}</td>
-                            <td>{{ $item->waktu_pemesanan->format('d-m-Y H:i') }}</td>
-                            <td>{{ $item->status_pemesanan }}</td>
-                            <td>
-                                <a href="{{ route('pendonor.kuesioner.show', $item) }}">Kuesioner Pradonasi</a>
-                                <a href="{{ route('pendonor.kode-checkin.show', $item) }}">Kode Check-in</a>
-
-                                @if (
-                                    $item->status_pemesanan === 'TERJADWAL'
-                                    && $item->jadwalPelayanan->tanggal->gte(today('Asia/Jakarta'))
-                                )
-                                    <form method="POST" action="{{ route('pendonor.pemesanan.cancel', $item) }}">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button type="submit">Batalkan</button>
-                                    </form>
-                                @else
-                                    -
-                                @endif
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
-
-        <p>
-            <a href="{{ route('pendonor.jadwal.index') }}">Lihat Jadwal Donor</a>
-        </p>
-
-        <p>
-            <a href="{{ route('pendonor.home') }}">Kembali ke Dashboard</a>
-        </p>
-
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit">Logout</button>
-        </form>
-    </main>
-</body>
-</html>
+        <section class="page-section" aria-labelledby="daftar-pemesanan">
+            <div class="section-header"><div><h2 class="section-title" id="daftar-pemesanan">Daftar Pemesanan</h2><p class="section-description">Seluruh pemesanan donor milik Anda.</p></div></div>
+            @if ($pemesanan->isEmpty())
+                <div class="empty-state">Belum ada pemesanan donor.</div>
+            @else
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead><tr><th scope="col">Tanggal</th><th scope="col">Jam Mulai</th><th scope="col">Jam Selesai</th><th scope="col">Waktu Pemesanan</th><th scope="col">Status</th><th scope="col">Aksi</th></tr></thead>
+                        <tbody>
+                            @foreach ($pemesanan as $item)
+                                @php
+                                    $statusClass = match ($item->status_pemesanan) {
+                                        'CHECK_IN', 'SELESAI' => 'status-success',
+                                        'TERJADWAL' => 'status-warning',
+                                        'DIBATALKAN', 'TIDAK_HADIR' => 'status-danger',
+                                        default => 'status-neutral',
+                                    };
+                                @endphp
+                                <tr>
+                                    <td>{{ $item->jadwalPelayanan->tanggal->format('d-m-Y') }}</td>
+                                    <td>{{ substr($item->jadwalPelayanan->jam_mulai, 0, 5) }}</td>
+                                    <td>{{ substr($item->jadwalPelayanan->jam_selesai, 0, 5) }}</td>
+                                    <td>{{ $item->waktu_pemesanan->format('d-m-Y H:i') }}</td>
+                                    <td><span class="status-badge {{ $statusClass }}">{{ $item->status_pemesanan }}</span></td>
+                                    <td>
+                                        <div class="table-actions">
+                                            <a class="button button-secondary button-small" href="{{ route('pendonor.kuesioner.show', $item) }}">Kuesioner Pradonasi</a>
+                                            <a class="button button-secondary button-small" href="{{ route('pendonor.kode-checkin.show', $item) }}">Kode Check-in</a>
+                                            @if ($item->status_pemesanan === 'TERJADWAL' && $item->jadwalPelayanan->tanggal->gte(today('Asia/Jakarta')))
+                                                <form class="inline-form" method="POST" action="{{ route('pendonor.pemesanan.cancel', $item) }}">@csrf @method('PATCH')<button class="button button-danger button-small" type="submit">Batalkan</button></form>
+                                            @else
+                                                <span class="table-no-action">-</span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </section>
+    </div>
+@endsection

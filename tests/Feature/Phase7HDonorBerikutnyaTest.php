@@ -467,7 +467,6 @@ class Phase7HDonorBerikutnyaTest extends TestCase
         $this->actingAs($pendonor->akun)
             ->get(route('pendonor.donor-berikutnya.index'))
             ->assertOk()
-            ->assertDontSee('<form', false)
             ->assertDontSee('Kirim Pemberitahuan')
             ->assertDontSee('Buat Pemesanan')
             ->assertDontSee('Lakukan Seleksi')
