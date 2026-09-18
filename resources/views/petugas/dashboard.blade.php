@@ -1,105 +1,68 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Petugas</title>
-</head>
-<body>
-    <main>
-        <h1>Dashboard Petugas</h1>
+@extends('layouts.app')
 
-        <section aria-labelledby="identitas-petugas">
-            <h2 id="identitas-petugas">Identitas Petugas</h2>
+@section('title', 'Dashboard Petugas | Donor Darah UDD')
 
-            <dl>
-                <dt>Nama petugas</dt>
-                <dd>{{ $petugas->nama_petugas }}</dd>
+@section('content')
+    <div class="container page-shell">
+        <header class="page-header">
+            <div class="page-header-main">
+                <p class="eyebrow">Area Petugas</p>
+                <h1 class="page-title">Dashboard Petugas</h1>
+                <p class="page-description">Ringkasan kegiatan donor dan kondisi persediaan pada tanggal operasional.</p>
+            </div>
+        </header>
 
-                <dt>Nomor petugas</dt>
-                <dd>{{ $petugas->nomor_petugas }}</dd>
+        @include('partials.alerts')
 
-                <dt>Email akun</dt>
-                <dd>{{ $akun->email }}</dd>
+        {{-- Identitas dan operasional --}}
+        <section class="page-section" aria-labelledby="identitas-petugas">
+            <div class="section-header"><div><h2 class="section-title" id="identitas-petugas">Identitas Petugas</h2><p class="section-description">Akun Petugas yang sedang digunakan.</p></div></div>
+            <dl class="info-grid">
+                <div class="info-block"><dt>Nama petugas</dt><dd>{{ $petugas->nama_petugas }}</dd></div>
+                <div class="info-block"><dt>Nomor petugas</dt><dd>{{ $petugas->nomor_petugas }}</dd></div>
+                <div class="info-block"><dt>Email akun</dt><dd>{{ $akun->email }}</dd></div>
             </dl>
         </section>
 
-        <nav aria-label="Operasional Petugas">
-            <a href="{{ route('petugas.check-in.index') }}">Check-in Pendonor</a>
-            <a href="{{ route('petugas.pelulusan.index') }}">Pelulusan</a>
-            <a href="{{ route('petugas.distribusi.index') }}">Distribusi</a>
-            <a href="{{ route('petugas.persediaan.index') }}">Persediaan</a>
-            <a href="{{ route('petugas.persediaan-rendah.index') }}">Persediaan Rendah</a>
-            <a href="{{ route('petugas.pemanggilan.index') }}">Pemanggilan Pendonor</a>
-        </nav>
+        <section class="page-section" aria-labelledby="operasional-petugas">
+            <div class="section-header"><div><h2 class="section-title" id="operasional-petugas">Operasional Petugas</h2><p class="section-description">Pilih proses operasional yang akan dikerjakan.</p></div></div>
+            <nav class="action-group" aria-label="Operasional Petugas">
+                <a class="button button-primary" href="{{ route('petugas.check-in.index') }}">Check-in Pendonor</a>
+                <a class="button button-secondary" href="{{ route('petugas.pelulusan.index') }}">Pelulusan</a>
+                <a class="button button-secondary" href="{{ route('petugas.distribusi.index') }}">Distribusi</a>
+                <a class="button button-secondary" href="{{ route('petugas.persediaan.index') }}">Persediaan</a>
+                <a class="button button-secondary" href="{{ route('petugas.persediaan-rendah.index') }}">Persediaan Rendah</a>
+                <a class="button button-secondary" href="{{ route('petugas.pemanggilan.index') }}">Pemanggilan Pendonor</a>
+            </nav>
+        </section>
 
-        <section aria-labelledby="kegiatan-donor-hari-ini">
-            <h2 id="kegiatan-donor-hari-ini">Kegiatan Donor Hari Ini</h2>
-            <p>Tanggal operasional WIB: {{ $tanggalAcuan }}</p>
-
-            <dl>
-                <dt>TERJADWAL</dt>
-                <dd>{{ $kegiatanHariIni['TERJADWAL'] }}</dd>
-
-                <dt>CHECK_IN</dt>
-                <dd>{{ $kegiatanHariIni['CHECK_IN'] }}</dd>
-
-                <dt>SELESAI</dt>
-                <dd>{{ $kegiatanHariIni['SELESAI'] }}</dd>
-
-                <dt>TIDAK_HADIR</dt>
-                <dd>{{ $kegiatanHariIni['TIDAK_HADIR'] }}</dd>
+        {{-- Ringkasan operasional --}}
+        <section class="page-section" aria-labelledby="kegiatan-donor-hari-ini">
+            <div class="section-header"><div><h2 class="section-title" id="kegiatan-donor-hari-ini">Kegiatan Donor Hari Ini</h2><p class="section-description">Tanggal operasional WIB: {{ $tanggalAcuan }}</p></div></div>
+            <dl class="summary-grid">
+                @foreach (['TERJADWAL', 'CHECK_IN', 'SELESAI', 'TIDAK_HADIR'] as $status)
+                    <div class="summary-block"><dt class="summary-label">{{ $status }}</dt><dd>{{ $kegiatanHariIni[$status] }}</dd></div>
+                @endforeach
+                <div class="summary-block"><dt class="summary-label">Pendonor Sedang Diproses</dt><dd>{{ $jumlahPendonorDiproses }}</dd></div>
+                <div class="summary-block"><dt class="summary-label">Kondisi Persediaan</dt><dd>Total unit tersedia: {{ $totalPersediaanTersedia }}</dd></div>
             </dl>
         </section>
 
-        <section aria-labelledby="pendonor-diproses">
-            <h2 id="pendonor-diproses">Pendonor Sedang Diproses</h2>
-            <p>{{ $jumlahPendonorDiproses }}</p>
-        </section>
-
-        <section aria-labelledby="kondisi-persediaan">
-            <h2 id="kondisi-persediaan">Kondisi Persediaan</h2>
-            <p>Total unit tersedia: {{ $totalPersediaanTersedia }}</p>
-        </section>
-
-        <section aria-labelledby="persediaan-rendah">
-            <h2 id="persediaan-rendah">Persediaan Rendah</h2>
-            <p>Jumlah kombinasi persediaan rendah: {{ $persediaanRendah->count() }}</p>
-
+        {{-- Persediaan rendah --}}
+        <section class="page-section" aria-labelledby="persediaan-rendah">
+            <div class="section-header"><div><h2 class="section-title" id="persediaan-rendah">Persediaan Rendah</h2><p class="section-description">Jumlah kombinasi persediaan rendah: {{ $persediaanRendah->count() }}</p></div></div>
             @if ($jumlahAmbangPersediaan === 0)
-                <p>Belum ada konfigurasi ambang persediaan.</p>
+                <div class="empty-state">Belum ada konfigurasi ambang persediaan.</div>
             @elseif ($persediaanRendah->isEmpty())
-                <p>Tidak ada persediaan yang berada pada atau di bawah ambang.</p>
+                <div class="empty-state">Tidak ada persediaan yang berada pada atau di bawah ambang.</div>
             @else
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Komponen</th>
-                            <th>ABO</th>
-                            <th>Rhesus</th>
-                            <th>Jumlah Persediaan</th>
-                            <th>Jumlah Minimum</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($persediaanRendah as $item)
-                            <tr>
-                                <td>{{ $item->kode_komponen }} - {{ $item->nama_komponen }}</td>
-                                <td>{{ $item->abo }}</td>
-                                <td>{{ $item->rhesus }}</td>
-                                <td>{{ $item->jumlah_persediaan }}</td>
-                                <td>{{ $item->jumlah_minimum }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table class="data-table table-compact">
+                        <thead><tr><th scope="col">Komponen</th><th scope="col">ABO</th><th scope="col">Rhesus</th><th scope="col">Jumlah Persediaan</th><th scope="col">Jumlah Minimum</th></tr></thead>
+                        <tbody>@foreach ($persediaanRendah as $item)<tr><td>{{ $item->kode_komponen }} - {{ $item->nama_komponen }}</td><td>{{ $item->abo }}</td><td>{{ $item->rhesus }}</td><td>{{ $item->jumlah_persediaan }}</td><td>{{ $item->jumlah_minimum }}</td></tr>@endforeach</tbody>
+                    </table>
+                </div>
             @endif
         </section>
-
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit">Logout</button>
-        </form>
-    </main>
-</body>
-</html>
+    </div>
+@endsection

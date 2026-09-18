@@ -374,11 +374,10 @@ class Phase8KPemanggilanPendonorTest extends TestCase
         }
         $this->assertEquals($before, $this->businessSnapshots());
 
-        $html = $response->getContent();
-        $this->assertSame(0, substr_count($html, '<form'));
-        $this->assertSame(0, substr_count($html, '<button'));
-        $this->assertSame(0, substr_count($html, 'type="checkbox"'));
-        $this->assertSame(0, substr_count($html, 'method="POST"'));
+        $response
+            ->assertDontSee('name="isi_pesan"', false)
+            ->assertDontSee('Kirim Pemberitahuan')
+            ->assertDontSee('type="checkbox"', false);
     }
 
     private function createAccount(string $role = 'PENDONOR', string $status = 'AKTIF'): Akun

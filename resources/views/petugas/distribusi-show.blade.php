@@ -1,54 +1,21 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Distribusi Unit</title>
-</head>
-<body>
-    <main>
-        <h1>Distribusi Unit</h1>
+@extends('layouts.app')
 
-        @if (session('success'))
-            <p role="status">{{ session('success') }}</p>
-        @endif
+@section('title', 'Detail Distribusi | Donor Darah UDD')
 
-        <dl>
-            <dt>Nomor Unit</dt>
-            <dd>{{ $unit->nomor_unit }}</dd>
-
-            <dt>Jenis Komponen</dt>
-            <dd>{{ $unit->jenisKomponenDarah->kode_komponen }} - {{ $unit->jenisKomponenDarah->nama_komponen }}</dd>
-
-            <dt>Golongan Darah</dt>
-            <dd>{{ $unit->golonganDarah->abo }} {{ $unit->golonganDarah->rhesus }}</dd>
-
-            <dt>Tanggal Pembuatan</dt>
-            <dd>{{ $unit->tanggal_pembuatan->toDateString() }}</dd>
-
-            <dt>Tanggal Kedaluwarsa</dt>
-            <dd>{{ $unit->tanggal_kedaluwarsa->toDateString() }}</dd>
-
-            <dt>Status</dt>
-            <dd>{{ $unit->status_unit }}</dd>
-
-            @if ($unit->waktu_distribusi)
-                <dt>Waktu Distribusi</dt>
-                <dd>{{ $unit->waktu_distribusi }}</dd>
-            @endif
-        </dl>
-
+@section('content')
+    <div class="container page-shell page-shell-narrow">
+        <header class="page-header"><div class="page-header-main"><p class="eyebrow">Pengelolaan Unit</p><h1 class="page-title">Distribusi Unit</h1><p class="page-description">Periksa data unit sebelum mencatat distribusi.</p></div><a class="button button-secondary" href="{{ route('petugas.distribusi.index') }}">Kembali ke Distribusi</a></header>
+        @include('partials.alerts')
+        <section class="page-section" aria-labelledby="detail-distribusi"><div class="section-header"><div><h2 class="section-title" id="detail-distribusi">Detail Unit</h2><p class="section-description">Tanggal acuan WIB: {{ $tanggalAcuan }}</p></div></div><dl class="info-grid">
+            <div class="info-block"><dt>Nomor Unit</dt><dd>{{ $unit->nomor_unit }}</dd></div><div class="info-block"><dt>Jenis Komponen</dt><dd>{{ $unit->jenisKomponenDarah->kode_komponen }} - {{ $unit->jenisKomponenDarah->nama_komponen }}</dd></div>
+            <div class="info-block"><dt>Golongan Darah</dt><dd>{{ $unit->golonganDarah->abo }} {{ $unit->golonganDarah->rhesus }}</dd></div><div class="info-block"><dt>Tanggal Pembuatan</dt><dd>{{ $unit->tanggal_pembuatan->toDateString() }}</dd></div>
+            <div class="info-block"><dt>Tanggal Kedaluwarsa</dt><dd>{{ $unit->tanggal_kedaluwarsa->toDateString() }}</dd></div><div class="info-block"><dt>Status</dt><dd><span class="status-badge {{ $unit->status_unit === 'TERSEDIA' ? 'status-success' : 'status-neutral' }}">{{ $unit->status_unit }}</span></dd></div>
+            @if ($unit->waktu_distribusi)<div class="info-block"><dt>Waktu Distribusi</dt><dd>{{ $unit->waktu_distribusi }}</dd></div>@endif
+        </dl></section>
         @if ($eligible)
-            <form method="POST" action="{{ route('petugas.distribusi.store', $unit) }}">
-                @csrf
-                <p>Unit ini masih tersedia dan belum kedaluwarsa pada tanggal acuan WIB {{ $tanggalAcuan }}.</p>
-                <button type="submit">Distribusikan Unit</button>
-            </form>
+            <form class="action-panel" method="POST" action="{{ route('petugas.distribusi.store', $unit) }}">@csrf<p class="section-description">Unit ini masih tersedia dan belum kedaluwarsa pada tanggal acuan WIB {{ $tanggalAcuan }}.</p><button class="button button-primary" type="submit">Distribusikan Unit</button></form>
         @else
-            <p>Riwayat distribusi hanya-baca. Unit ini tidak dapat didistribusikan dari status dan tanggal saat ini.</p>
+            <div class="notice-panel"><strong>Riwayat distribusi hanya-baca.</strong><p>Unit ini tidak dapat didistribusikan dari status dan tanggal saat ini.</p></div>
         @endif
-
-        <p><a href="{{ route('petugas.distribusi.index') }}">Kembali ke Distribusi</a></p>
-    </main>
-</body>
-</html>
+    </div>
+@endsection

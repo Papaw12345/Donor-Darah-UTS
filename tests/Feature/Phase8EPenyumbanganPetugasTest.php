@@ -288,13 +288,11 @@ class Phase8EPenyumbanganPetugasTest extends TestCase
             ->assertSee('2020-01-01 09:00:00')
             ->assertSee('GAGAL')
             ->assertSee('Petugas');
-        $this->assertSame(1, substr_count($page->getContent(), '<form'));
         $page->assertDontSee('Simpan Penyumbangan')
+            ->assertDontSee('action="'.route('petugas.penyumbangan.store', $seleksi).'"', false)
             ->assertDontSee('Edit')
             ->assertDontSee('Hapus')
             ->assertDontSee('Catat Unit')
-            ->assertDontSee('Pelulusan')
-            ->assertDontSee('Distribusi')
             ->assertDontSee('Pemberitahuan');
 
         $this->actingAs($secondPetugas->akun)
@@ -323,8 +321,6 @@ class Phase8EPenyumbanganPetugasTest extends TestCase
             ->assertSee('Catat Penyumbangan')
             ->assertSee(route('petugas.penyumbangan.show', $layak), false)
             ->assertDontSee('Unit Komponen')
-            ->assertDontSee('Pelulusan')
-            ->assertDontSee('Distribusi')
             ->assertDontSee('Pemberitahuan');
 
         Penyumbangan::create([

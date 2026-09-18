@@ -349,10 +349,10 @@ class Phase8LPemberitahuanPetugasTest extends TestCase
             ->assertSee($link, false);
         $form = $this->actingAs($petugas->akun)->get($link)->assertOk();
 
-        $this->assertSame(0, substr_count($phase8k->getContent(), '<form'));
-        $this->assertSame(0, substr_count($phase8k->getContent(), '<button'));
-        $this->assertSame(0, substr_count($phase8k->getContent(), 'type="checkbox"'));
-        $this->assertSame(0, substr_count($phase8k->getContent(), 'method="POST"'));
+        $phase8k
+            ->assertDontSee('name="isi_pesan"', false)
+            ->assertDontSee('Kirim Pemberitahuan')
+            ->assertDontSee('type="checkbox"', false);
         $this->assertEquals($before, $this->businessSnapshots());
         $this->assertStringNotContainsString('type="checkbox"', $form->getContent());
 

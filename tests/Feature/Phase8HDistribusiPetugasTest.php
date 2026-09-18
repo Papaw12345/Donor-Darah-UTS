@@ -174,15 +174,14 @@ class Phase8HDistribusiPetugasTest extends TestCase
             ->assertSee('action="'.route('petugas.distribusi.store', $eligible).'"', false)
             ->assertDontSee('name="status_unit"', false)
             ->assertDontSee('name="waktu_distribusi"', false);
-        $this->assertSame(1, substr_count($eligibleResponse->getContent(), '<form'));
 
         foreach ([$expired, $pending, $rejected] as $readOnlyUnit) {
             $response = $this->actingAs($viewer->akun)
                 ->get(route('petugas.distribusi.show', $readOnlyUnit))
                 ->assertOk()
                 ->assertSee('Riwayat distribusi hanya-baca.')
-                ->assertDontSee('Distribusikan Unit');
-            $this->assertSame(0, substr_count($response->getContent(), '<form'));
+                ->assertDontSee('Distribusikan Unit')
+                ->assertDontSee('action="'.route('petugas.distribusi.store', $readOnlyUnit).'"', false);
         }
 
         $distributedResponse = $this->actingAs($viewer->akun)
@@ -192,8 +191,8 @@ class Phase8HDistribusiPetugasTest extends TestCase
             ->assertSee('Waktu Distribusi')
             ->assertSee('2026-09-15 10:11:12')
             ->assertSee('Riwayat distribusi hanya-baca.')
-            ->assertDontSee('Distribusikan Unit');
-        $this->assertSame(0, substr_count($distributedResponse->getContent(), '<form'));
+            ->assertDontSee('Distribusikan Unit')
+            ->assertDontSee('action="'.route('petugas.distribusi.store', $distributed).'"', false);
         $this->assertEquals(
             $before,
             UnitKomponenDarah::query()->orderBy('id_unit')->get()->map->getAttributes()->all()
@@ -350,20 +349,18 @@ class Phase8HDistribusiPetugasTest extends TestCase
     public function test_dashboard_exposes_exactly_the_six_current_real_petugas_links(): void
     {
         $petugas = $this->createPetugas();
-        $response = $this->actingAs($petugas->akun)
+        $this->actingAs($petugas->akun)
             ->get(route('petugas.home'))
             ->assertOk()
-            ->assertSee('<a href="'.route('petugas.check-in.index').'">Check-in Pendonor</a>', false)
-            ->assertSee('<a href="'.route('petugas.pelulusan.index').'">Pelulusan</a>', false)
-            ->assertSee('<a href="'.route('petugas.distribusi.index').'">Distribusi</a>', false)
-            ->assertSee('<a href="'.route('petugas.persediaan.index').'">Persediaan</a>', false)
-            ->assertSee('<a href="'.route('petugas.persediaan-rendah.index').'">Persediaan Rendah</a>', false)
-            ->assertSee('<a href="'.route('petugas.pemanggilan.index').'">Pemanggilan Pendonor</a>', false)
+            ->assertSee(route('petugas.check-in.index'), false)->assertSee('Check-in Pendonor')
+            ->assertSee(route('petugas.pelulusan.index'), false)->assertSee('Pelulusan')
+            ->assertSee(route('petugas.distribusi.index'), false)->assertSee('Distribusi')
+            ->assertSee(route('petugas.persediaan.index'), false)->assertSee('Persediaan')
+            ->assertSee(route('petugas.persediaan-rendah.index'), false)->assertSee('Persediaan Rendah')
+            ->assertSee(route('petugas.pemanggilan.index'), false)->assertSee('Pemanggilan Pendonor')
             ->assertDontSee('Pemberitahuan Petugas')
             ->assertDontSee('Kirim Pemberitahuan')
             ->assertDontSee('Buat Pemberitahuan');
-
-        $this->assertSame(6, substr_count($response->getContent(), '<a '));
     }
 
     private function createAccount(string $role = 'PENDONOR', string $status = 'AKTIF'): Akun

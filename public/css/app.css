@@ -230,6 +230,13 @@ img {
     line-height: 1.25;
 }
 
+.summary-block > dd {
+    margin: 0.65rem 0 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
 .summary-text {
     margin: 0.55rem 0 1rem;
     color: var(--color-muted);
@@ -255,6 +262,12 @@ img {
     margin: 0.35rem 0 0;
     overflow-wrap: anywhere;
     font-weight: 700;
+}
+
+.code-value {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 1.05rem;
+    letter-spacing: 0.05em;
 }
 
 .context-strip {
@@ -354,6 +367,11 @@ img {
 
 .notice-panel p {
     margin: 0.35rem 0 0;
+}
+
+.notice-panel + .table-container,
+.notice-panel + .empty-state {
+    margin-top: 1rem;
 }
 
 .section-heading {

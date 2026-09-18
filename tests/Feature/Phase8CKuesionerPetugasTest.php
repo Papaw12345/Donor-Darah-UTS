@@ -363,17 +363,13 @@ class Phase8CKuesionerPetugasTest extends TestCase
             ->assertDontSee('DITUNDA')
             ->assertDontSee('DITOLAK')
             ->assertDontSee('Penyumbangan')
-            ->assertDontSee('Unit')
-            ->assertDontSee('Pelulusan')
-            ->assertDontSee('Distribusi')
+            ->assertDontSee('/petugas/penyumbangan/', false)
             ->assertDontSee('Kirim Pemberitahuan')
             ->assertDontSee('Edit Kuesioner')
             ->assertDontSee('Tandai Ditinjau')
             ->assertDontSee('<textarea', false)
             ->assertDontSee('name="answers[', false);
 
-        $this->assertSame(1, substr_count($response->getContent(), '<form'));
-        $this->assertSame(1, substr_count($response->getContent(), '<button'));
     }
 
     private function createValidFixture(

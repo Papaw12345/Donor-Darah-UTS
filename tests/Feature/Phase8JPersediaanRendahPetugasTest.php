@@ -348,10 +348,11 @@ class Phase8JPersediaanRendahPetugasTest extends TestCase
         $this->assertSame('2026-09-15', $expired->fresh()->tanggal_kedaluwarsa->toDateString());
         $this->assertSame(2, $threshold->fresh()->jumlah_minimum);
         $this->assertDatabaseMissing('unit_komponen_darah', ['status_unit' => 'KEDALUWARSA']);
-        $this->assertSame(0, substr_count($response->getContent(), '<form'));
-        $this->assertSame(0, substr_count($response->getContent(), '<button'));
-        $this->assertSame(0, substr_count($response->getContent(), '<input'));
-        $this->assertSame(0, substr_count($response->getContent(), '<select'));
+        $response
+            ->assertDontSee('Lihat Kandidat')
+            ->assertDontSee('Kirim Pemberitahuan')
+            ->assertDontSee('Buat Pemberitahuan')
+            ->assertDontSee('name="id_ambang"', false);
     }
 
     private function createAccount(string $role = 'PENDONOR', string $status = 'AKTIF'): Akun

@@ -622,8 +622,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->assertDontSee('name="berat_badan"', false)
             ->assertDontSee('Penyumbangan')
             ->assertDontSee('Unit Komponen')
-            ->assertDontSee('Pelulusan')
-            ->assertDontSee('Distribusi');
+            ->assertDontSee('/petugas/penyumbangan/', false);
 
         $this->assertSame(1, substr_count($questionnaireBefore->getContent(), '<form'));
 
@@ -637,8 +636,6 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->assertDontSee('BERHASIL')
             ->assertDontSee('GAGAL')
             ->assertDontSee('Unit Komponen')
-            ->assertDontSee('Pelulusan')
-            ->assertDontSee('Distribusi')
             ->assertDontSee('Pemberitahuan');
 
         $this->assertSame(2, substr_count($selectionPage->getContent(), '<form'));

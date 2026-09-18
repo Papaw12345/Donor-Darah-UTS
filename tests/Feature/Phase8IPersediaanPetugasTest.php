@@ -347,9 +347,11 @@ class Phase8IPersediaanPetugasTest extends TestCase
         $this->assertDatabaseMissing('unit_komponen_darah', ['status_unit' => 'KEDALUWARSA']);
         $this->assertFalse(Schema::hasTable('persediaan'));
         $this->assertFalse(Schema::hasTable('transaksi_persediaan'));
-        $this->assertSame(0, substr_count($response->getContent(), '<form'));
-        $this->assertSame(0, substr_count($response->getContent(), '<button'));
-        $this->assertSame(0, substr_count($response->getContent(), '<input'));
+        $response
+            ->assertDontSee('Tambah Stok')
+            ->assertDontSee('Edit Stok')
+            ->assertDontSee('Hapus Stok')
+            ->assertDontSee('Distribusikan Unit');
     }
 
     private function createAccount(string $role = 'PENDONOR', string $status = 'AKTIF'): Akun

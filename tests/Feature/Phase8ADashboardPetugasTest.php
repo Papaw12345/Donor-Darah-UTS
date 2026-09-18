@@ -356,36 +356,14 @@ class Phase8ADashboardPetugasTest extends TestCase
             $this->assertSame($count, $this->getConnection()->table($table)->count());
         }
 
-        $html = $response->getContent();
-        $this->assertSame(1, substr_count($html, '<form'));
-        $this->assertSame(1, substr_count($html, '<button'));
-        $this->assertSame(6, substr_count($html, '<a '));
         $response
             ->assertSee(route('logout'), false)
-            ->assertSee(
-                '<a href="'.route('petugas.check-in.index').'">Check-in Pendonor</a>',
-                false
-            )
-            ->assertSee(
-                '<a href="'.route('petugas.pelulusan.index').'">Pelulusan</a>',
-                false
-            )
-            ->assertSee(
-                '<a href="'.route('petugas.distribusi.index').'">Distribusi</a>',
-                false
-            )
-            ->assertSee(
-                '<a href="'.route('petugas.persediaan.index').'">Persediaan</a>',
-                false
-            )
-            ->assertSee(
-                '<a href="'.route('petugas.persediaan-rendah.index').'">Persediaan Rendah</a>',
-                false
-            )
-            ->assertSee(
-                '<a href="'.route('petugas.pemanggilan.index').'">Pemanggilan Pendonor</a>',
-                false
-            )
+            ->assertSee(route('petugas.check-in.index'), false)->assertSee('Check-in Pendonor')
+            ->assertSee(route('petugas.pelulusan.index'), false)->assertSee('Pelulusan')
+            ->assertSee(route('petugas.distribusi.index'), false)->assertSee('Distribusi')
+            ->assertSee(route('petugas.persediaan.index'), false)->assertSee('Persediaan')
+            ->assertSee(route('petugas.persediaan-rendah.index'), false)->assertSee('Persediaan Rendah')
+            ->assertSee(route('petugas.pemanggilan.index'), false)->assertSee('Pemanggilan Pendonor')
             ->assertDontSee('name="kode_checkin"', false)
             ->assertDontSee('action="/petugas/', false)
             ->assertDontSee('Review Kuesioner')

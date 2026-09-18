@@ -411,8 +411,6 @@ class Phase8BCheckinPetugasTest extends TestCase
             ->assertDontSee('Seleksi Donor')
             ->assertDontSee('Penyumbangan')
             ->assertDontSee('Unit Komponen')
-            ->assertDontSee('Pelulusan')
-            ->assertDontSee('Distribusi')
             ->assertDontSee('Kirim Pemberitahuan');
 
         $this->assertSame(3, substr_count($eligibleResponse->getContent(), '<form'));

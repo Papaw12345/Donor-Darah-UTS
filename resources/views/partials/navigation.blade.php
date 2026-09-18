@@ -30,7 +30,7 @@
                     <a class="nav-link {{ request()->routeIs('pendonor.profil.*') ? 'is-active' : '' }}" href="{{ route('pendonor.profil.show') }}">Profil</a>
                 @elseif (auth()->user()->peran === 'PETUGAS')
                     <a class="nav-link {{ request()->routeIs('petugas.home') ? 'is-active' : '' }}" href="{{ route('petugas.home') }}">Dashboard</a>
-                    <a class="nav-link {{ request()->routeIs('petugas.check-in.*') ? 'is-active' : '' }}" href="{{ route('petugas.check-in.index') }}">Check-in</a>
+                    <a class="nav-link {{ request()->routeIs('petugas.check-in.*', 'petugas.kuesioner.*', 'petugas.seleksi.*', 'petugas.penyumbangan.*', 'petugas.unit-komponen.*') ? 'is-active' : '' }}" href="{{ route('petugas.check-in.index') }}">Check-in</a>
                     <a class="nav-link {{ request()->routeIs('petugas.pelulusan.*') ? 'is-active' : '' }}" href="{{ route('petugas.pelulusan.index') }}">Pelulusan</a>
                     <a class="nav-link {{ request()->routeIs('petugas.distribusi.*') ? 'is-active' : '' }}" href="{{ route('petugas.distribusi.index') }}">Distribusi</a>
                     <a class="nav-link {{ request()->routeIs('petugas.persediaan.*', 'petugas.persediaan-rendah.*') ? 'is-active' : '' }}" href="{{ route('petugas.persediaan.index') }}">Persediaan</a>
