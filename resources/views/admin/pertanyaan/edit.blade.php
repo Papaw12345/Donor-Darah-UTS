@@ -6,24 +6,14 @@
     <div class="container page-shell page-shell-narrow">
         <header class="page-header">
             <div class="page-header-main">
-                <p class="eyebrow">Konfigurasi Kuesioner</p>
                 <h1 class="page-title">Edit Pertanyaan Kuesioner</h1>
-                <p class="page-description">Perbarui teks, pengelompokan, jenis jawaban, urutan, atau status pertanyaan.</p>
             </div>
             <a class="button button-secondary" href="{{ route('admin.pertanyaan.index') }}">Batal</a>
         </header>
 
         @include('partials.alerts')
 
-        <section class="page-section" aria-labelledby="form-pertanyaan">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title" id="form-pertanyaan">Data Pertanyaan</h2>
-                    <p class="section-description">Pertanyaan dapat dinonaktifkan tanpa menghapus riwayat jawaban.</p>
-                </div>
-            </div>
-
-            <form class="form-panel" method="POST" action="{{ route('admin.pertanyaan.update', $pertanyaan) }}">
+        <form class="form-panel page-section" method="POST" action="{{ route('admin.pertanyaan.update', $pertanyaan) }}">
                 @csrf
                 @method('PUT')
 
@@ -59,9 +49,7 @@
 
                 <div class="form-actions">
                     <button class="button button-primary" type="submit">Perbarui Pertanyaan</button>
-                    <a class="button button-secondary" href="{{ route('admin.pertanyaan.index') }}">Batal</a>
                 </div>
-            </form>
-        </section>
+        </form>
     </div>
 @endsection

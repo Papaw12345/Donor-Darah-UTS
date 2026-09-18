@@ -30,6 +30,7 @@ class PendonorPemesananController extends Controller
 
         $pemesanan = PemesananDonor::query()
             ->where('pemesanan_donor.id_pendonor', $pendonor->id_pendonor)
+            ->whereIn('pemesanan_donor.status_pemesanan', ['TERJADWAL', 'CHECK_IN'])
             ->join(
                 'jadwal_pelayanan',
                 'jadwal_pelayanan.id_jadwal',
@@ -85,6 +86,10 @@ class PendonorPemesananController extends Controller
 
             if ($tanggalJadwal->lt(today('Asia/Jakarta'))) {
                 $this->reject('Jadwal yang sudah lewat tidak dapat dipesan.');
+            }
+
+            if ($this->pelayananSudahBerakhir($jadwalTerkunci)) {
+                $this->reject('Waktu pelayanan untuk jadwal ini sudah berakhir.');
             }
 
             $jumlahPemesanan = PemesananDonor::query()
@@ -177,5 +182,22 @@ class PendonorPemesananController extends Controller
         throw ValidationException::withMessages([
             'pemesanan' => $message,
         ]);
+    }
+
+    private function pelayananSudahBerakhir(JadwalPelayanan $jadwal): bool
+    {
+        $sekarangWib = CarbonImmutable::now('Asia/Jakarta');
+        $tanggalJadwal = $jadwal->tanggal->toDateString();
+
+        if ($tanggalJadwal !== $sekarangWib->toDateString()) {
+            return false;
+        }
+
+        $waktuSelesai = CarbonImmutable::parse(
+            $tanggalJadwal.' '.$jadwal->jam_selesai,
+            'Asia/Jakarta'
+        );
+
+        return $sekarangWib->gt($waktuSelesai);
     }
 }

@@ -6,9 +6,7 @@
     <div class="container page-shell">
         <header class="page-header">
             <div class="page-header-main">
-                <p class="eyebrow">Pelayanan Donor</p>
                 <h1 class="page-title">Jadwal Donor</h1>
-                <p class="page-description">Menampilkan jadwal pelayanan yang masih dibuka dan masih memiliki kapasitas.</p>
             </div>
             <a class="button button-secondary" href="{{ route('pendonor.pemesanan.index') }}">Lihat Pemesanan Saya</a>
         </header>
@@ -16,10 +14,9 @@
         @include('partials.alerts')
 
         {{-- Jadwal donor --}}
-        <section class="page-section" aria-labelledby="jadwal-tersedia">
-            <div class="section-header"><div><h2 class="section-title" id="jadwal-tersedia">Jadwal Tersedia</h2><p class="section-description">Pilih jadwal untuk membuat pemesanan donor.</p></div></div>
+        <div class="page-section">
             @if ($jadwal->isEmpty())
-                <div class="empty-state">Belum ada jadwal donor yang tersedia.</div>
+                <div class="empty-state">Belum ada jadwal yang tersedia.</div>
             @else
                 <div class="table-container">
                     <table class="data-table">
@@ -40,6 +37,6 @@
                     </table>
                 </div>
             @endif
-        </section>
+        </div>
     </div>
 @endsection

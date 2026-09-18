@@ -181,11 +181,27 @@ class PetugasCheckinController extends Controller
             return 'Check-in tidak dapat dilakukan karena jadwal dibatalkan.';
         }
 
+        if ($this->pelayananSudahBerakhir($pemesanan)) {
+            return 'Waktu pelayanan untuk jadwal ini sudah berakhir.';
+        }
+
         if ($pemesanan->waktu_checkin !== null) {
             return 'Check-in tidak dapat dilakukan karena waktu check-in sudah terisi.';
         }
 
         return null;
+    }
+
+    private function pelayananSudahBerakhir(PemesananDonor $pemesanan): bool
+    {
+        $sekarangWib = CarbonImmutable::now('Asia/Jakarta');
+        $tanggalJadwal = $pemesanan->jadwalPelayanan->tanggal->toDateString();
+        $waktuSelesai = CarbonImmutable::parse(
+            $tanggalJadwal.' '.$pemesanan->jadwalPelayanan->jam_selesai,
+            'Asia/Jakarta'
+        );
+
+        return $sekarangWib->gt($waktuSelesai);
     }
 
     private function reject(string $message): never

@@ -81,6 +81,65 @@ class Phase7DPemesananTest extends TestCase
             ->assertDontSee('22-11-2026');
     }
 
+    public function test_index_displays_only_active_bookings_and_preserves_historical_rows(): void
+    {
+        $pendonor = $this->createPendonor();
+
+        $terjadwal = $this->createBooking(
+            $pendonor,
+            $this->createSchedule(['tanggal' => '2026-10-11']),
+            'TERJADWAL'
+        );
+
+        $checkIn = $this->createBooking(
+            $pendonor,
+            $this->createSchedule(['tanggal' => '2026-10-12']),
+            'CHECK_IN'
+        );
+
+        $selesai = $this->createBooking(
+            $pendonor,
+            $this->createSchedule(['tanggal' => '2026-10-13']),
+            'SELESAI'
+        );
+
+        $dibatalkan = $this->createBooking(
+            $pendonor,
+            $this->createSchedule(['tanggal' => '2026-10-14']),
+            'DIBATALKAN'
+        );
+
+        $tidakHadir = $this->createBooking(
+            $pendonor,
+            $this->createSchedule(['tanggal' => '2026-10-15']),
+            'TIDAK_HADIR'
+        );
+
+        $response = $this->actingAs($pendonor->akun)
+            ->get(route('pendonor.pemesanan.index'))
+            ->assertOk()
+            ->assertSee('11-10-2026')
+            ->assertSee('12-10-2026')
+            ->assertDontSee('13-10-2026')
+            ->assertDontSee('14-10-2026')
+            ->assertDontSee('15-10-2026');
+
+        $pemesananAktif = $response->viewData('pemesanan');
+
+        $this->assertSame(
+            ['TERJADWAL', 'CHECK_IN'],
+            $pemesananAktif->pluck('status_pemesanan')->values()->all()
+        );
+
+        $this->assertDatabaseCount('pemesanan_donor', 5);
+
+        foreach ([$terjadwal, $checkIn, $selesai, $dibatalkan, $tidakHadir] as $item) {
+            $this->assertDatabaseHas('pemesanan_donor', [
+                'id_pemesanan' => $item->id_pemesanan,
+                'status_pemesanan' => $item->status_pemesanan,
+            ]);
+        }
+    }
     public function test_pendonor_cannot_cancel_another_pendonor_booking(): void
     {
         $pendonor = $this->createPendonor();
@@ -97,13 +156,13 @@ class Phase7DPemesananTest extends TestCase
         ]);
     }
 
-    public function test_open_schedule_for_today_can_be_booked_with_initial_state(): void
+    public function test_today_schedule_can_be_booked_before_start_with_initial_state(): void
     {
         $pendonor = $this->createPendonor();
         $jadwal = $this->createSchedule([
             'tanggal' => '2026-09-15',
-            'jam_mulai' => '06:00',
-            'jam_selesai' => '07:00',
+            'jam_mulai' => '11:00',
+            'jam_selesai' => '17:00',
         ]);
 
         $this->actingAs($pendonor->akun)
@@ -119,6 +178,81 @@ class Phase7DPemesananTest extends TestCase
         $this->assertNotNull($pemesanan->waktu_pemesanan);
         $this->assertNull($pemesanan->kode_checkin);
         $this->assertNull($pemesanan->waktu_checkin);
+    }
+
+    public function test_future_schedule_can_be_booked_after_the_same_clock_time_today(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-09-15 11:30:00', 'UTC'));
+
+        $pendonor = $this->createPendonor();
+        $jadwal = $this->createSchedule([
+            'tanggal' => '2026-09-16',
+            'jam_mulai' => '09:00',
+            'jam_selesai' => '17:00',
+        ]);
+
+        $this->actingAs($pendonor->akun)
+            ->post(route('pendonor.pemesanan.store', $jadwal))
+            ->assertRedirect(route('pendonor.pemesanan.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('pemesanan_donor', [
+            'id_pendonor' => $pendonor->id_pendonor,
+            'id_jadwal' => $jadwal->id_jadwal,
+            'status_pemesanan' => 'TERJADWAL',
+        ]);
+    }
+
+    public function test_today_schedule_can_be_booked_before_and_at_exact_end_boundary(): void
+    {
+        $cases = [
+            '2026-09-15 09:59:00' => '16:59:00',
+            '2026-09-15 10:00:00' => '17:00:00',
+        ];
+
+        foreach ($cases as $utcTime => $expectedWibTime) {
+            $this->travelTo(CarbonImmutable::parse($utcTime, 'UTC'));
+            $pendonor = $this->createPendonor();
+            $jadwal = $this->createSchedule([
+                'tanggal' => '2026-09-15',
+                'jam_mulai' => '09:00',
+                'jam_selesai' => '17:00',
+            ]);
+
+            $this->assertSame($expectedWibTime, now('Asia/Jakarta')->format('H:i:s'));
+
+            $this->actingAs($pendonor->akun)
+                ->post(route('pendonor.pemesanan.store', $jadwal))
+                ->assertRedirect(route('pendonor.pemesanan.index'))
+                ->assertSessionHasNoErrors();
+
+            $this->assertDatabaseHas('pemesanan_donor', [
+                'id_pendonor' => $pendonor->id_pendonor,
+                'id_jadwal' => $jadwal->id_jadwal,
+                'status_pemesanan' => 'TERJADWAL',
+            ]);
+        }
+    }
+
+    public function test_today_schedule_after_end_rejects_direct_booking_without_mutation(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-09-15 10:00:01', 'UTC'));
+
+        $pendonor = $this->createPendonor();
+        $jadwal = $this->createSchedule([
+            'tanggal' => '2026-09-15',
+            'jam_mulai' => '09:00',
+            'jam_selesai' => '17:00',
+        ]);
+
+        $this->actingAs($pendonor->akun)
+            ->post(route('pendonor.pemesanan.store', $jadwal))
+            ->assertSessionHasErrors([
+                'pemesanan' => 'Waktu pelayanan untuk jadwal ini sudah berakhir.',
+            ]);
+
+        $this->assertSame('DIBUKA', $jadwal->fresh()->status_jadwal);
+        $this->assertDatabaseCount('pemesanan_donor', 0);
     }
 
     public function test_past_schedule_is_rejected(): void

@@ -346,18 +346,19 @@ class Phase8HDistribusiPetugasTest extends TestCase
         $this->assertStringContainsString('Total unit tersedia: 0', $after->getContent());
     }
 
-    public function test_dashboard_exposes_exactly_the_six_current_real_petugas_links(): void
+    public function test_dashboard_exposes_current_real_petugas_links(): void
     {
         $petugas = $this->createPetugas();
         $this->actingAs($petugas->akun)
             ->get(route('petugas.home'))
             ->assertOk()
-            ->assertSee(route('petugas.check-in.index'), false)->assertSee('Check-in Pendonor')
+            ->assertSee(route('petugas.jadwal.index'), false)->assertSee('Jadwal')
+            ->assertSee(route('petugas.check-in.index'), false)->assertSee('Check-in')
             ->assertSee(route('petugas.pelulusan.index'), false)->assertSee('Pelulusan')
             ->assertSee(route('petugas.distribusi.index'), false)->assertSee('Distribusi')
             ->assertSee(route('petugas.persediaan.index'), false)->assertSee('Persediaan')
             ->assertSee(route('petugas.persediaan-rendah.index'), false)->assertSee('Persediaan Rendah')
-            ->assertSee(route('petugas.pemanggilan.index'), false)->assertSee('Pemanggilan Pendonor')
+            ->assertSee(route('petugas.pemanggilan.index'), false)->assertSee('Pemanggilan')
             ->assertDontSee('Pemberitahuan Petugas')
             ->assertDontSee('Kirim Pemberitahuan')
             ->assertDontSee('Buat Pemberitahuan');

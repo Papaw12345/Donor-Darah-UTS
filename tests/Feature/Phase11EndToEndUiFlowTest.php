@@ -381,6 +381,7 @@ class Phase11EndToEndUiFlowTest extends TestCase
             )
             ->assertSee($candidate->nama_lengkap)
             ->assertDontSee($mainDonor->nama_lengkap)
+            ->assertSee('Kandidat tetap harus menjalani proses donor dan seleksi.')
             ->assertSee(route('petugas.pemberitahuan.create', [$threshold, $candidate]), false);
         $this->assertPetugasNavigation($callingPage);
 
@@ -576,6 +577,7 @@ class Phase11EndToEndUiFlowTest extends TestCase
         $this->assertSharedLayout($response);
         $this->assertNavigationRoutes($response, [
             'petugas.home',
+            'petugas.jadwal.index',
             'petugas.check-in.index',
             'petugas.pelulusan.index',
             'petugas.distribusi.index',

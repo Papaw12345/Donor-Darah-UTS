@@ -218,8 +218,62 @@ img {
     border-top: 4px solid var(--color-primary);
 }
 
+.dashboard-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 3rem;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface);
+}
+
+.admin-summary {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin-top: 1.15rem;
+}
+
+.admin-actions {
+    margin-top: 1.15rem;
+}
+
+.petugas-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 1.15rem;
+}
+
+.petugas-summary .dashboard-summary-item:nth-child(n + 4) {
+    border-top: 1px solid var(--color-border);
+}
+
+.petugas-summary .dashboard-summary-item:nth-child(4) {
+    border-left: 0;
+}
+
+.dashboard-summary-item {
+    min-width: 0;
+    padding: 1.5rem;
+}
+
+.dashboard-summary-item + .dashboard-summary-item {
+    border-left: 1px solid var(--color-border);
+}
+
+.dashboard-summary-item .text-link {
+    display: inline-block;
+    margin-top: 1rem;
+}
+
+.dashboard-summary-item > dd {
+    margin: 0.65rem 0 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
 .summary-label,
 .info-block dt,
+.identity-item dt,
 .context-strip dt,
 .message-meta-grid dt {
     margin: 0;
@@ -259,11 +313,36 @@ img {
     margin: 0;
 }
 
+.identity-panel {
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface);
+}
+
+.identity-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 2rem;
+    margin: 1.25rem 0 0;
+}
+
+.petugas-identity-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.identity-item {
+    min-width: 0;
+    padding: 1rem 0;
+    border-top: 1px solid var(--color-border);
+}
+
 .info-block {
     border-left: 4px solid var(--color-primary);
 }
 
 .info-block dd,
+.identity-item dd,
 .context-strip dd,
 .message-meta-grid dd {
     margin: 0.35rem 0 0;
@@ -320,6 +399,10 @@ img {
     flex-wrap: wrap;
     align-items: center;
     gap: 0.65rem;
+}
+
+.section-actions {
+    margin-top: 1rem;
 }
 
 .eligibility-panel,
@@ -1095,9 +1178,19 @@ img {
 
 .notification-item {
     padding: 1.15rem 1.25rem;
+    background: transparent;
+}
+
+.notification-list {
+    gap: 0;
+    overflow: hidden;
     border: 1px solid var(--color-border);
     border-radius: 4px;
     background: var(--color-surface);
+}
+
+.notification-item + .notification-item {
+    border-top: 1px solid var(--color-border);
 }
 
 .notification-item.is-unread {
@@ -1230,6 +1323,15 @@ img {
     .summary-grid {
         grid-template-columns: 1fr;
     }
+
+    .dashboard-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-summary-item + .dashboard-summary-item {
+        border-top: 1px solid var(--color-border);
+        border-left: 0;
+    }
 }
 
 @media (max-width: 700px) {
@@ -1275,6 +1377,7 @@ img {
     .process-grid,
     .form-grid,
     .info-grid,
+    .identity-grid,
     .rule-grid,
     .context-strip,
     .message-meta-grid {
@@ -1364,4 +1467,23 @@ img {
         scroll-behavior: auto !important;
         transition-duration: 0.01ms !important;
     }
+}
+/* Riwayat unit: hindari pemotongan kata pada status dan aksi. */
+.unit-history-table {
+    min-width: 1040px;
+}
+
+.unit-history-table th:nth-child(6),
+.unit-history-table td:nth-child(6),
+.unit-history-table th:nth-child(8),
+.unit-history-table td:nth-child(8) {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.unit-history-table .status-badge,
+.unit-history-table .text-link {
+    overflow-wrap: normal;
+    word-break: normal;
 }

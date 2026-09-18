@@ -6,16 +6,13 @@
     <div class="container page-shell">
         <header class="page-header">
             <div class="page-header-main">
-                <p class="eyebrow">Informasi dari UDD</p>
                 <h1 class="page-title">Pemberitahuan</h1>
-                <p class="page-description">Daftar pemberitahuan yang dikirim kepada akun Pendonor Anda.</p>
             </div>
             <a class="button button-secondary" href="{{ route('pendonor.home') }}">Kembali ke Dashboard</a>
         </header>
 
         {{-- Pemberitahuan --}}
-        <section class="page-section" aria-labelledby="daftar-pemberitahuan">
-            <div class="section-header"><div><h2 class="section-title" id="daftar-pemberitahuan">Daftar Pemberitahuan</h2><p class="section-description">Pesan terbaru ditampilkan lebih dahulu.</p></div></div>
+        <div class="page-section">
             @if ($pemberitahuan->isEmpty())
                 <div class="empty-state">Belum ada pemberitahuan.</div>
             @else
@@ -36,6 +33,6 @@
                     </table>
                 </div>
             @endif
-        </section>
+        </div>
     </div>
 @endsection

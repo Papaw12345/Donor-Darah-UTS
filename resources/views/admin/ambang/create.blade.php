@@ -6,24 +6,14 @@
     <div class="container page-shell page-shell-narrow">
         <header class="page-header">
             <div class="page-header-main">
-                <p class="eyebrow">Konfigurasi Persediaan</p>
                 <h1 class="page-title">Tambah Ambang Persediaan</h1>
-                <p class="page-description">Buat konfigurasi jumlah minimum untuk satu kombinasi komponen dan golongan darah.</p>
             </div>
             <a class="button button-secondary" href="{{ route('admin.ambang.index') }}">Batal</a>
         </header>
 
         @include('partials.alerts')
 
-        <section class="page-section" aria-labelledby="form-ambang">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title" id="form-ambang">Data Ambang</h2>
-                    <p class="section-description">Kombinasi yang sama tidak dapat dibuat lebih dari satu kali.</p>
-                </div>
-            </div>
-
-            <form class="form-panel" method="POST" action="{{ route('admin.ambang.store') }}">
+        <form class="form-panel page-section" method="POST" action="{{ route('admin.ambang.store') }}">
                 @csrf
 
                 <div class="form-grid">
@@ -59,9 +49,7 @@
 
                 <div class="form-actions">
                     <button class="button button-primary" type="submit">Simpan Ambang</button>
-                    <a class="button button-secondary" href="{{ route('admin.ambang.index') }}">Batal</a>
                 </div>
-            </form>
-        </section>
+        </form>
     </div>
 @endsection

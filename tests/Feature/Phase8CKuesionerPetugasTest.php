@@ -108,13 +108,13 @@ class Phase8CKuesionerPetugasTest extends TestCase
     {
         $petugas = $this->createPetugas();
 
-        foreach (['CHECK_IN', 'SELESAI'] as $status) {
+        foreach (['CHECK_IN' => 'Check-in', 'SELESAI' => 'Selesai'] as $status => $label) {
             [, $booking] = $this->createValidFixture(status: $status);
 
             $this->actingAs($petugas->akun)
                 ->get(route('petugas.kuesioner.show', $booking))
                 ->assertOk()
-                ->assertSee($status);
+                ->assertSee($label);
         }
 
         foreach (['TERJADWAL', 'DIBATALKAN', 'TIDAK_HADIR'] as $status) {

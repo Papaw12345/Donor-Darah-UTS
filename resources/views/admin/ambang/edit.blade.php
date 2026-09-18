@@ -6,9 +6,7 @@
     <div class="container page-shell page-shell-narrow">
         <header class="page-header">
             <div class="page-header-main">
-                <p class="eyebrow">Konfigurasi Persediaan</p>
                 <h1 class="page-title">Edit Ambang Persediaan</h1>
-                <p class="page-description">Perbarui jumlah minimum untuk kombinasi yang sudah ditetapkan.</p>
             </div>
             <a class="button button-secondary" href="{{ route('admin.ambang.index') }}">Batal</a>
         </header>
@@ -30,15 +28,7 @@
             </div>
         </dl>
 
-        <section class="page-section" aria-labelledby="form-ambang">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title" id="form-ambang">Jumlah Minimum</h2>
-                    <p class="section-description">Jenis komponen dan golongan darah tidak diubah dari halaman ini.</p>
-                </div>
-            </div>
-
-            <form class="form-panel" method="POST" action="{{ route('admin.ambang.update', $ambang) }}">
+        <form class="form-panel page-section" method="POST" action="{{ route('admin.ambang.update', $ambang) }}">
                 @csrf
                 @method('PUT')
 
@@ -49,9 +39,7 @@
 
                 <div class="form-actions">
                     <button class="button button-primary" type="submit">Perbarui Ambang</button>
-                    <a class="button button-secondary" href="{{ route('admin.ambang.index') }}">Batal</a>
                 </div>
-            </form>
-        </section>
+        </form>
     </div>
 @endsection

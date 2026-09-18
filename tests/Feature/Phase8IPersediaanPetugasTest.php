@@ -84,7 +84,7 @@ class Phase8IPersediaanPetugasTest extends TestCase
                 'id_petugas' => $other->id_petugas,
             ]))
             ->assertOk()
-            ->assertSee('Petugas Login')
+            ->assertDontSee('Petugas Login')
             ->assertDontSee('Petugas Lain');
 
         $this->assertSame(
@@ -179,7 +179,7 @@ class Phase8IPersediaanPetugasTest extends TestCase
         $response = $this->actingAs($petugas->akun)
             ->get(route('petugas.persediaan.index'))
             ->assertOk()
-            ->assertSee('Tanggal acuan WIB: 2026-09-16');
+            ->assertSee('Tanggal acuan: 16-09-2026');
 
         $this->assertSame('2026-09-15', now('UTC')->toDateString());
         $this->assertSame('2026-09-16', now('Asia/Jakarta')->toDateString());

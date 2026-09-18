@@ -6,24 +6,14 @@
     <div class="container page-shell page-shell-narrow">
         <header class="page-header">
             <div class="page-header-main">
-                <p class="eyebrow">Konfigurasi Pelayanan</p>
                 <h1 class="page-title">Edit Jadwal Pelayanan</h1>
-                <p class="page-description">Perbarui waktu, kapasitas, atau status jadwal.</p>
             </div>
             <a class="button button-secondary" href="{{ route('admin.jadwal.index') }}">Batal</a>
         </header>
 
         @include('partials.alerts')
 
-        <section class="page-section" aria-labelledby="form-jadwal">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title" id="form-jadwal">Data Jadwal</h2>
-                    <p class="section-description">Gunakan status DIBUKA, DITUTUP, atau DIBATALKAN sesuai kondisi pelayanan.</p>
-                </div>
-            </div>
-
-            <form class="form-panel" method="POST" action="{{ route('admin.jadwal.update', $jadwal) }}">
+        <form class="form-panel page-section" method="POST" action="{{ route('admin.jadwal.update', $jadwal) }}">
                 @csrf
                 @method('PUT')
 
@@ -56,9 +46,7 @@
 
                 <div class="form-actions">
                     <button class="button button-primary" type="submit">Perbarui Jadwal</button>
-                    <a class="button button-secondary" href="{{ route('admin.jadwal.index') }}">Batal</a>
                 </div>
-            </form>
-        </section>
+        </form>
     </div>
 @endsection

@@ -101,7 +101,7 @@ class Phase7GRiwayatTest extends TestCase
         $this->actingAs($pendonor->akun)
             ->get(route('pendonor.riwayat.index'))
             ->assertOk()
-            ->assertSee('Belum ada riwayat penyumbangan.')
+            ->assertSee('Belum ada riwayat donor.')
             ->assertViewHas('riwayat', fn ($riwayat) => $riwayat->isEmpty());
     }
 
@@ -220,7 +220,7 @@ class Phase7GRiwayatTest extends TestCase
         $this->actingAs($pendonor->akun)
             ->get(route('pendonor.riwayat.index'))
             ->assertOk()
-            ->assertSee('Belum ada riwayat penyumbangan.')
+            ->assertSee('Belum ada riwayat donor.')
             ->assertDontSee('<table>', false);
     }
 

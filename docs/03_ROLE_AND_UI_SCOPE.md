@@ -149,11 +149,12 @@ Pada menu Jadwal Donor, jadwal dianggap tersedia untuk ditampilkan apabila:
 
 - `status_jadwal = DIBUKA`;
 - `tanggal` sama dengan atau setelah tanggal hari ini menurut waktu operasional WIB (`Asia/Jakarta`); dan
+- khusus jadwal pada tanggal hari ini, waktu WIB sekarang belum melewati `jam_selesai` (`now <= jam_selesai`); dan
 - sisa kapasitas lebih dari `0`.
 
-Jadwal dengan tanggal sebelum hari ini, jadwal `DITUTUP`, jadwal `DIBATALKAN`, atau jadwal yang sudah penuh tidak ditampilkan sebagai jadwal tersedia.
+Jadwal dengan tanggal sebelum hari ini, jadwal `DIBUKA` pada tanggal hari ini yang sudah melewati `jam_selesai`, jadwal `DITUTUP`, jadwal `DIBATALKAN`, atau jadwal yang sudah penuh tidak ditampilkan sebagai jadwal tersedia. Jadwal masa depan tidak dibatasi oleh jam berjalan pada hari ini.
 
-Untuk jadwal pada tanggal hari ini, `status_jadwal` tetap menjadi kontrol administratif ketersediaan. Phase ini tidak menambahkan perubahan status otomatis berdasarkan jam berjalan.
+`status_jadwal` tetap merupakan status administratif yang dikelola Admin. Sistem tidak mengubah `DIBUKA` menjadi `DITUTUP` secara otomatis setelah `jam_selesai`. `jam_mulai` tidak menjadi batas baru sehingga jadwal hari ini tetap dapat dipilih sebelum jam pelayanan dimulai apabila seluruh syarat lain terpenuhi.
 
 Pendonor tidak dapat membuat atau mengubah jadwal pelayanan secara administratif.
 
@@ -173,8 +174,10 @@ Pendonor tidak boleh melihat atau mengubah pemesanan milik Pendonor lain.
 Klarifikasi berikut merupakan keputusan proyek Phase 7D untuk bagian alur Pemesanan Donor yang sebelumnya belum ditentukan secara rinci.
 
 - Kepemilikan pemesanan harus ditentukan dari Pendonor yang sedang terautentikasi. Identifier Pendonor yang dikirim oleh client tidak boleh digunakan untuk memberi akses ke pemesanan milik Pendonor lain.
-- Pemesanan baru hanya dapat dibuat untuk jadwal `DIBUKA` dengan tanggal hari ini atau setelahnya menurut WIB (`Asia/Jakarta`), sisa kapasitas lebih dari `0`, kelayakan donor ulang terpenuhi terhadap tanggal jadwal yang dipilih, dan aturan pemesanan ulang untuk jadwal yang sama terpenuhi.
+- Pemesanan baru hanya dapat dibuat untuk jadwal `DIBUKA` dengan tanggal hari ini atau setelahnya menurut WIB (`Asia/Jakarta`), sisa kapasitas lebih dari `0`, kelayakan donor ulang terpenuhi terhadap tanggal jadwal yang dipilih, dan aturan pemesanan ulang untuk jadwal yang sama terpenuhi. Khusus jadwal hari ini, pemesanan baru hanya dapat dibuat selama waktu WIB sekarang belum melewati `jam_selesai`; tepat pada `jam_selesai` masih diperbolehkan.
+- `jam_mulai` tidak membatasi pemesanan baru. Pemesanan sebelum jam pelayanan dimulai tetap diperbolehkan jika seluruh syarat lain terpenuhi, dan jadwal masa depan tidak dipengaruhi oleh jam berjalan pada hari ini.
 - Untuk keperluan workflow dan UI, status pemesanan aktif adalah `TERJADWAL` dan `CHECK_IN`.
+- Halaman `Pemesanan Saya` menampilkan hanya pemesanan aktif tersebut. Row `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tetap tersimpan sebagai data transaksi tetapi tidak ditampilkan pada daftar proses aktif Pendonor.
 - Untuk kombinasi Pendonor dan jadwal yang sama, pemesanan berstatus `TERJADWAL`, `CHECK_IN`, `SELESAI`, atau `TIDAK_HADIR` menghalangi pemesanan baru. Hanya pemesanan berstatus `DIBATALKAN` yang tidak menghalangi pemesanan ulang pada jadwal yang sama.
 - Pemesanan pada `id_jadwal` yang berbeda tidak otomatis dilarang oleh aturan duplikasi. Prototype ini tidak menambahkan aturan satu pemesanan per hari, konsep jadwal alternatif, atau pembatalan otomatis atas pemesanan lain.
 - Pemesanan yang valid dibuat dengan status `TERJADWAL`; `waktu_pemesanan` diisi pada saat pembuatan menggunakan konvensi timestamp aplikasi; sedangkan `kode_checkin` dan `waktu_checkin` tetap `NULL`.
@@ -182,6 +185,8 @@ Klarifikasi berikut merupakan keputusan proyek Phase 7D untuk bagian alur Pemesa
 - Pemesanan berstatus `CHECK_IN`, `SELESAI`, `TIDAK_HADIR`, atau `DIBATALKAN` tidak dapat dibatalkan oleh Pendonor.
 
 Pembuatan kode check-in dan proses check-in bukan bagian implementasi Phase 7D.
+
+Cutoff `jam_selesai` hanya berlaku untuk ketersediaan jadwal Pendonor, pembuatan pemesanan baru, dan check-in baru oleh Petugas. Rule waktu ini tidak diperluas ke pembatalan pemesanan, kuesioner, pembuatan atau penampilan kode check-in Pendonor, seleksi, penyumbangan, pencatatan unit, pelulusan, persediaan, distribusi, pemanggilan, pemberitahuan, atau proses lain.
 
 ### Kuesioner Pradonasi
 
@@ -440,7 +445,9 @@ Ketentuan Phase 8B dikunci sebagai berikut:
 - pemesanan dengan tanggal jadwal masa depan atau yang sudah lewat tidak dapat menjalani check-in baru;
 - `status_jadwal = DIBATALKAN` menolak check-in baru;
 - `status_jadwal = DITUTUP` tidak dengan sendirinya menggugurkan pemesanan `TERJADWAL` yang sudah valid dan mempunyai kode check-in;
-- Phase 8B tidak menambahkan pembatasan berdasarkan `jam_mulai` atau `jam_selesai`;
+- khusus jadwal hari ini, check-in baru hanya dapat dilakukan selama waktu WIB sekarang belum melewati `jam_selesai`; tepat pada `jam_selesai` masih diperbolehkan dan setelahnya check-in baru ditolak;
+- `jam_mulai` tidak membatasi check-in baru sehingga check-in sebelum jam pelayanan dimulai tetap diperbolehkan apabila seluruh prasyarat lain terpenuhi;
+- cutoff waktu tidak mengubah `status_jadwal` secara otomatis. Status `DIBUKA`, `DITUTUP`, atau `DIBATALKAN` tetap merupakan data administratif sebagaimana tersimpan;
 - check-in berhasil hanya mengubah `status_pemesanan` dari `TERJADWAL` menjadi `CHECK_IN` dan mengisi `waktu_checkin` menggunakan konvensi timestamp aplikasi;
 - check-in tidak mengubah `kode_checkin`, kuesioner, jadwal, pemesanan lain, profil Pendonor, atau transaksi operasional lain;
 - pengiriman ulang untuk kode yang sudah berhasil check-in bersifat idempotent apabila status sudah `CHECK_IN` dan `waktu_checkin` sudah terisi: timestamp pertama dipertahankan dan tidak ada mutation kedua;
@@ -565,6 +572,20 @@ Rincian berikut mengunci perilaku operasional Penyumbangan pada Phase 8E.
 - Phase 8E tidak membuat unit komponen darah. Penyumbangan `BERHASIL` baru dapat menjadi sumber Phase 8F, sedangkan `GAGAL` tidak dapat menghasilkan unit.
 - Phase 8E tidak menambah tabel, kolom, migration, index, notification, pelulusan, distribusi, atau perubahan schema.
 
+### Riwayat Pelayanan Donor Petugas
+
+Petugas dapat membuka halaman read-only untuk melihat hasil pelayanan donor yang telah mencapai hasil akhir pada tahap seleksi atau penyumbangan.
+
+- Riwayat pelayanan memuat seleksi dengan keputusan `DITUNDA` atau `DITOLAK`, serta seleksi `LAYAK` yang sudah mempunyai transaksi `penyumbangan`.
+- Seleksi `LAYAK` yang belum mempunyai transaksi `penyumbangan` masih merupakan proses aktif dan tidak dimasukkan ke riwayat pelayanan.
+- Untuk row yang mempunyai penyumbangan, hasil pelayanan berasal dari `hasil_penyumbangan` yaitu `BERHASIL` atau `GAGAL`. Untuk row tanpa penyumbangan, hasil berasal dari keputusan seleksi `DITUNDA` atau `DITOLAK`.
+- Waktu pelayanan yang ditampilkan berasal dari `waktu_pengambilan` jika penyumbangan tersedia, atau `waktu_seleksi` untuk proses yang berhenti pada seleksi.
+- Riwayat diurutkan berdasarkan waktu pelayanan menurun, kemudian `id_seleksi` menurun sebagai tie-breaker.
+- Halaman riwayat hanya melakukan pembacaan. Tidak ada create, edit, delete, revisi hasil, atau mutation lain dari halaman ini.
+- Navigasi dari riwayat boleh membuka halaman existing. `DITUNDA` atau `DITOLAK` dapat membuka Seleksi, `GAGAL` dapat membuka Penyumbangan, dan `BERHASIL` dapat membuka Unit Komponen Darah.
+- Penyumbangan `GAGAL` tetap tidak dapat menghasilkan unit komponen darah.
+- Daftar `Pendonor Sedang Diproses` pada Dashboard Petugas tetap khusus pemesanan berstatus `CHECK_IN` dan tidak digabungkan ke riwayat.
+- Fitur ini tidak menambahkan tabel, field, migration, index, status, atau entitas bisnis baru. Data dibaca dari relasi existing `pemesanan_donor`, `seleksi_donor`, `penyumbangan`, dan `unit_komponen_darah`.
 ### Unit Komponen Darah
 
 Untuk penyumbangan berhasil, Petugas dapat mencatat satu atau lebih unit komponen darah.
@@ -1007,6 +1028,7 @@ Cara teknis pembuatan akun Admin awal ditentukan pada tahap implementasi, bukan 
 | Seleksi donor | Menjalani | Catat/putuskan | Tidak |
 | Golongan darah Pendonor baru | Tidak mengubah bebas | Catat jika telah dikonfirmasi | Tidak |
 | Penyumbangan | Menjalani | Catat | Tidak |
+| Riwayat pelayanan donor | Tidak | Lihat | Tidak |
 | Unit komponen darah | Tidak | Kelola operasional | Tidak |
 | Pelulusan unit | Tidak | Proses | Tidak |
 | Distribusi unit | Tidak | Catat | Tidak |

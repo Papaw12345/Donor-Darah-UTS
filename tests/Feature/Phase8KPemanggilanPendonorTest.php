@@ -82,7 +82,7 @@ class Phase8KPemanggilanPendonorTest extends TestCase
                 'id_petugas' => $other->id_petugas,
             ]))
             ->assertOk()
-            ->assertSee('Petugas Login')
+            ->assertDontSee('Petugas Login')
             ->assertDontSee('Petugas Lain');
 
         $this->assertSame($active->id_petugas, $response->viewData('petugas')->id_petugas);
@@ -281,7 +281,7 @@ class Phase8KPemanggilanPendonorTest extends TestCase
         $response = $this->actingAs($petugas->akun)
             ->get(route('petugas.pemanggilan.index', ['id_ambang' => $threshold->id_ambang]))
             ->assertOk()
-            ->assertSee('Tanggal acuan WIB: 2026-09-30')
+            ->assertSee('Tanggal acuan: 30-09-2026')
             ->assertSee($candidate->nama_lengkap);
 
         $this->assertSame('2026-09-29', now('UTC')->toDateString());
@@ -350,7 +350,7 @@ class Phase8KPemanggilanPendonorTest extends TestCase
             ->assertSee($alphaFirst->nomor_donor)
             ->assertSee($alphaSecond->nomor_donor)
             ->assertSee('01-05-2026')
-            ->assertSee('Daftar ini berdasarkan eligibility historis dan bukan keputusan kelayakan medis akhir.')
+            ->assertSee('Kandidat tetap harus menjalani proses donor dan seleksi.')
             ->assertDontSee('Kirim Pemberitahuan')
             ->assertSee('Buat Pemberitahuan')
             ->assertDontSee('Pemberitahuan Petugas');

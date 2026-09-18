@@ -6,9 +6,7 @@
     <div class="container page-shell page-shell-narrow">
         <header class="page-header">
             <div class="page-header-main">
-                <p class="eyebrow">Administrasi Akun</p>
                 <h1 class="page-title">Edit Petugas</h1>
-                <p class="page-description">Perbarui email dan data profil Petugas.</p>
             </div>
             <a class="button button-secondary" href="{{ route('admin.petugas.index') }}">Batal</a>
         </header>
@@ -34,15 +32,7 @@
             </div>
         </dl>
 
-        <section class="page-section" aria-labelledby="form-petugas">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title" id="form-petugas">Data Petugas</h2>
-                    <p class="section-description">Status akun dikelola dari daftar Petugas.</p>
-                </div>
-            </div>
-
-            <form class="form-panel" method="POST" action="{{ route('admin.petugas.update', $petugas) }}">
+        <form class="form-panel page-section" method="POST" action="{{ route('admin.petugas.update', $petugas) }}">
                 @csrf
                 @method('PUT')
 
@@ -63,9 +53,7 @@
 
                 <div class="form-actions">
                     <button class="button button-primary" type="submit">Perbarui Petugas</button>
-                    <a class="button button-secondary" href="{{ route('admin.petugas.index') }}">Batal</a>
                 </div>
-            </form>
-        </section>
+        </form>
     </div>
 @endsection

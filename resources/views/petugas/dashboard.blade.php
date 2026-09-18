@@ -6,51 +6,95 @@
     <div class="container page-shell">
         <header class="page-header">
             <div class="page-header-main">
-                <p class="eyebrow">Area Petugas</p>
                 <h1 class="page-title">Dashboard Petugas</h1>
-                <p class="page-description">Ringkasan kegiatan donor dan kondisi persediaan pada tanggal operasional.</p>
             </div>
         </header>
 
         @include('partials.alerts')
 
-        {{-- Identitas dan operasional --}}
+        {{-- Identitas Petugas --}}
         <section class="page-section" aria-labelledby="identitas-petugas">
-            <div class="section-header"><div><h2 class="section-title" id="identitas-petugas">Identitas Petugas</h2><p class="section-description">Akun Petugas yang sedang digunakan.</p></div></div>
-            <dl class="info-grid">
-                <div class="info-block"><dt>Nama petugas</dt><dd>{{ $petugas->nama_petugas }}</dd></div>
-                <div class="info-block"><dt>Nomor petugas</dt><dd>{{ $petugas->nomor_petugas }}</dd></div>
-                <div class="info-block"><dt>Email akun</dt><dd>{{ $akun->email }}</dd></div>
+            <h2 class="section-title" id="identitas-petugas">Identitas Petugas</h2>
+            <dl class="identity-panel identity-grid petugas-identity-grid">
+                <div class="identity-item"><dt>Nama Petugas</dt><dd>{{ $petugas->nama_petugas }}</dd></div>
+                <div class="identity-item"><dt>Nomor Petugas</dt><dd>{{ $petugas->nomor_petugas }}</dd></div>
+                <div class="identity-item"><dt>Email</dt><dd>{{ $akun->email }}</dd></div>
             </dl>
         </section>
 
-        <section class="page-section" aria-labelledby="operasional-petugas">
-            <div class="section-header"><div><h2 class="section-title" id="operasional-petugas">Operasional Petugas</h2><p class="section-description">Pilih proses operasional yang akan dikerjakan.</p></div></div>
-            <nav class="action-group" aria-label="Operasional Petugas">
-                <a class="button button-primary" href="{{ route('petugas.check-in.index') }}">Check-in Pendonor</a>
-                <a class="button button-secondary" href="{{ route('petugas.pelulusan.index') }}">Pelulusan</a>
-                <a class="button button-secondary" href="{{ route('petugas.distribusi.index') }}">Distribusi</a>
-                <a class="button button-secondary" href="{{ route('petugas.persediaan.index') }}">Persediaan</a>
-                <a class="button button-secondary" href="{{ route('petugas.persediaan-rendah.index') }}">Persediaan Rendah</a>
-                <a class="button button-secondary" href="{{ route('petugas.pemanggilan.index') }}">Pemanggilan Pendonor</a>
-            </nav>
-        </section>
-
-        {{-- Ringkasan operasional --}}
+        {{-- Kegiatan hari ini --}}
         <section class="page-section" aria-labelledby="kegiatan-donor-hari-ini">
-            <div class="section-header"><div><h2 class="section-title" id="kegiatan-donor-hari-ini">Kegiatan Donor Hari Ini</h2><p class="section-description">Tanggal operasional WIB: {{ $tanggalAcuan }}</p></div></div>
-            <dl class="summary-grid">
-                @foreach (['TERJADWAL', 'CHECK_IN', 'SELESAI', 'TIDAK_HADIR'] as $status)
-                    <div class="summary-block"><dt class="summary-label">{{ $status }}</dt><dd>{{ $kegiatanHariIni[$status] }}</dd></div>
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title" id="kegiatan-donor-hari-ini">Kegiatan Hari Ini</h2>
+                </div>
+            </div>
+            <dl class="dashboard-summary petugas-summary">
+                @foreach (['TERJADWAL' => 'Terjadwal', 'CHECK_IN' => 'Check-in', 'SELESAI' => 'Selesai', 'TIDAK_HADIR' => 'Tidak Hadir'] as $status => $label)
+                    <div class="dashboard-summary-item"><dt class="summary-label">{{ $label }}</dt><dd>{{ $kegiatanHariIni[$status] }}</dd></div>
                 @endforeach
-                <div class="summary-block"><dt class="summary-label">Pendonor Sedang Diproses</dt><dd>{{ $jumlahPendonorDiproses }}</dd></div>
-                <div class="summary-block"><dt class="summary-label">Kondisi Persediaan</dt><dd>Total unit tersedia: {{ $totalPersediaanTersedia }}</dd></div>
+                <div class="dashboard-summary-item"><dt class="summary-label">Pendonor Sedang Diproses</dt><dd>{{ $jumlahPendonorDiproses }}</dd></div>
+                <div class="dashboard-summary-item"><dt class="summary-label">Persediaan</dt><dd>Total unit tersedia: {{ $totalPersediaanTersedia }}</dd></div>
             </dl>
         </section>
 
+        {{-- Pendonor sedang diproses --}}
+        <section class="page-section" aria-labelledby="pendonor-sedang-diproses">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title" id="pendonor-sedang-diproses">Pendonor Sedang Diproses</h2>
+                </div>
+            </div>
+
+            @if ($pendonorSedangDiproses->isEmpty())
+                <div class="empty-state">Belum ada pendonor yang sedang diproses.</div>
+            @else
+                <div class="table-container">
+                    <table class="data-table table-compact">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nama Pendonor</th>
+                                <th scope="col">Nomor Donor</th>
+                                <th scope="col">Tanggal Jadwal</th>
+                                <th scope="col">Waktu Check-in</th>
+                                <th scope="col">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($pendonorSedangDiproses as $item)
+                                <tr>
+                                    <td>{{ $item->nama_lengkap }}</td>
+                                    <td>{{ $item->nomor_donor ?? 'Belum tersedia' }}</td>
+                                    <td>{{ \Carbon\CarbonImmutable::parse($item->tanggal_jadwal)->format('d-m-Y') }}</td>
+                                    <td>
+                                        {{ $item->waktu_checkin
+                                            ? \Carbon\CarbonImmutable::parse($item->waktu_checkin)->format('d-m-Y H:i')
+                                            : 'Belum tercatat' }}
+                                    </td>
+                                    <td>
+                                        <a
+                                            class="text-link"
+                                            href="{{ route('petugas.kuesioner.show', ['pemesanan' => $item->id_pemesanan]) }}"
+                                        >
+                                            Lanjutkan
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </section>
         {{-- Persediaan rendah --}}
         <section class="page-section" aria-labelledby="persediaan-rendah">
-            <div class="section-header"><div><h2 class="section-title" id="persediaan-rendah">Persediaan Rendah</h2><p class="section-description">Jumlah kombinasi persediaan rendah: {{ $persediaanRendah->count() }}</p></div></div>
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title" id="persediaan-rendah">Persediaan Rendah</h2>
+                    <p class="section-description">Jumlah kombinasi: {{ $persediaanRendah->count() }}</p>
+                </div>
+                <a class="text-link" href="{{ route('petugas.persediaan-rendah.index') }}">Lihat Persediaan Rendah</a>
+            </div>
             @if ($jumlahAmbangPersediaan === 0)
                 <div class="empty-state">Belum ada konfigurasi ambang persediaan.</div>
             @elseif ($persediaanRendah->isEmpty())

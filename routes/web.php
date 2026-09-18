@@ -113,6 +113,14 @@ Route::middleware(['auth', 'active'])->group(function () {
         ->middleware('role:PETUGAS')
         ->name('petugas.home');
 
+    Route::get('/petugas/jadwal', [PetugasDashboardController::class, 'jadwal'])
+        ->middleware('role:PETUGAS')
+        ->name('petugas.jadwal.index');
+
+    Route::get('/petugas/riwayat-pelayanan',
+        [PetugasDashboardController::class, 'riwayatPelayanan'])
+        ->middleware('role:PETUGAS')
+        ->name('petugas.riwayat-pelayanan.index');
     Route::get('/petugas/check-in', [PetugasCheckinController::class, 'index'])
         ->middleware('role:PETUGAS')
         ->name('petugas.check-in.index');

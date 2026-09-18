@@ -1,24 +1,21 @@
 @extends('layouts.app')
 
-@section('title', 'Pemesanan Donor Saya | Donor Darah UDD')
+@section('title', 'Pemesanan Saya | Donor Darah UDD')
 
 @section('content')
     <div class="container page-shell">
         <header class="page-header">
             <div class="page-header-main">
-                <p class="eyebrow">Pemesanan Donor</p>
-                <h1 class="page-title">Pemesanan Donor Saya</h1>
-                <p class="page-description">Lihat status pemesanan dan lanjutkan tahapan pradonasi yang tersedia.</p>
+                <h1 class="page-title">Pemesanan Saya</h1>
             </div>
             <a class="button button-primary" href="{{ route('pendonor.jadwal.index') }}">Lihat Jadwal Donor</a>
         </header>
 
         @include('partials.alerts')
 
-        <section class="page-section" aria-labelledby="daftar-pemesanan">
-            <div class="section-header"><div><h2 class="section-title" id="daftar-pemesanan">Daftar Pemesanan</h2><p class="section-description">Seluruh pemesanan donor milik Anda.</p></div></div>
+        <div class="page-section">
             @if ($pemesanan->isEmpty())
-                <div class="empty-state">Belum ada pemesanan donor.</div>
+                <div class="empty-state">Tidak ada pemesanan aktif.</div>
             @else
                 <div class="table-container">
                     <table class="data-table">
@@ -56,6 +53,6 @@
                     </table>
                 </div>
             @endif
-        </section>
+        </div>
     </div>
 @endsection

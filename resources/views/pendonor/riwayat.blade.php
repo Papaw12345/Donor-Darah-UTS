@@ -6,20 +6,15 @@
     <div class="container page-shell">
         <header class="page-header">
             <div class="page-header-main">
-                <p class="eyebrow">Riwayat Penyumbangan</p>
                 <h1 class="page-title">Riwayat Donor</h1>
-                <p class="page-description">Daftar transaksi penyumbangan yang telah dicatat oleh Petugas UDD.</p>
             </div>
             <a class="button button-secondary" href="{{ route('pendonor.home') }}">Kembali ke Dashboard</a>
         </header>
 
         {{-- Riwayat donor --}}
-        <section class="page-section" aria-labelledby="daftar-riwayat">
-            <div class="section-header">
-                <div><h2 class="section-title" id="daftar-riwayat">Daftar Penyumbangan</h2><p class="section-description">Riwayat ini bersifat hanya-baca.</p></div>
-            </div>
+        <div class="page-section">
             @if ($riwayat->isEmpty())
-                <div class="empty-state">Belum ada riwayat penyumbangan.</div>
+                <div class="empty-state">Belum ada riwayat donor.</div>
             @else
                 <div class="table-container">
                     <table class="data-table table-compact">
@@ -37,6 +32,6 @@
                     </table>
                 </div>
             @endif
-        </section>
+        </div>
     </div>
 @endsection

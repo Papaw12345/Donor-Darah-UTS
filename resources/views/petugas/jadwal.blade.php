@@ -8,7 +8,6 @@
             <div class="page-header-main">
                 <h1 class="page-title">Jadwal Pelayanan</h1>
             </div>
-            <a class="button button-primary" href="{{ route('admin.jadwal.create') }}">Tambah Jadwal</a>
         </header>
 
         @include('partials.alerts')
@@ -26,7 +25,6 @@
                                 <th scope="col">Jam Selesai</th>
                                 <th scope="col">Kapasitas</th>
                                 <th scope="col">Status</th>
-                                <th scope="col">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -40,9 +38,6 @@
                                         <span class="status-badge {{ $item->status_jadwal === 'DIBUKA' ? 'status-success' : ($item->status_jadwal === 'DIBATALKAN' ? 'status-danger' : 'status-neutral') }}">
                                             {{ $item->status_jadwal }}
                                         </span>
-                                    </td>
-                                    <td>
-                                        <a class="button button-secondary button-small" href="{{ route('admin.jadwal.edit', $item) }}">Edit</a>
                                     </td>
                                 </tr>
                             @endforeach

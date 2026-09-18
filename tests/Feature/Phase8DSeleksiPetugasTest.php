@@ -198,7 +198,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->assertSee('01:00')
             ->assertSee('DIBATALKAN')
             ->assertSee('2026-09-16 08:00:00')
-            ->assertSee('CHECK_IN');
+            ->assertSee('Check-in');
 
         $this->assertSame($donor->id_pendonor, $booking->id_pendonor);
         $this->assertEquals($before, $booking->fresh()->getAttributes());
@@ -505,7 +505,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->assertSee('Seleksi Tersimpan')
             ->assertSee('2020-01-01')
             ->assertSee('DIBATALKAN')
-            ->assertSee('SELESAI')
+            ->assertSee('Selesai')
             ->assertSee('60.25')
             ->assertSee('120')
             ->assertSee('80')

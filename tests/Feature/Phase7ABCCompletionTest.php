@@ -180,9 +180,9 @@ class Phase7ABCCompletionTest extends TestCase
         $this->actingAs($pendonor->akun)
             ->get(route('pendonor.home'))
             ->assertOk()
-            ->assertSee('Pemesanan Aktif')
-            ->assertSee('Tidak ada pemesanan donor aktif.')
-            ->assertSee('Lihat Semua Pemesanan')
+            ->assertSee('Pemesanan')
+            ->assertSee('Belum ada pemesanan aktif.')
+            ->assertSee('Lihat Pemesanan')
             ->assertSee(route('pendonor.pemesanan.index'), false)
             ->assertDontSee('Buat Pemesanan')
             ->assertDontSee('Batalkan Pemesanan')
@@ -379,27 +379,51 @@ class Phase7ABCCompletionTest extends TestCase
         $this->assertSame([$available->id_jadwal], $response->viewData('jadwal')->modelKeys());
     }
 
-    public function test_today_schedule_remains_available_after_its_clock_time_and_future_is_displayed(): void
+    public function test_today_schedule_after_end_is_hidden_while_future_schedule_remains_available(): void
     {
+        $this->travelTo(CarbonImmutable::parse('2026-09-15 11:30:00', 'UTC'));
+
         $pendonor = $this->createPendonor();
         $today = $this->createSchedule([
             'tanggal' => '2026-09-15',
-            'jam_mulai' => '06:00',
-            'jam_selesai' => '07:00',
+            'jam_mulai' => '09:00',
+            'jam_selesai' => '17:00',
         ]);
-        $future = $this->createSchedule(['tanggal' => '2026-09-16']);
+        $future = $this->createSchedule([
+            'tanggal' => '2026-09-16',
+            'jam_mulai' => '09:00',
+            'jam_selesai' => '17:00',
+        ]);
 
         $response = $this->actingAs($pendonor->akun)
             ->get(route('pendonor.jadwal.index'))
             ->assertOk()
-            ->assertSee('15-09-2026')
-            ->assertSee('06:00')
+            ->assertDontSee('15-09-2026')
             ->assertSee('16-09-2026');
 
-        $this->assertSame(
-            [$today->id_jadwal, $future->id_jadwal],
-            $response->viewData('jadwal')->modelKeys()
-        );
+        $this->assertSame([$future->id_jadwal], $response->viewData('jadwal')->modelKeys());
+        $this->assertSame('DIBUKA', $today->fresh()->status_jadwal);
+    }
+
+    public function test_today_schedule_is_available_before_start_and_at_exact_end_boundary(): void
+    {
+        $pendonor = $this->createPendonor();
+        $schedule = $this->createSchedule([
+            'tanggal' => '2026-09-15',
+            'jam_mulai' => '09:00',
+            'jam_selesai' => '17:00',
+        ]);
+
+        foreach (['2026-09-15 01:00:00', '2026-09-15 10:00:00'] as $utcTime) {
+            $this->travelTo(CarbonImmutable::parse($utcTime, 'UTC'));
+
+            $response = $this->actingAs($pendonor->akun)
+                ->get(route('pendonor.jadwal.index'))
+                ->assertOk()
+                ->assertSee('15-09-2026');
+
+            $this->assertSame([$schedule->id_jadwal], $response->viewData('jadwal')->modelKeys());
+        }
     }
 
     public function test_all_capacity_consuming_statuses_make_capacity_one_schedule_full(): void
@@ -419,7 +443,7 @@ class Phase7ABCCompletionTest extends TestCase
         $response = $this->actingAs($pendonor->akun)
             ->get(route('pendonor.jadwal.index'))
             ->assertOk()
-            ->assertSee('Belum ada jadwal donor yang tersedia.');
+            ->assertSee('Belum ada jadwal yang tersedia.');
 
         $this->assertSame([], $response->viewData('jadwal')->modelKeys());
         $this->assertCount(4, $fullScheduleIds);
@@ -461,7 +485,7 @@ class Phase7ABCCompletionTest extends TestCase
         $this->actingAs($pendonor->akun)
             ->get(route('pendonor.jadwal.index'))
             ->assertOk()
-            ->assertSee('Belum ada jadwal donor yang tersedia.')
+            ->assertSee('Belum ada jadwal yang tersedia.')
             ->assertDontSee(route('pendonor.pemesanan.store', $schedule), false);
     }
 
@@ -480,11 +504,11 @@ class Phase7ABCCompletionTest extends TestCase
         $this->actingAs($pendonor->akun)
             ->get(route('pendonor.home'))
             ->assertOk()
-            ->assertSee('Informasi Donor Berikutnya')
-            ->assertSee('Anda belum memiliki riwayat donor berhasil')
+            ->assertSee('Donor Berikutnya')
+            ->assertSee('Anda dapat mencoba donor pertama.')
             ->assertSee(route('pendonor.donor-berikutnya.index'), false)
             ->assertSee('Pemberitahuan Phase 7I tetap tampil')
-            ->assertSee('Belum dibaca: 1')
+            ->assertSee('1 belum dibaca.')
             ->assertSee(route('pendonor.pemberitahuan.show', $notification), false)
             ->assertSee(route('pendonor.pemberitahuan.index'), false);
     }

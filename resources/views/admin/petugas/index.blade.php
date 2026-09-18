@@ -6,25 +6,16 @@
     <div class="container page-shell">
         <header class="page-header">
             <div class="page-header-main">
-                <p class="eyebrow">Administrasi Akun</p>
-                <h1 class="page-title">Kelola Petugas</h1>
-                <p class="page-description">Lihat, buat, perbarui, serta aktifkan atau nonaktifkan akun Petugas.</p>
+                <h1 class="page-title">Petugas</h1>
             </div>
             <a class="button button-primary" href="{{ route('admin.petugas.create') }}">Tambah Petugas</a>
         </header>
 
         @include('partials.alerts')
 
-        <section class="page-section" aria-labelledby="daftar-petugas">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title" id="daftar-petugas">Daftar Petugas</h2>
-                    <p class="section-description">Status akun menentukan apakah Petugas dapat menggunakan aplikasi.</p>
-                </div>
-            </div>
-
+        <section class="page-section">
             @if ($petugas->isEmpty())
-                <div class="empty-state">Belum ada petugas terdaftar.</div>
+                <div class="empty-state">Belum ada petugas.</div>
             @else
                 <div class="table-container">
                     <table class="data-table">

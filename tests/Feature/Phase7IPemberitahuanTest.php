@@ -325,7 +325,7 @@ class Phase7IPemberitahuanTest extends TestCase
         $this->actingAs($pendonor->akun)
             ->get(route('pendonor.home'))
             ->assertOk()
-            ->assertSee('Belum dibaca: 2')
+            ->assertSee('2 belum dibaca.')
             ->assertViewHas('jumlahPemberitahuanBelumDibaca', 2);
     }
 
@@ -365,7 +365,7 @@ class Phase7IPemberitahuanTest extends TestCase
             ->get(route('pendonor.home'))
             ->assertOk()
             ->assertSee('Belum ada pemberitahuan.')
-            ->assertSee('Lihat Semua Pemberitahuan')
+            ->assertSee('Lihat Pemberitahuan')
             ->assertSee(route('pendonor.pemberitahuan.index'), false);
 
         $notification = $this->createNotification($pendonor, $this->createPetugas());

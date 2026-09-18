@@ -32,6 +32,7 @@ class PetugasUnitKomponenController extends Controller
         return view('petugas.unit-komponen', [
             'petugas' => $petugas,
             'penyumbangan' => $penyumbangan,
+            'tanggalAcuan' => now('Asia/Jakarta')->toDateString(),
             'jenisKomponen' => JenisKomponenDarah::query()
                 ->whereIn('kode_komponen', self::COMPONENT_CODES)
                 ->orderBy('kode_komponen')

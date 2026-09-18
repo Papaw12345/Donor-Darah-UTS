@@ -6,24 +6,22 @@
     <div class="container page-shell">
         <header class="page-header">
             <div class="page-header-main">
-                <p class="eyebrow">Profil Pendonor</p>
                 <h1 class="page-title">Profil Saya</h1>
-                <p class="page-description">Lihat data identitas dan perbarui informasi pribadi yang diizinkan.</p>
             </div>
             <a class="button button-secondary" href="{{ route('pendonor.home') }}">Kembali ke Dashboard</a>
         </header>
 
         @include('partials.alerts')
 
-        <section class="page-section" aria-labelledby="data-tetap">
-            <div class="section-header"><div><h2 class="section-title" id="data-tetap">Data Identitas</h2><p class="section-description">Data berikut hanya dapat dilihat dan tidak dapat diubah dari halaman ini.</p></div></div>
-            <dl class="info-grid">
-                <div class="info-block"><dt>Email akun</dt><dd>{{ $akun->email }}</dd></div>
-                <div class="info-block"><dt>NIK</dt><dd>{{ $pendonor->nik }}</dd></div>
-                <div class="info-block"><dt>Nomor donor</dt><dd>{{ $pendonor->nomor_donor ?? 'Belum tersedia' }}</dd></div>
-                <div class="info-block"><dt>Jenis kelamin</dt><dd>{{ $pendonor->jenis_kelamin === 'LAKI_LAKI' ? 'Laki-laki' : 'Perempuan' }}</dd></div>
-                <div class="info-block"><dt>Tanggal lahir</dt><dd>{{ $pendonor->tanggal_lahir->format('d-m-Y') }}</dd></div>
-                <div class="info-block">
+        <section class="page-section identity-panel" aria-labelledby="data-tetap">
+            <div class="section-header"><div><h2 class="section-title" id="data-tetap">Data Identitas</h2><p class="section-description">Data identitas tidak dapat diubah.</p></div></div>
+            <dl class="identity-grid">
+                <div class="identity-item"><dt>Email akun</dt><dd>{{ $akun->email }}</dd></div>
+                <div class="identity-item"><dt>NIK</dt><dd>{{ $pendonor->nik }}</dd></div>
+                <div class="identity-item"><dt>Nomor donor</dt><dd>{{ $pendonor->nomor_donor ?? 'Belum tersedia' }}</dd></div>
+                <div class="identity-item"><dt>Jenis kelamin</dt><dd>{{ $pendonor->jenis_kelamin === 'LAKI_LAKI' ? 'Laki-laki' : 'Perempuan' }}</dd></div>
+                <div class="identity-item"><dt>Tanggal lahir</dt><dd>{{ $pendonor->tanggal_lahir->format('d-m-Y') }}</dd></div>
+                <div class="identity-item">
                     <dt>Golongan darah</dt>
                     <dd>
                         @if ($pendonor->golonganDarah)
@@ -37,7 +35,7 @@
         </section>
 
         <section class="page-section" aria-labelledby="data-dapat-diubah">
-            <div class="section-header"><div><h2 class="section-title" id="data-dapat-diubah">Data yang Dapat Diperbarui</h2><p class="section-description">Perbarui data profil, kontak, dan pekerjaan Anda.</p></div></div>
+            <div class="section-header"><h2 class="section-title" id="data-dapat-diubah">Data yang Dapat Diperbarui</h2></div>
             <form class="form-panel" method="POST" action="{{ route('pendonor.profil.update') }}">
                 @csrf
                 @method('PUT')

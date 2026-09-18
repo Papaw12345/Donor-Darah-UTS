@@ -4,9 +4,9 @@
 
 @section('content')
     <div class="container page-shell">
-        <header class="page-header"><div class="page-header-main"><p class="eyebrow">Persediaan</p><h1 class="page-title">Persediaan Rendah</h1><p class="page-description">Kombinasi komponen dan golongan darah yang berada pada atau di bawah ambang.</p></div><a class="button button-secondary" href="{{ route('petugas.home') }}">Kembali ke Dashboard</a></header>
+        <header class="page-header"><div class="page-header-main"><h1 class="page-title">Persediaan Rendah</h1><p class="page-description">Tanggal acuan: {{ \Carbon\CarbonImmutable::parse($tanggalAcuan, 'Asia/Jakarta')->format('d-m-Y') }}</p></div><a class="button button-secondary" href="{{ route('petugas.home') }}">Kembali ke Dashboard</a></header>
         @include('partials.alerts')
-        <section class="page-section" aria-labelledby="daftar-persediaan-rendah"><div class="section-header"><div><h2 class="section-title" id="daftar-persediaan-rendah">Kondisi Persediaan Rendah</h2><p class="section-description">Petugas: {{ $petugas->nama_petugas }}. Tanggal acuan WIB: {{ $tanggalAcuan }}</p></div></div>
+        <section class="page-section" aria-label="Daftar persediaan rendah">
             @if ($jumlahAmbangPersediaan === 0)<div class="empty-state">Belum ada konfigurasi ambang persediaan.</div>
             @elseif ($persediaanRendah->isEmpty())<div class="empty-state">Tidak ada persediaan yang berada pada atau di bawah ambang.</div>
             @else<div class="table-container"><table class="data-table table-compact"><thead><tr><th scope="col">Jenis Komponen</th><th scope="col">ABO</th><th scope="col">Rhesus</th><th scope="col">Jumlah Persediaan</th><th scope="col">Jumlah Minimum</th></tr></thead><tbody>

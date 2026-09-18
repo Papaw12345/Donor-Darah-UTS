@@ -394,7 +394,7 @@ class Phase7HDonorBerikutnyaTest extends TestCase
             ->get(route('pendonor.home'))
             ->assertOk()
             ->assertSee(route('pendonor.donor-berikutnya.index'), false)
-            ->assertSee('Lihat Informasi Donor Berikutnya');
+            ->assertSee('Lihat Detail');
     }
 
     public function test_dashboard_summary_uses_same_calculation_as_detailed_page(): void

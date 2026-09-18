@@ -79,6 +79,109 @@ class Phase8ADashboardPetugasTest extends TestCase
         $this->assertNull($akunTanpaProfil->petugas()->first());
     }
 
+    public function test_jadwal_route_is_get_only_and_limited_to_active_petugas_with_profile(): void
+    {
+        $route = Route::getRoutes()->getByName('petugas.jadwal.index');
+
+        $this->assertNotNull($route);
+        $this->assertSame('petugas/jadwal', $route->uri());
+        $this->assertSame(['GET', 'HEAD'], $route->methods());
+        $this->assertSame(
+            PetugasDashboardController::class.'@jadwal',
+            $route->getActionName()
+        );
+        $this->assertContains('web', $route->gatherMiddleware());
+        $this->assertContains('auth', $route->gatherMiddleware());
+        $this->assertContains('active', $route->gatherMiddleware());
+        $this->assertContains('role:PETUGAS', $route->gatherMiddleware());
+
+        $this->get(route('petugas.jadwal.index'))
+            ->assertRedirect(route('login'));
+
+        foreach (['PENDONOR', 'ADMIN'] as $role) {
+            $this->actingAs($this->createAccount($role))
+                ->get(route('petugas.jadwal.index'))
+                ->assertForbidden();
+        }
+
+        $petugasNonaktif = $this->createPetugas('NONAKTIF');
+        $this->actingAs($petugasNonaktif->akun)
+            ->get(route('petugas.jadwal.index'))
+            ->assertRedirect(route('login'));
+
+        $akunTanpaProfil = $this->createAccount('PETUGAS');
+        $this->actingAs($akunTanpaProfil)
+            ->get(route('petugas.jadwal.index'))
+            ->assertStatus(409)
+            ->assertSee('Relasi akun PETUGAS dengan profil Petugas tidak konsisten.');
+
+        $petugasAktif = $this->createPetugas();
+        $this->actingAs($petugasAktif->akun)
+            ->get(route('petugas.jadwal.index'))
+            ->assertOk();
+    }
+
+    public function test_jadwal_lists_all_states_in_existing_order_without_mutation_actions(): void
+    {
+        $petugas = $this->createPetugas();
+        $pastClosed = JadwalPelayanan::create([
+            'tanggal' => '2026-09-14',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'kapasitas' => 5,
+            'status_jadwal' => 'DITUTUP',
+        ]);
+        $futureCancelled = JadwalPelayanan::create([
+            'tanggal' => '2026-09-17',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'kapasitas' => 10,
+            'status_jadwal' => 'DIBATALKAN',
+        ]);
+        $futureOpen = JadwalPelayanan::create([
+            'tanggal' => '2026-09-17',
+            'jam_mulai' => '13:00',
+            'jam_selesai' => '15:30',
+            'kapasitas' => 20,
+            'status_jadwal' => 'DIBUKA',
+        ]);
+        $before = JadwalPelayanan::query()
+            ->orderBy('id_jadwal')
+            ->get()
+            ->map->getAttributes();
+
+        $response = $this->actingAs($petugas->akun)
+            ->get(route('petugas.jadwal.index'))
+            ->assertOk()
+            ->assertSee('Jadwal Pelayanan')
+            ->assertSeeInOrder(['13:00', '08:00', '08:00'])
+            ->assertSee('17-09-2026')
+            ->assertSee('14-09-2026')
+            ->assertSee('15:30')
+            ->assertSee('20')
+            ->assertSee('DIBUKA')
+            ->assertSee('DITUTUP')
+            ->assertSee('DIBATALKAN')
+            ->assertDontSee('Tambah Jadwal')
+            ->assertDontSee(route('admin.jadwal.create'), false)
+            ->assertDontSee(route('admin.jadwal.edit', $futureOpen), false)
+            ->assertDontSee(route('admin.jadwal.edit', $futureCancelled), false)
+            ->assertDontSee(route('admin.jadwal.edit', $pastClosed), false)
+            ->assertDontSee('action="'.route('petugas.jadwal.index').'"', false);
+
+        $this->assertSame(
+            [$futureOpen->id_jadwal, $futureCancelled->id_jadwal, $pastClosed->id_jadwal],
+            $response->viewData('jadwal')->pluck('id_jadwal')->all()
+        );
+        $this->assertEquals(
+            $before,
+            JadwalPelayanan::query()
+                ->orderBy('id_jadwal')
+                ->get()
+                ->map->getAttributes()
+        );
+    }
+
     public function test_identity_comes_from_authenticated_account_and_ignores_client_petugas_id(): void
     {
         $petugas = $this->createPetugas(name: 'Petugas Login');
@@ -117,7 +220,12 @@ class Phase8ADashboardPetugasTest extends TestCase
         $response = $this->actingAs($petugas->akun)
             ->get(route('petugas.home'))
             ->assertOk()
-            ->assertSee('Tanggal operasional WIB: 2026-09-16');
+            ->assertDontSee('Tanggal operasional WIB')
+            ->assertSee('Terjadwal')
+            ->assertSee('Check-in')
+            ->assertSee('Selesai')
+            ->assertSee('Tidak Hadir')
+            ->assertDontSee('TIDAK_HADIR');
 
         $this->assertSame([
             'TERJADWAL' => 1,
@@ -135,7 +243,7 @@ class Phase8ADashboardPetugasTest extends TestCase
             ->assertOk();
 
         $this->assertSame(0, $response->viewData('kegiatanHariIni')['SELESAI']);
-        $response->assertSeeInOrder(['SELESAI', '<dd>0</dd>'], false);
+        $response->assertSeeInOrder(['Selesai', '<dd>0</dd>'], false);
     }
 
     public function test_processed_donors_are_udd_wide_distinct_checkins_without_date_filter(): void
@@ -147,8 +255,16 @@ class Phase8ADashboardPetugasTest extends TestCase
         $bukanDiproses = $this->createPendonor();
 
         $this->createBooking($pendonorSatu, '2026-09-01', 'CHECK_IN');
-        $this->createBooking($pendonorSatu, '2026-10-01', 'CHECK_IN');
-        $this->createBooking($pendonorDua, '2026-09-15', 'CHECK_IN');
+        $bookingSatuTerbaru = $this->createBooking(
+            $pendonorSatu,
+            '2026-10-01',
+            'CHECK_IN'
+        );
+        $bookingDua = $this->createBooking(
+            $pendonorDua,
+            '2026-09-15',
+            'CHECK_IN'
+        );
 
         foreach (['TERJADWAL', 'SELESAI', 'TIDAK_HADIR', 'DIBATALKAN'] as $status) {
             $this->createBooking($bukanDiproses, '2026-09-15', $status);
@@ -163,6 +279,35 @@ class Phase8ADashboardPetugasTest extends TestCase
                 ->assertOk();
 
             $this->assertSame(2, $response->viewData('jumlahPendonorDiproses'));
+
+            $pendonorDiproses = $response->viewData('pendonorSedangDiproses');
+
+            $this->assertSame(2, $pendonorDiproses->count());
+
+            $this->assertSame(
+                [
+                    $bookingDua->id_pemesanan,
+                    $bookingSatuTerbaru->id_pemesanan,
+                ],
+                $pendonorDiproses->pluck('id_pemesanan')->all()
+            );
+
+            $response
+                ->assertSee($pendonorSatu->nama_lengkap)
+                ->assertSee($pendonorDua->nama_lengkap)
+                ->assertSee(
+                    route('petugas.kuesioner.show', [
+                        'pemesanan' => $bookingSatuTerbaru->id_pemesanan,
+                    ]),
+                    false
+                )
+                ->assertSee(
+                    route('petugas.kuesioner.show', [
+                        'pemesanan' => $bookingDua->id_pemesanan,
+                    ]),
+                    false
+                )
+                ->assertSee('Lanjutkan');
         }
     }
 
@@ -275,7 +420,7 @@ class Phase8ADashboardPetugasTest extends TestCase
         $response = $this->actingAs($petugas->akun)
             ->get(route('petugas.home'))
             ->assertOk()
-            ->assertSee('Jumlah kombinasi persediaan rendah: 4')
+            ->assertSee('Jumlah kombinasi: 4')
             ->assertSee('Jumlah Persediaan')
             ->assertSee('Jumlah Minimum');
 
@@ -358,12 +503,20 @@ class Phase8ADashboardPetugasTest extends TestCase
 
         $response
             ->assertSee(route('logout'), false)
-            ->assertSee(route('petugas.check-in.index'), false)->assertSee('Check-in Pendonor')
+            ->assertSee(route('petugas.jadwal.index'), false)->assertSee('Jadwal')
+            ->assertSee(route('petugas.check-in.index'), false)->assertSee('Check-in')
             ->assertSee(route('petugas.pelulusan.index'), false)->assertSee('Pelulusan')
             ->assertSee(route('petugas.distribusi.index'), false)->assertSee('Distribusi')
             ->assertSee(route('petugas.persediaan.index'), false)->assertSee('Persediaan')
             ->assertSee(route('petugas.persediaan-rendah.index'), false)->assertSee('Persediaan Rendah')
-            ->assertSee(route('petugas.pemanggilan.index'), false)->assertSee('Pemanggilan Pendonor')
+            ->assertSee(route('petugas.pemanggilan.index'), false)->assertSee('Pemanggilan')
+            ->assertSee(
+                route('petugas.kuesioner.show', [
+                    'pemesanan' => $booking->id_pemesanan,
+                ]),
+                false
+            )
+            ->assertSee('Lanjutkan')
             ->assertDontSee('name="kode_checkin"', false)
             ->assertDontSee('action="/petugas/', false)
             ->assertDontSee('Review Kuesioner')

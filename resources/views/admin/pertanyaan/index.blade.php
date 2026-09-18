@@ -6,23 +6,14 @@
     <div class="container page-shell">
         <header class="page-header">
             <div class="page-header-main">
-                <p class="eyebrow">Konfigurasi Kuesioner</p>
                 <h1 class="page-title">Pertanyaan Kuesioner</h1>
-                <p class="page-description">Kelola pertanyaan yang digunakan pada kuesioner pradonasi.</p>
             </div>
             <a class="button button-primary" href="{{ route('admin.pertanyaan.create') }}">Tambah Pertanyaan</a>
         </header>
 
         @include('partials.alerts')
 
-        <section class="page-section" aria-labelledby="daftar-pertanyaan">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title" id="daftar-pertanyaan">Daftar Pertanyaan</h2>
-                    <p class="section-description">Pertanyaan nonaktif tetap disimpan untuk menjaga riwayat jawaban.</p>
-                </div>
-            </div>
-
+        <section class="page-section">
             @if ($pertanyaan->isEmpty())
                 <div class="empty-state">Belum ada pertanyaan kuesioner.</div>
             @else

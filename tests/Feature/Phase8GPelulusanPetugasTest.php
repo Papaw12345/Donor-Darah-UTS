@@ -226,12 +226,13 @@ class Phase8GPelulusanPetugasTest extends TestCase
     {
         $petugas = $this->createPetugas();
         $this->actingAs($petugas->akun)->get(route('petugas.home'))
-            ->assertOk()->assertSee(route('petugas.check-in.index'), false)->assertSee('Check-in Pendonor')
+            ->assertOk()->assertSee(route('petugas.jadwal.index'), false)->assertSee('Jadwal')
+            ->assertSee(route('petugas.check-in.index'), false)->assertSee('Check-in')
             ->assertSee(route('petugas.pelulusan.index'), false)->assertSee('Pelulusan')
             ->assertSee(route('petugas.distribusi.index'), false)->assertSee('Distribusi')
             ->assertSee(route('petugas.persediaan.index'), false)->assertSee('Persediaan')
             ->assertSee(route('petugas.persediaan-rendah.index'), false)->assertSee('Persediaan Rendah')
-            ->assertSee(route('petugas.pemanggilan.index'), false)->assertSee('Pemanggilan Pendonor')
+            ->assertSee(route('petugas.pemanggilan.index'), false)->assertSee('Pemanggilan')
             ->assertDontSee('Pemberitahuan Petugas')
             ->assertDontSee('Kirim Pemberitahuan')
             ->assertDontSee('Buat Pemberitahuan');

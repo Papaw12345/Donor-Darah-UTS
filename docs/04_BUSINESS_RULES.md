@@ -161,6 +161,18 @@ Perhitungan sistem.
 
 ---
 
+### Keputusan Proyek - Riwayat Pelayanan Donor Petugas
+
+Riwayat pelayanan donor bagi Petugas merupakan tampilan turunan read-only dari transaksi existing dan bukan tabel riwayat baru.
+
+- Row riwayat berasal dari `seleksi_donor` dengan keputusan `DITUNDA` atau `DITOLAK`, atau dari seleksi `LAYAK` yang sudah mempunyai row `penyumbangan`.
+- Seleksi `LAYAK` tanpa penyumbangan tidak dianggap selesai untuk riwayat pelayanan karena proses masih dapat dilanjutkan ke pencatatan penyumbangan.
+- Jika penyumbangan tersedia, hasil pelayanan menggunakan `hasil_penyumbangan` (`BERHASIL` atau `GAGAL`) dan waktu pelayanan menggunakan `waktu_pengambilan`.
+- Jika proses berhenti pada seleksi, hasil pelayanan menggunakan `DITUNDA` atau `DITOLAK` dan waktu pelayanan menggunakan `waktu_seleksi`.
+- Urutan menggunakan waktu pelayanan menurun dan `id_seleksi` menurun.
+- Halaman tidak mengubah `pemesanan_donor`, `seleksi_donor`, `penyumbangan`, `unit_komponen_darah`, atau tabel lain.
+- Link dari riwayat hanya membuka route workflow existing. Penyumbangan `BERHASIL` tetap dapat menjadi sumber satu atau lebih unit komponen darah, sedangkan `GAGAL` tidak dapat menghasilkan unit.
+- Tidak ada schema, migration, field, status, snapshot, tabel riwayat, atau business rule medis baru.
 ## 9. Unit Komponen - Sumber dari Penyumbangan Berhasil
 
 Satu penyumbangan dapat menghasilkan satu atau lebih unit komponen darah jika berhasil.
@@ -707,6 +719,7 @@ Jangan menambahkan UNIQUE `(id_pendonor, id_jadwal)` ke basis data.
 Klarifikasi berikut merupakan keputusan proyek Phase 7D atas istilah dan perilaku yang sebelumnya belum ditentukan secara rinci:
 
 - untuk keperluan workflow dan UI prototype, status pemesanan aktif adalah `TERJADWAL` dan `CHECK_IN`;
+- halaman `Pemesanan Saya` menampilkan hanya row dengan status aktif tersebut; row `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tetap dipertahankan dalam basis data dan tidak diubah atau dihapus hanya karena tidak muncul pada daftar aktif;
 - `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tidak didefinisikan sebagai status aktif;
 - untuk kombinasi `(id_pendonor, id_jadwal)` yang sama, record berstatus `TERJADWAL`, `CHECK_IN`, `SELESAI`, atau `TIDAK_HADIR` menghalangi pembuatan pemesanan baru;
 - hanya record berstatus `DIBATALKAN` yang tidak menghalangi pemesanan ulang untuk kombinasi Pendonor dan jadwal yang sama.
@@ -763,9 +776,14 @@ Pemesanan baru hanya dapat dibuat apabila seluruh kondisi berikut terpenuhi:
 
 - `status_jadwal = DIBUKA`;
 - tanggal jadwal sama dengan atau setelah tanggal hari ini menurut WIB (`Asia/Jakarta`);
+- khusus jadwal pada tanggal hari ini, waktu WIB sekarang belum melewati `jam_selesai` (`now <= jam_selesai`);
 - sisa kapasitas lebih dari `0` berdasarkan definisi kapasitas di atas;
 - kelayakan donor ulang terhadap tanggal jadwal terpilih terpenuhi;
 - aturan pemesanan ulang untuk kombinasi Pendonor dan jadwal yang sama terpenuhi.
+
+Kriteria waktu yang sama digunakan saat menentukan jadwal yang tersedia bagi Pendonor. Jadwal `DIBUKA` pada tanggal hari ini tidak lagi tersedia untuk pemesanan baru setelah `jam_selesai`, sedangkan jadwal masa depan tidak dipengaruhi oleh jam berjalan pada hari ini. `jam_mulai` tidak menjadi batas baru sehingga pemesanan sebelum jam pelayanan dimulai tetap diperbolehkan apabila seluruh kondisi lain terpenuhi.
+
+`status_jadwal` merupakan status administratif yang dikelola Admin. Sistem tidak mengubah `DIBUKA` menjadi `DITUTUP` secara otomatis setelah `jam_selesai`; cutoff hanya menolak operasi baru yang terkait.
 
 Saat pemesanan yang valid dibuat:
 
@@ -809,15 +827,15 @@ Proses teknis laboratorium untuk menghasilkan komponen-komponen tersebut berada 
 
 Alur status unit yang diperbolehkan dalam scope:
 
-`MENUNGGU_PELULUSAN` → `TERSEDIA`
+`MENUNGGU_PELULUSAN` â†’ `TERSEDIA`
 
 atau:
 
-`MENUNGGU_PELULUSAN` → `DITOLAK`
+`MENUNGGU_PELULUSAN` â†’ `DITOLAK`
 
 Unit `TERSEDIA` yang keluar dari persediaan dapat menjadi:
 
-`TERSEDIA` → `DIDISTRIBUSIKAN`
+`TERSEDIA` â†’ `DIDISTRIBUSIKAN`
 
 `KEDALUWARSA` bukan status unit.
 
@@ -919,7 +937,7 @@ Perkiraan waktu donor berikutnya tidak disimpan sebagai field tetap.
 
 Nilainya dihitung dari riwayat penyumbangan berhasil dan ketentuan donor ulang yang digunakan pada prototype.
 
-Perhitungan perkiraan tanggal donor berikutnya, ringkasan kelayakan saat ini, jumlah penyumbangan berhasil tahunan, interval countdown, dan keputusan dapat donor kembali tetap berada pada Phase 7H — Informasi Donor Berikutnya. Phase 7G tidak mengimplementasikan perhitungan tersebut.
+Perhitungan perkiraan tanggal donor berikutnya, ringkasan kelayakan saat ini, jumlah penyumbangan berhasil tahunan, interval countdown, dan keputusan dapat donor kembali tetap berada pada Phase 7H â€” Informasi Donor Berikutnya. Phase 7G tidak mengimplementasikan perhitungan tersebut.
 
 ### Keputusan Proyek Phase 7G
 
@@ -1181,13 +1199,16 @@ Check-in baru hanya dapat dilakukan apabila seluruh kondisi berikut terpenuhi:
 3. satu `kuesioner_pradonasi` terkait sudah tersimpan;
 4. `jadwal_pelayanan.tanggal` tepat sama dengan tanggal hari ini menurut WIB (`Asia/Jakarta`);
 5. `jadwal_pelayanan.status_jadwal` bukan `DIBATALKAN`;
-6. `waktu_checkin` masih `NULL`.
+6. `waktu_checkin` masih `NULL`; dan
+7. waktu WIB sekarang belum melewati `jadwal_pelayanan.jam_selesai` (`now <= jam_selesai`).
 
 Pemesanan dengan tanggal jadwal sebelum hari ini atau setelah hari ini ditolak untuk check-in baru.
 
-Phase 8B tidak menambahkan window waktu berdasarkan `jam_mulai` atau `jam_selesai`.
+Tepat pada `jam_selesai`, check-in baru masih diperbolehkan. Setelah `jam_selesai`, check-in baru ditolak tanpa mengubah status pemesanan atau mengisi `waktu_checkin`. `jam_mulai` tidak menjadi batas baru sehingga check-in sebelum jam pelayanan dimulai tetap diperbolehkan apabila seluruh prasyarat lain terpenuhi.
 
 Jadwal `DITUTUP` tidak dengan sendirinya menolak check-in untuk pemesanan `TERJADWAL` yang sudah valid, memiliki kode, dan memenuhi syarat lain.
+
+Cutoff `jam_selesai` tidak mengubah `status_jadwal` secara otomatis. Status jadwal tetap merupakan data administratif sebagaimana tersimpan. Rule waktu ini hanya berlaku untuk ketersediaan jadwal Pendonor, pembuatan pemesanan baru, dan check-in baru Petugas; rule tidak diperluas ke pembatalan pemesanan, kuesioner, pembuatan atau penampilan kode check-in Pendonor, seleksi, penyumbangan, pencatatan unit, pelulusan, persediaan, distribusi, pemanggilan, pemberitahuan, atau proses lain.
 
 Pemesanan berstatus:
 

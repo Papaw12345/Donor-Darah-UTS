@@ -147,10 +147,10 @@ class Phase8BCheckinPetugasTest extends TestCase
             ->assertSee('2026-09-16')
             ->assertSee('06:00')
             ->assertSee('DIBUKA')
-            ->assertSee('TERJADWAL')
+            ->assertSee('Terjadwal')
             ->assertSee($booking->kode_checkin)
             ->assertSee('Tersedia')
-            ->assertSee('Petugas Login')
+            ->assertDontSee('Petugas Login')
             ->assertDontSee('Petugas Lain')
             ->assertDontSee('Pendonor Lain')
             ->assertDontSee('JAWABAN-RAHASIA')
@@ -160,6 +160,7 @@ class Phase8BCheckinPetugasTest extends TestCase
             ->assertSee('value="'.$booking->kode_checkin.'"', false);
 
         $this->assertSame($booking->id_pemesanan, $response->viewData('pemesanan')->id_pemesanan);
+        $this->assertSame($petugas->id_petugas, $response->viewData('petugas')->id_petugas);
         $this->assertSame($booking->kode_checkin, $response->viewData('normalizedCode'));
         $this->assertTrue($response->viewData('canCheckIn'));
         $this->assertEquals($before, $booking->fresh()->getAttributes());
@@ -198,7 +199,7 @@ class Phase8BCheckinPetugasTest extends TestCase
         $this->assertEquals($before, $booking->fresh()->getAttributes());
     }
 
-    public function test_new_checkin_accepts_open_or_closed_schedule_and_has_no_clock_window(): void
+    public function test_new_checkin_before_start_accepts_open_or_closed_schedule(): void
     {
         $petugas = $this->createPetugas();
 
@@ -222,6 +223,68 @@ class Phase8BCheckinPetugasTest extends TestCase
             $this->assertSame('CHECK_IN', $booking->status_pemesanan);
             $this->assertNotNull($booking->waktu_checkin);
         }
+    }
+
+    public function test_new_checkin_allows_before_cutoff_and_at_exact_end_in_wib(): void
+    {
+        $petugas = $this->createPetugas();
+        $cases = [
+            '2026-09-16 09:59:00' => '16:59:00',
+            '2026-09-16 10:00:00' => '17:00:00',
+        ];
+
+        foreach ($cases as $utcTime => $expectedWibTime) {
+            $this->travelTo(CarbonImmutable::parse($utcTime, 'UTC'));
+            [, $booking] = $this->createEligibleFixture([
+                'tanggal' => '2026-09-16',
+                'jam_mulai' => '09:00',
+                'jam_selesai' => '17:00',
+            ]);
+
+            $this->assertSame($expectedWibTime, now('Asia/Jakarta')->format('H:i:s'));
+
+            $this->actingAs($petugas->akun)
+                ->post(route('petugas.check-in.store'), [
+                    'kode_checkin' => $booking->kode_checkin,
+                ])
+                ->assertSessionHasNoErrors()
+                ->assertSessionHas('success', 'Check-in Pendonor berhasil.');
+
+            $this->assertSame('CHECK_IN', $booking->fresh()->status_pemesanan);
+            $this->assertNotNull($booking->fresh()->waktu_checkin);
+        }
+    }
+
+    public function test_new_checkin_after_end_is_rejected_without_partial_mutation(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-09-16 10:00:01', 'UTC'));
+
+        $petugas = $this->createPetugas();
+        [, $booking, $questionnaire] = $this->createEligibleFixture([
+            'tanggal' => '2026-09-16',
+            'jam_mulai' => '09:00',
+            'jam_selesai' => '17:00',
+        ]);
+        $bookingBefore = $booking->getAttributes();
+        $questionnaireBefore = $questionnaire->getAttributes();
+
+        $this->actingAs($petugas->akun)
+            ->get(route('petugas.check-in.index', ['kode_checkin' => $booking->kode_checkin]))
+            ->assertOk()
+            ->assertSee('Waktu pelayanan untuk jadwal ini sudah berakhir.')
+            ->assertDontSee('Konfirmasi Check-in');
+
+        $this->actingAs($petugas->akun)
+            ->post(route('petugas.check-in.store'), ['kode_checkin' => $booking->kode_checkin])
+            ->assertSessionHasErrors([
+                'kode_checkin' => 'Waktu pelayanan untuk jadwal ini sudah berakhir.',
+            ]);
+
+        $this->assertEquals($bookingBefore, $booking->fresh()->getAttributes());
+        $this->assertEquals($questionnaireBefore, $questionnaire->fresh()->getAttributes());
+        $this->assertSame('TERJADWAL', $booking->fresh()->status_pemesanan);
+        $this->assertNull($booking->fresh()->waktu_checkin);
+        $this->assertDatabaseCount('seleksi_donor', 0);
     }
 
     public function test_new_checkin_uses_wib_date_at_utc_boundary(): void
@@ -397,7 +460,7 @@ class Phase8BCheckinPetugasTest extends TestCase
             ->get(route('petugas.home'))
             ->assertOk()
             ->assertSee(route('petugas.check-in.index'), false)
-            ->assertSee('Check-in Pendonor')
+            ->assertSee('Check-in')
             ->assertDontSee('Seleksi Donor')
             ->assertDontSee('Penyumbangan')
             ->assertDontSee('Kirim Pemberitahuan');

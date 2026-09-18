@@ -5,8 +5,7 @@
 @section('content')
     <div class="container page-shell page-shell-narrow">
         <header class="page-header">
-            <div class="page-header-main"><p class="eyebrow">Pelayanan Donor</p><h1 class="page-title">Check-in Pendonor</h1><p class="page-description">Cari pemesanan menggunakan kode check-in dan periksa data kunjungan sebelum konfirmasi.</p></div>
-            <a class="button button-secondary" href="{{ route('petugas.home') }}">Kembali ke Dashboard Petugas</a>
+            <div class="page-header-main"><h1 class="page-title">Check-in Pendonor</h1></div>
         </header>
 
         @include('partials.alerts')
@@ -14,7 +13,7 @@
 
         {{-- Pencarian kode --}}
         <section class="page-section" aria-labelledby="pencarian-kode">
-            <div class="section-header"><div><h2 class="section-title" id="pencarian-kode">Cari Pemesanan</h2><p class="section-description">Petugas: {{ $petugas->nama_petugas }} ({{ $petugas->nomor_petugas }})</p></div></div>
+            <h2 class="section-title" id="pencarian-kode">Cari Pemesanan</h2>
             <form class="form-panel" method="GET" action="{{ route('petugas.check-in.index') }}">
                 <div class="form-field"><label for="kode_checkin">Kode check-in</label><input id="kode_checkin" name="kode_checkin" type="text" value="{{ $normalizedCode ?? '' }}" autocomplete="off" required>@if ($errors->has('kode_checkin'))<p class="form-hint" role="alert">{{ $errors->first('kode_checkin') }}</p>@endif</div>
                 <div class="form-actions"><button class="button button-primary" type="submit">Cari Pemesanan</button></div>
@@ -24,16 +23,16 @@
         @if ($pemesanan !== null)
             {{-- Data kunjungan --}}
             <section class="page-section" aria-labelledby="hasil-lookup">
-                <div class="section-header"><div><h2 class="section-title" id="hasil-lookup">Data Kunjungan</h2><p class="section-description">Pastikan data berikut sesuai dengan Pendonor yang datang.</p></div></div>
-                <dl class="info-grid">
-                    <div class="info-block"><dt>Nama Pendonor</dt><dd>{{ $pemesanan->pendonor->nama_lengkap }}</dd></div>
-                    <div class="info-block"><dt>Nomor Donor</dt><dd>{{ $pemesanan->pendonor->nomor_donor ?? 'Belum tersedia' }}</dd></div>
-                    <div class="info-block"><dt>Tanggal Jadwal</dt><dd>{{ $pemesanan->jadwalPelayanan->tanggal->toDateString() }}</dd></div>
-                    <div class="info-block"><dt>Waktu Jadwal</dt><dd>{{ $pemesanan->jadwalPelayanan->jam_mulai }} - {{ $pemesanan->jadwalPelayanan->jam_selesai }}</dd></div>
-                    <div class="info-block"><dt>Status Jadwal</dt><dd><span class="status-badge status-neutral">{{ $pemesanan->jadwalPelayanan->status_jadwal }}</span></dd></div>
-                    <div class="info-block"><dt>Status Pemesanan</dt><dd><span class="status-badge {{ $pemesanan->status_pemesanan === 'CHECK_IN' ? 'status-success' : 'status-warning' }}">{{ $pemesanan->status_pemesanan }}</span></dd></div>
-                    <div class="info-block"><dt>Kode Check-in</dt><dd class="code-value">{{ $pemesanan->kode_checkin }}</dd></div>
-                    <div class="info-block"><dt>Kuesioner Pradonasi</dt><dd>{{ $pemesanan->kuesionerPradonasi !== null ? 'Tersedia' : 'Belum tersedia' }}</dd></div>
+                <h2 class="section-title" id="hasil-lookup">Data Kunjungan</h2>
+                <dl class="identity-panel identity-grid">
+                    <div class="identity-item"><dt>Nama Pendonor</dt><dd>{{ $pemesanan->pendonor->nama_lengkap }}</dd></div>
+                    <div class="identity-item"><dt>Nomor Donor</dt><dd>{{ $pemesanan->pendonor->nomor_donor ?? 'Belum tersedia' }}</dd></div>
+                    <div class="identity-item"><dt>Tanggal Jadwal</dt><dd>{{ $pemesanan->jadwalPelayanan->tanggal->toDateString() }}</dd></div>
+                    <div class="identity-item"><dt>Waktu Jadwal</dt><dd>{{ $pemesanan->jadwalPelayanan->jam_mulai }} - {{ $pemesanan->jadwalPelayanan->jam_selesai }}</dd></div>
+                    <div class="identity-item"><dt>Status Jadwal</dt><dd><span class="status-badge status-neutral">{{ $pemesanan->jadwalPelayanan->status_jadwal }}</span></dd></div>
+                    <div class="identity-item"><dt>Status Pemesanan</dt><dd><span class="status-badge {{ $pemesanan->status_pemesanan === 'CHECK_IN' ? 'status-success' : 'status-warning' }}">{{ ['TERJADWAL' => 'Terjadwal', 'CHECK_IN' => 'Check-in', 'SELESAI' => 'Selesai', 'TIDAK_HADIR' => 'Tidak Hadir'][$pemesanan->status_pemesanan] ?? $pemesanan->status_pemesanan }}</span></dd></div>
+                    <div class="identity-item"><dt>Kode Check-in</dt><dd class="code-value">{{ $pemesanan->kode_checkin }}</dd></div>
+                    <div class="identity-item"><dt>Kuesioner Pradonasi</dt><dd>{{ $pemesanan->kuesionerPradonasi !== null ? 'Tersedia' : 'Belum tersedia' }}</dd></div>
                 </dl>
                 <div class="action-panel">
                     <div>@if (!$canCheckIn)<p class="section-description" role="status">{{ $eligibilityMessage }}</p>@else<p class="section-description">Data memenuhi syarat untuk dikonfirmasi pada tahap check-in.</p>@endif</div>
