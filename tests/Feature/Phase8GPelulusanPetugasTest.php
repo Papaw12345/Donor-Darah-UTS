@@ -115,7 +115,8 @@ class Phase8GPelulusanPetugasTest extends TestCase
 
         $this->actingAs($viewer->akun)->get(route('petugas.pelulusan.show', $pending))
             ->assertOk()->assertSee('name="hasil_pelulusan"', false)
-            ->assertSee('name="catatan_pelulusan"', false)->assertSee('Simpan Pelulusan');
+            ->assertSee('name="catatan_pelulusan"', false)->assertSee('Simpan Pelulusan')
+            ->assertSeeInOrder(['ID Penyumbangan', (string) $workflow['donation']->id_penyumbangan]);
 
         foreach (['TERSEDIA', 'DITOLAK', 'DIDISTRIBUSIKAN'] as $status) {
             $unit = $this->createUnit($workflow, $component, $bloodGroup, $status, [

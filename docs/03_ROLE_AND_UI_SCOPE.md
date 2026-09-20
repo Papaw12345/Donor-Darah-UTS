@@ -369,6 +369,30 @@ Petugas menangani proses pelayanan donor setelah Pendonor datang ke UDD serta me
 
 ## Menu / Fitur
 
+Navigasi top-level Petugas terdiri dari:
+
+- Dashboard;
+- Jadwal;
+- Check-in;
+- Riwayat;
+- Pelulusan;
+- Distribusi;
+- Persediaan;
+- Pemanggilan; dan
+- Logout.
+
+Unit Komponen diakses dari workflow penyumbangan, bukan sebagai menu top-level. Riwayat Distribusi dan Kedaluwarsa juga bukan menu top-level. Persediaan Rendah tetap tersedia sebagai fungsi sistem melalui area Persediaan dan Dashboard, tetapi bukan item navigasi top-level tersendiri.
+
+### Jadwal Pelayanan
+
+Petugas mempunyai halaman khusus untuk melihat seluruh jadwal pelayanan yang dikelola Admin.
+
+- Halaman Jadwal Petugas bersifat read-only dan hanya menggunakan akses `GET`.
+- Daftar menampilkan data jadwal sebagaimana tersimpan, termasuk tanggal, jam mulai, jam selesai, kapasitas, dan status administratif.
+- Petugas tidak dapat membuat, mengedit, menghapus, atau mengubah status jadwal.
+- Admin tetap menjadi pemilik CRUD Jadwal Pelayanan.
+- Halaman tidak menambahkan filter bisnis baru berdasarkan tanggal, waktu, atau status jadwal.
+
 ### Dashboard
 
 Menampilkan ringkasan operasional seperti:
@@ -393,6 +417,9 @@ Ketentuan Phase 8A dikunci sebagai berikut:
 - definisi kegiatan donor hari ini hanya merupakan ringkasan dashboard dan tidak mengubah lifecycle atau arti `status_pemesanan`;
 - jumlah Pendonor yang sedang diproses adalah jumlah Pendonor berbeda yang mempunyai `pemesanan_donor.status_pemesanan = CHECK_IN`;
 - hitungan Pendonor yang sedang diproses tidak dibatasi oleh tanggal jadwal. Row yang masih berstatus `CHECK_IN` tetap terlihat sebagai state workflow sampai proses operasional yang berwenang mengubah status tersebut;
+- selain jumlah, dashboard menampilkan daftar Pendonor yang sedang diproses dari row `CHECK_IN` tanpa filter tanggal;
+- satu Pendonor ditampilkan satu kali. Jika satu Pendonor mempunyai lebih dari satu row `CHECK_IN`, daftar menggunakan row terbaru berdasarkan `waktu_checkin` menurun, kemudian `id_pemesanan` menurun;
+- setiap row menyediakan link `Lanjutkan` menuju workflow existing. Link tersebut hanya navigasi dan tidak melakukan mutation;
 - Dashboard Petugas tidak memperbaiki, menutup, atau mengubah status workflow secara otomatis;
 - kondisi persediaan menggunakan jumlah unit yang memiliki `status_unit = TERSEDIA` dan `tanggal_kedaluwarsa` sama dengan atau setelah tanggal acuan;
 - jumlah persediaan selalu dihitung saat diperlukan dan tidak disimpan sebagai field atau angka stok manual;

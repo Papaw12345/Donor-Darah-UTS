@@ -346,6 +346,16 @@ Constraint basis data.
 
 Akun dengan peran `PENDONOR` memiliki profil Pendonor.
 
+### Lifecycle Nomor Donor
+
+`pendonor.nomor_donor` tetap nullable dan UNIQUE sesuai schema.
+
+- Pendonor yang sudah pernah donor sebelum digitalisasi dan sudah mempunyai nomor atau kartu donor boleh mengisi `nomor_donor` saat registrasi.
+- Pendonor baru yang belum mempunyai nomor donor boleh membiarkannya kosong sehingga tersimpan sebagai `NULL`.
+- Nilai yang diisi harus unik.
+- Setelah registrasi, `nomor_donor` hanya ditampilkan read-only pada Profil Pendonor dan tidak termasuk field yang dapat diperbarui sendiri.
+- Prototype tidak menambahkan workflow penerbitan nomor donor baru bagi Admin atau Petugas.
+
 Entitas terkait:
 
 - `akun`
@@ -1044,6 +1054,8 @@ untuk row dengan:
 Hitungan ini tidak diberi filter tanggal jadwal. Tujuannya adalah menampilkan state workflow yang masih tersimpan sebagai `CHECK_IN`, termasuk jika terdapat row yang belum ditutup oleh proses operasional.
 
 Dashboard tidak melakukan auto-complete, auto-no-show, atau koreksi status hanya karena tanggal jadwal sudah berlalu.
+
+Dashboard juga menampilkan daftar Pendonor yang sedang diproses berdasarkan row `CHECK_IN` tanpa filter tanggal. Satu Pendonor tampil satu kali. Jika terdapat lebih dari satu row `CHECK_IN` untuk Pendonor yang sama, sistem menggunakan row terbaru berdasarkan `waktu_checkin` menurun, kemudian `id_pemesanan` menurun. Aksi `Lanjutkan` hanya membuka workflow existing dan tidak melakukan mutation.
 
 ### Total Persediaan Tersedia
 

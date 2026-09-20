@@ -59,8 +59,9 @@
                         </div>
 
                         <div class="form-field">
-                            <label for="nomor_donor">Nomor Donor <span class="form-hint">(opsional)</span></label>
-                            <input id="nomor_donor" type="text" name="nomor_donor" value="{{ old('nomor_donor') }}" maxlength="50">
+                            <label for="nomor_donor">Nomor Donor (jika sudah memiliki)</label>
+                            <input id="nomor_donor" type="text" name="nomor_donor" value="{{ old('nomor_donor') }}" maxlength="50" aria-describedby="nomor-donor-hint">
+                            <p class="form-hint" id="nomor-donor-hint">Isi jika Anda sudah mempunyai nomor atau kartu donor sebelumnya.</p>
                         </div>
 
                         <div class="form-field form-field-full">

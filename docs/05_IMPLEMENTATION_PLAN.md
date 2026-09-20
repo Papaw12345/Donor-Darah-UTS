@@ -780,6 +780,17 @@ Pastikan:
 - status mudah dibaca;
 - alur demo dapat dijalankan tanpa mengetik URL manual.
 
+## Finalisasi Phase 11
+
+Refinement final mencatat state aplikasi berikut tanpa mengubah schema atau menambah subsystem baru:
+
+- Petugas mempunyai halaman Jadwal Pelayanan read-only; CRUD jadwal tetap milik Admin.
+- Petugas mempunyai Riwayat Pelayanan Donor read-only yang diturunkan dari seleksi dan penyumbangan existing, tanpa tabel history baru.
+- Navigasi top-level Petugas adalah Dashboard, Jadwal, Check-in, Riwayat, Pelulusan, Distribusi, Persediaan, Pemanggilan, dan Logout. Unit Komponen tetap bagian subflow penyumbangan, sedangkan Persediaan Rendah bukan menu top-level tersendiri.
+- Dashboard Petugas menampilkan satu row terbaru untuk setiap Pendonor yang masih mempunyai status `CHECK_IN` serta link navigasi `Lanjutkan` tanpa mutation.
+- Jadwal Pendonor, pemesanan baru, dan check-in baru menggunakan `jam_selesai` sebagai inclusive cutoff pada jadwal hari ini menurut WIB. `jam_mulai` bukan gate dan cutoff tidak diperluas ke proses berikutnya.
+- Source-of-truth docs diselaraskan dengan keputusan final tersebut dan lifecycle `nomor_donor` tanpa mengubah schema.
+
 ---
 
 # D. Aturan Pengerjaan dengan Codex

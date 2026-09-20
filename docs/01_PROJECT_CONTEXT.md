@@ -176,6 +176,8 @@ Pendonor tidak menentukan keputusan medis dan tidak melakukan proses operasional
 
 Petugas UDD menangani proses operasional:
 
+\- melihat jadwal pelayanan yang dikelola Admin secara read-only;
+
 \- check-in pendonor;
 
 \- melihat kuesioner;
@@ -183,6 +185,8 @@ Petugas UDD menangani proses operasional:
 \- melakukan dan mencatat seleksi donor;
 
 \- mencatat penyumbangan;
+
+\- melihat riwayat pelayanan donor secara read-only dari transaksi existing;
 
 \- mencatat unit komponen darah;
 

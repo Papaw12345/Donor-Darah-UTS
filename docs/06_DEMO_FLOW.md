@@ -170,6 +170,8 @@ Buka halaman registrasi Pendonor.
 
 Isi data akun dan profil Pendonor.
 
+`nomor_donor` boleh diisi jika Pendonor sudah mempunyai nomor atau kartu donor sebelumnya. Pendonor baru yang belum memilikinya dapat mengosongkan field tersebut.
+
 ### Hasil yang Diharapkan
 
 Terbentuk:
@@ -228,7 +230,8 @@ Buka menu `Jadwal Donor`.
 Jadwal yang dibuat Admin tampil karena:
 
 - statusnya `DIBUKA`;
-- masih memiliki kapasitas.
+- masih memiliki kapasitas; dan
+- untuk jadwal hari ini, waktu demo belum melewati `jam_selesai` menurut WIB.
 
 ---
 
@@ -237,6 +240,8 @@ Jadwal yang dibuat Admin tampil karena:
 ### Aksi
 
 Pilih jadwal dan buat pemesanan.
+
+Untuk jadwal hari ini, lakukan aksi paling lambat tepat pada `jam_selesai`. `jam_mulai` tidak membatasi pembuatan pemesanan.
 
 ### Hasil yang Diharapkan
 
@@ -331,6 +336,8 @@ Admin menu tidak tersedia.
 Buka `Check-in Pendonor`.
 
 Masukkan `kode_checkin` dari Pendonor.
+
+Pastikan tanggal jadwal adalah hari ini menurut WIB dan waktu check-in belum melewati `jam_selesai`. Tepat pada `jam_selesai` masih diperbolehkan; `jam_mulai` bukan gate.
 
 ### Hasil yang Diharapkan
 
