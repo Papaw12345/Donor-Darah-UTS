@@ -551,6 +551,14 @@ Phase 7E tidak:
 
 Schema yang ada tetap mereferensikan row `pertanyaan_kuesioner` saat ini. Snapshot atau tabel versioning tidak ditambahkan hanya untuk mempertahankan redaksi lama pertanyaan.
 
+#### Penghapusan Master Pertanyaan oleh Admin
+
+Admin boleh menghapus row `pertanyaan_kuesioner` hanya apabila row tersebut belum pernah direferensikan oleh `jawaban_kuesioner`.
+
+Apabila pertanyaan sudah mempunyai jawaban historical, penghapusan harus ditolak. Admin menggunakan `status_aktif = false` apabila pertanyaan tersebut tidak ingin digunakan untuk pengisian berikutnya.
+
+Aturan ini tidak menambahkan cascade delete, tidak menghapus jawaban historical, dan tidak mengubah schema.
+
 ---
 
 ## 29. Kode Check-in Dibuat Setelah Prasyarat Pradonasi

@@ -378,6 +378,8 @@ Kelola:
 
 Gunakan status aktif/nonaktif untuk menjaga riwayat.
 
+Admin boleh menghapus pertanyaan yang belum pernah direferensikan oleh `jawaban_kuesioner`. Jika pertanyaan sudah pernah memiliki jawaban, penghapusan ditolak dan pertanyaan dinonaktifkan untuk menjaga riwayat.
+
 ## Ambang Persediaan
 
 Kelola kombinasi:

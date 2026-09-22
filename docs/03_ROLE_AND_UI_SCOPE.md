@@ -955,6 +955,8 @@ Admin dapat:
 
 Pertanyaan yang sudah tidak digunakan dapat dinonaktifkan agar riwayat jawaban tetap dapat dipertahankan.
 
+Admin boleh menghapus pertanyaan hanya apabila pertanyaan tersebut belum pernah direferensikan oleh `jawaban_kuesioner`. Pertanyaan yang sudah pernah dijawab tidak boleh dihapus dan harus menggunakan `status_aktif = false` apabila tidak ingin digunakan lagi, sehingga riwayat jawaban tetap utuh.
+
 ### Ambang Persediaan
 
 Admin dapat:

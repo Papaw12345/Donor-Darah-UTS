@@ -234,6 +234,8 @@ Route::middleware(['auth', 'active'])->group(function () {
             ->name('admin.pertanyaan.edit');
         Route::put('/admin/pertanyaan/{pertanyaan}', [AdminPertanyaanKuesionerController::class, 'update'])
             ->name('admin.pertanyaan.update');
+        Route::delete('/admin/pertanyaan/{pertanyaan}', [AdminPertanyaanKuesionerController::class, 'destroy'])
+            ->name('admin.pertanyaan.destroy');
 
         Route::get('/admin/ambang', [AdminAmbangPersediaanController::class, 'index'])
             ->name('admin.ambang.index');

@@ -64,6 +64,23 @@ class AdminPertanyaanKuesionerController extends Controller
             ->with('success', 'Pertanyaan kuesioner berhasil diperbarui.');
     }
 
+    public function destroy(PertanyaanKuesioner $pertanyaan): RedirectResponse
+    {
+        if ($pertanyaan->jawabanKuesioner()->exists()) {
+            return redirect()
+                ->route('admin.pertanyaan.index')
+                ->withErrors([
+                    'pertanyaan' => 'Pertanyaan yang sudah memiliki jawaban tidak dapat dihapus. Nonaktifkan pertanyaan untuk menjaga riwayat jawaban.',
+                ]);
+        }
+
+        $pertanyaan->delete();
+
+        return redirect()
+            ->route('admin.pertanyaan.index')
+            ->with('success', 'Pertanyaan kuesioner berhasil dihapus.');
+    }
+
     private function validationRules(): array
     {
         return [
