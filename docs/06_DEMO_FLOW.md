@@ -59,8 +59,7 @@ Jika menggunakan data lama dari pengujian, pastikan data tersebut tidak membuat 
 - email/NIK sudah dipakai;
 - jadwal penuh;
 - pemesanan aktif ganda;
-- kode check-in bentrok;
-- nomor unit sudah digunakan.
+- data lama yang mempunyai nomor/kode yang sudah terpakai (UNIQUE tetap berlaku); nomor operasional baru diterbitkan dari PK, sedangkan kode check-in acak.
 
 ---
 
@@ -86,7 +85,7 @@ Admin login menggunakan akun aktif dengan peran `ADMIN`.
 
 ### Bukti yang Ditunjukkan
 
-Dashboard Admin atau menu administrasi.
+Dashboard `Ringkasan Konfigurasi Sistem` dengan empat ringkasan: Petugas Aktif, Jadwal Dibuka hari ini & mendatang, Pertanyaan Aktif, serta Konfigurasi Ambang `X/Y terisi, Z belum`. Tanggal hari ini menurut `Asia/Jakarta`. Jika membuat Petugas sebagai bagian demo tambahan, `nomor_petugas` diterbitkan server dari PK sebagai `PTG-000001`, tidak diinput Admin.
 
 ---
 
@@ -170,7 +169,7 @@ Buka halaman registrasi Pendonor.
 
 Isi data akun dan profil Pendonor.
 
-`nomor_donor` boleh diisi jika Pendonor sudah mempunyai nomor atau kartu donor sebelumnya. Pendonor baru yang belum memilikinya dapat mengosongkan field tersebut.
+Gunakan NIK tepat 16 digit numerik, tanggal lahir yang tidak di masa depan, dan usia minimal 17 tahun. Jangan isi `nomor_donor`; server menerbitkannya dari PK sebagai `DNR-000001`. Registrasi tidak meminta golongan darah.
 
 ### Hasil yang Diharapkan
 
@@ -178,6 +177,7 @@ Terbentuk:
 
 - satu record `akun` dengan `peran = PENDONOR`;
 - satu record `pendonor` yang merujuk akun tersebut.
+- `nomor_donor` unik dan immutable diterbitkan server.
 
 ### Catatan
 
@@ -257,6 +257,7 @@ dengan status awal:
 
 - jadwal harus dapat digunakan;
 - kapasitas belum penuh;
+- usia Pendonor pada tanggal jadwal masih >= 17 tahun;
 - tidak ada pemesanan aktif ganda yang dilarang oleh aturan aplikasi.
 
 ### Catatan
@@ -265,7 +266,7 @@ Sisa kapasitas dihitung dari data, bukan disimpan sebagai field tambahan.
 
 ---
 
-## 11. Pendonor Mengisi Kuesioner Pradonasi
+## 11. Pendonor Mengisi Kuesioner dan Mendapat Kode Check-in
 
 ### Aksi
 
@@ -278,7 +279,10 @@ Jawab pertanyaan aktif.
 Terbentuk:
 
 - satu `kuesioner_pradonasi`;
-- beberapa `jawaban_kuesioner`.
+- seluruh `jawaban_kuesioner`; dan
+- satu `kode_checkin` unik pada pemesanan.
+
+Ketiganya berhasil atau gagal bersama dalam satu transaction. Setelah berhasil, Pendonor diarahkan ke halaman kode check-in. Status tetap `TERJADWAL` dan `waktu_checkin` tetap NULL. Kode yang sama dapat dilihat lagi.
 
 Satu pertanyaan hanya memiliki satu jawaban dalam kuesioner tersebut.
 
@@ -288,15 +292,15 @@ Tidak ada transaksi review kuesioner terpisah.
 
 ---
 
-## 12. Sistem Menghasilkan Kode Check-in
+## 12. Pendonor Melihat Ulang Kode Check-in
 
 ### Aksi
 
-Setelah proses pradonasi yang diperlukan selesai, buka menu `Kode Check-in`.
+Buka kembali halaman `Kode Check-in` setelah langkah 11. Tidak ada POST generate terpisah.
 
 ### Hasil yang Diharapkan
 
-Pendonor memperoleh `kode_checkin` unik yang terhubung dengan `pemesanan_donor`.
+Pendonor melihat kode yang sama, `UDD-` diikuti tepat 12 hex uppercase acak, tidak diturunkan dari PK dan tidak dirotasi.
 
 ### Yang Ditunjukkan
 
@@ -306,6 +310,8 @@ Kode berupa teks biasa.
 
 - QR code;
 - barcode.
+
+[SUPERSEDED] Alur lama yang menghasilkan kode setelah Pendonor membuka menu terpisah diganti oleh pembuatan saat submit kuesioner.
 
 ---
 
@@ -324,6 +330,8 @@ Login menggunakan akun aktif dengan peran `PETUGAS`.
 ### Hasil yang Diharapkan
 
 Petugas masuk ke area operasional Petugas.
+
+Tunjukkan menu Operasional (Dashboard, Check-in, Seleksi Donor, Penyumbangan, Unit Komponen, Pelulusan, Distribusi) dan Monitoring (Jadwal Pelayanan, Riwayat Pelayanan, Persediaan, Pemanggilan Pendonor). Kuesioner dapat dibuka sebagai konteks Seleksi. Akun Petugas berbeda boleh melanjutkan proses yang dimulai akun pertama; schema tidak dapat mengaudit pelaksana check-in.
 
 Admin menu tidak tersedia.
 
@@ -349,6 +357,8 @@ Sistem menampilkan data yang berkaitan dengan kunjungan:
 - kuesioner.
 
 Petugas melakukan check-in.
+
+Setelah check-in, booking muncul di queue Seleksi bila kuesioner/jawaban lengkap dan belum ada seleksi. Pekerjaan yang paling lama menunggu tampil dahulu: Seleksi `waktu_checkin ASC`, `id_pemesanan ASC`; Penyumbangan `waktu_seleksi ASC`, `id_seleksi ASC`; Unit Komponen `waktu_pengambilan ASC`, `id_penyumbangan ASC`; Pelulusan `id_unit ASC`. Sesudah seleksi `LAYAK`, booking muncul di queue Penyumbangan sampai transaksi dicatat. Setelah penyumbangan `BERHASIL`, sumber muncul di queue Unit Komponen; unit baru muncul di queue Pelulusan.
 
 ### Perubahan Data
 
@@ -387,7 +397,7 @@ Isi data seleksi yang diperlukan:
 - denyut nadi;
 - suhu tubuh;
 - kadar Hb;
-- hasil pemeriksaan kesehatan bila diperlukan.
+- hasil pemeriksaan kesehatan wajib.
 
 Pilih keputusan:
 
@@ -395,11 +405,13 @@ Pilih keputusan:
 
 ### Untuk Pendonor Baru
 
-Jika golongan darah sebelumnya belum tersedia, Petugas dapat mencatat ABO/Rhesus yang telah terkonfirmasi.
+Jika golongan darah sebelumnya NULL, Petugas wajib mengonfirmasi satu nilai dari master dan menyimpannya. Jika sudah ada, tampilkan read-only dan tolak request yang mencoba menggantinya.
 
 ### Hasil yang Diharapkan
 
 Satu record `seleksi_donor` terbentuk untuk pemesanan tersebut.
+
+Gunakan pengukuran yang memenuhi seluruh gate `LAYAK`: usia >= 17, berat >= 45 kg, sistolik 90-160, diastolik 60-100, selisih > 20, nadi 50-100, suhu 36.5-37.5 C, Hb 12.5-17 g/dL. Pengukuran <= 0 ditolak. Nilai di luar gate tetap dapat dicatat untuk `DITUNDA`/`DITOLAK`; Petugas memilih keputusan dan wajib mengisi alasan untuk dua keputusan tersebut. Tidak ada batas maksimum usia 60/65 atau skor medis.
 
 ### Yang Dijelaskan
 
@@ -466,19 +478,15 @@ Penyumbangan berstatus:
 
 Buat minimal satu unit komponen darah.
 
-Isi:
-
-- nomor unit;
-- jenis komponen;
-- golongan darah;
-- tanggal pembuatan;
-- tanggal kedaluwarsa.
+Isi jenis komponen, tanggal pembuatan, dan tanggal kedaluwarsa. `tanggal_kedaluwarsa` harus >= `tanggal_pembuatan`. Nomor unit dibuat server dari PK sebagai `UNT-000001`; golongan darah berasal dari Pendonor sumber, bukan pilihan bebas. Jika golongan darah sumber NULL, pencatatan ditolak.
 
 ### Hasil yang Diharapkan
 
 Unit baru memiliki:
 
 `status_unit = MENUNGGU_PELULUSAN`
+
+Satu penyumbangan `BERHASIL` dapat menjadi sumber beberapa unit; tidak ada status sintetis selesai membuat komponen. Urutan tetap Unit dahulu, lalu Pelulusan.
 
 ### Catatan
 
@@ -794,8 +802,9 @@ Skenario berikut tidak harus semuanya dipresentasikan, tetapi sebaiknya sudah di
 
 Expected result: akses ditolak.
 
-## Pemesanan
+## Registrasi dan Pemesanan
 
+- NIK bukan tepat 16 digit, tanggal lahir masa depan, atau usia registrasi/usia pada tanggal jadwal kurang dari 17 tahun;
 - jadwal `DITUTUP`;
 - jadwal `DIBATALKAN`;
 - kapasitas penuh;
@@ -808,8 +817,11 @@ Expected result: pemesanan baru ditolak sesuai aturan aplikasi.
 ## Kuesioner dan Seleksi
 
 - mencoba membuat kuesioner kedua untuk pemesanan yang sama;
+- submit kuesioner gagal di tengah pembuatan jawaban/kode: tidak ada data parsial;
 - mencoba membuat seleksi kedua untuk pemesanan yang sama;
-- mencoba memberi dua jawaban pada pertanyaan yang sama dalam satu kuesioner.
+- mencoba memberi dua jawaban pada pertanyaan yang sama dalam satu kuesioner;
+- mencoba keputusan `LAYAK` dengan satu kriteria objektif tidak terpenuhi; mencoba pengukuran <= 0; atau `DITUNDA`/`DITOLAK` tanpa alasan;
+- mencoba mengganti golongan darah Pendonor yang sudah terkonfirmasi melalui request seleksi.
 
 Expected result: ditolak oleh validasi/constraint.
 
@@ -825,10 +837,19 @@ Expected result: tidak boleh diproses sebagai penyumbangan yang valid sesuai atu
 ## Unit Komponen
 
 - membuat unit dari penyumbangan `GAGAL`;
-- memasukkan nomor unit duplikat;
+- request create menyertakan `nomor_unit` atau `id_golongan_darah`, termasuk nilai yang kebetulan sama dengan nilai authoritative: ditolak dengan validation error, bukan diabaikan;
+- sumber Pendonor tanpa golongan darah;
+- tanggal kedaluwarsa lebih awal dari tanggal pembuatan;
 - mencoba mendistribusikan unit yang belum `TERSEDIA`.
 
 Expected result: ditolak.
+
+## Cutoff, No-show, dan Pembatalan Jadwal
+
+- Tepat pada `jam_selesai` hari ini booking, submit kuesioner/kode, pembatalan Pendonor atas `TERJADWAL`, dan check-in masih diperbolehkan jika syarat lain terpenuhi; setelahnya semuanya ditolak. Kuesioner dan kode yang sudah ada tetap dapat dilihat.
+- Setelah jam selesai, Petugas secara eksplisit menandai booking `TERJADWAL` tanpa check-in menjadi `TIDAK_HADIR`, meskipun belum ada kuesioner/kode. Booking dan data historical tidak dihapus; tidak ada cron.
+- Admin mengubah jadwal menjadi `DIBATALKAN`: hanya booking terkait `TERJADWAL` ikut menjadi `DIBATALKAN` dalam transaction yang sama. `CHECK_IN`, `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tetap. Membuka jadwal lagi tidak menghidupkan row lama.
+- Pertanyaan nonaktif dan kode yang tak lagi bisa dipakai tidak menghapus jawaban/kode historical.
 
 ## Persediaan
 
@@ -868,8 +889,8 @@ Jika waktu presentasi sangat terbatas, gunakan alur ringkas berikut:
 1. Admin membuat jadwal.
 2. Pendonor registrasi dan login.
 3. Pendonor memilih jadwal dan membuat pemesanan.
-4. Pendonor mengisi kuesioner.
-5. Pendonor memperoleh kode check-in.
+4. Pendonor mengisi kuesioner; sistem sekaligus menyimpan jawaban dan kode secara atomik.
+5. Pendonor melihat kode check-in yang sama pada halaman kode.
 6. Petugas login dan melakukan check-in.
 7. Petugas mencatat seleksi `LAYAK`.
 8. Petugas mencatat penyumbangan `BERHASIL`.
@@ -901,7 +922,7 @@ Pastikan sebelum presentasi:
 - pertanyaan kuesioner aktif;
 - pemesanan dapat dibuat;
 - kuesioner dapat disimpan;
-- kode check-in dapat dibuat dan digunakan;
+- kode check-in otomatis terbit bersama kuesioner dan dapat digunakan;
 - seleksi dapat disimpan;
 - penyumbangan berhasil dapat dicatat;
 - unit komponen dapat dibuat;

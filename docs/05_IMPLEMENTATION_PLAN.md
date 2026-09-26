@@ -526,7 +526,7 @@ Keputusan hanya:
 - `DITUNDA`
 - `DITOLAK`
 
-Untuk Pendonor baru, Petugas dapat mencatat golongan darah yang telah terkonfirmasi jika sebelumnya masih NULL.
+Jika golongan darah Pendonor masih NULL, Petugas wajib mengonfirmasi dan menyimpannya saat Seleksi; nilai existing read-only dan hostile request penggantian ditolak. Koreksi implementasi tercakup Phase 12.
 
 ## Penyumbangan
 
@@ -784,16 +784,33 @@ Pastikan:
 - status mudah dibaca;
 - alur demo dapat dijalankan tanpa mengetik URL manual.
 
-## Finalisasi Phase 11
+## Finalisasi Phase 11 [SUPERSEDED pada bagian yang bertentangan]
 
-Refinement final mencatat state aplikasi berikut tanpa mengubah schema atau menambah subsystem baru:
+Bagian ini mencatat rencana/keputusan lama, bukan bukti implementasi requirement evaluasi terbaru. Koreksi di Phase 12 menggantikan rincian yang bertentangan tanpa mengubah schema:
 
 - Petugas mempunyai halaman Jadwal Pelayanan read-only; CRUD jadwal tetap milik Admin.
 - Petugas mempunyai Riwayat Pelayanan Donor read-only yang diturunkan dari seleksi dan penyumbangan existing, tanpa tabel history baru.
-- Navigasi top-level Petugas adalah Dashboard, Jadwal, Check-in, Riwayat, Pelulusan, Distribusi, Persediaan, Pemanggilan, dan Logout. Unit Komponen tetap bagian subflow penyumbangan, sedangkan Persediaan Rendah bukan menu top-level tersendiri.
+- [SUPERSEDED] Navigasi lama tanpa queue Seleksi, Penyumbangan, dan Unit Komponen diganti oleh pengelompokan Operasional/Monitoring pada Phase 12.
 - Dashboard Petugas menampilkan satu row terbaru untuk setiap Pendonor yang masih mempunyai status `CHECK_IN` serta link navigasi `Lanjutkan` tanpa mutation.
-- Jadwal Pendonor, pemesanan baru, dan check-in baru menggunakan `jam_selesai` sebagai inclusive cutoff pada jadwal hari ini menurut WIB. `jam_mulai` bukan gate dan cutoff tidak diperluas ke proses berikutnya.
-- Source-of-truth docs diselaraskan dengan keputusan final tersebut dan lifecycle `nomor_donor` tanpa mengubah schema.
+- [SUPERSEDED] Cutoff lama yang hanya membatasi jadwal, pemesanan, dan check-in diganti oleh cutoff tambahan untuk kuesioner/kode baru serta pembatalan Pendonor pada Phase 12.
+- [SUPERSEDED] Lifecycle nomor donor lama yang menerima input atau NULL pada registrasi diganti oleh penerbitan server-side pada Phase 12.
+
+---
+
+# PHASE 12 - REMEDIASI REQUIREMENT HASIL EVALUASI (BELUM DIIMPLEMENTASIKAN)
+
+Phase ini adalah pekerjaan koreksi mendatang. Dokumen ini tidak menyatakan source code, test, UI, atau database sudah memenuhi keputusan baru. Implementasi dilakukan dalam task terpisah setelah review dokumen.
+
+1. Registrasi/Admin Petugas/Unit: terbitkan `DNR-000001`, `PTG-000001`, `UNT-000001` server-side dari PK masing-masing, immutable, tanpa input pengguna atau `MAX()+1`; validasi NIK 16 digit, tanggal lahir tidak di masa depan, usia registrasi >= 17, dan recheck usia booking terhadap tanggal jadwal. `kode_checkin` tetap acak `UDD-` + 12 hex uppercase, bukan PK.
+2. Submit kuesioner: dalam satu transaction buat kuesioner, seluruh jawaban, dan satu kode unik; arahkan ke halaman kode dan pertahankan kode untuk akses berikutnya. Hapus ketergantungan pada POST generate terpisah. Check-in tetap aksi Petugas sendiri.
+3. Cutoff/no-show: terapkan batas inklusif `jam_selesai` WIB pada booking, kuesioner/kode baru, pembatalan Pendonor, dan check-in; sediakan aksi eksplisit Petugas untuk `TERJADWAL` tanpa check-in setelah jadwal selesai menjadi `TIDAK_HADIR`. Pertahankan semua historical data.
+4. Pembatalan jadwal Admin: dalam transaction yang sama batalkan hanya booking `TERJADWAL`; pertahankan status lain dan data terkait. Pembukaan kembali tidak menghidupkan booking lama.
+5. Seleksi: wajibkan seluruh pengukuran, hasil pemeriksaan kesehatan, keputusan, alasan untuk `DITUNDA`/`DITOLAK`; tolak angka <= 0; gate `LAYAK` sesuai `04_BUSINESS_RULES.md` tanpa memilih keputusan lain otomatis. Konfirmasi golongan darah master jika NULL dan tolak perubahan nilai yang sudah tersimpan.
+6. Unit: gunakan golongan darah Pendonor sumber, tolak sumber NULL, pastikan tanggal kedaluwarsa >= tanggal pembuatan, dan pertahankan urutan penyumbangan `BERHASIL` -> unit `MENUNGGU_PELULUSAN` -> pelulusan `TERSEDIA`/`DITOLAK`. Pada create, client hanya mengirim `id_jenis_komponen`, `tanggal_pembuatan`, dan `tanggal_kedaluwarsa`; keberadaan `nomor_unit` atau `id_golongan_darah` pada request menghasilkan validation error, bukan diabaikan. Authority route, Petugas terautentikasi, dan server tetap mengikuti docs 03/04.
+7. UI Petugas: sediakan navigasi Operasional Dashboard, Check-in, Seleksi Donor, Penyumbangan, Unit Komponen, Pelulusan, Distribusi; Monitoring Jadwal Pelayanan, Riwayat Pelayanan, Persediaan, Pemanggilan Pendonor. Queue mengikuti predicate dan urutan deterministik pada docs 03/04; akun Petugas lain dapat melanjutkan pekerjaan. Jangan tambah subrole, `id_petugas_checkin`, atau timestamp baru.
+8. Sorting/Admin: sinkronkan histori newest first, queue oldest waiting first dengan tie-breaker pada docs 03/04, jadwal nearest first, dan master active first. Ambang diurutkan dengan `jenis_komponen_darah.kode_komponen ASC`, lalu `golongan_darah.id_golongan_darah ASC`, lalu `ambang_persediaan.id_ambang ASC`. Dashboard Admin menjadi `Ringkasan Konfigurasi Sistem` dengan empat ringkasan yang dikunci pada docs 03/04.
+
+Gate Phase 12: verifikasi alur utama dan skenario negatif pada `06_DEMO_FLOW.md`, termasuk batas tepat dan lewat `jam_selesai`, hostile identifier/golongan darah, transaksi atomik, no-show, pembatalan jadwal, serta retensi. Tetap 15 tabel bisnis, 97 field, 21 relationship, tanpa migration/schema baru. Tidak ada cron, trigger baru, package, SPA, atau fitur di luar scope.
 
 ---
 

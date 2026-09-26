@@ -32,6 +32,8 @@ Tidak semua tabel basis data membutuhkan menu tersendiri.
 
 Pendonor dapat melakukan registrasi sendiri melalui aplikasi.
 
+Registrasi meminta NIK tepat 16 digit numerik dan tanggal lahir yang tidak di masa depan; usia minimal 17 tahun. `nomor_donor` diterbitkan server dari `id_pendonor` sebagai `DNR-000001`, immutable, dan tidak diinput pengguna. Usia dihitung saat diperlukan; booking memeriksa ulang usia terhadap tanggal jadwal. Registrasi tidak meminta golongan darah.
+
 Setelah registrasi, Pendonor dapat login menggunakan akun miliknya.
 
 ## Petugas
@@ -40,7 +42,7 @@ Petugas tidak melakukan registrasi sendiri.
 
 Akun Petugas dibuat dan dikelola oleh Admin.
 
-Petugas login menggunakan akun yang telah dibuat dan masih berstatus aktif.
+Petugas login menggunakan akun yang telah dibuat dan masih berstatus aktif. Ketika Admin membuat Petugas, server menerbitkan `nomor_petugas` dari `id_petugas` sebagai `PTG-000001`; nomor immutable dan tidak diinput Admin atau pengguna.
 
 ## Admin
 
@@ -181,12 +183,12 @@ Klarifikasi berikut merupakan keputusan proyek Phase 7D untuk bagian alur Pemesa
 - Untuk kombinasi Pendonor dan jadwal yang sama, pemesanan berstatus `TERJADWAL`, `CHECK_IN`, `SELESAI`, atau `TIDAK_HADIR` menghalangi pemesanan baru. Hanya pemesanan berstatus `DIBATALKAN` yang tidak menghalangi pemesanan ulang pada jadwal yang sama.
 - Pemesanan pada `id_jadwal` yang berbeda tidak otomatis dilarang oleh aturan duplikasi. Prototype ini tidak menambahkan aturan satu pemesanan per hari, konsep jadwal alternatif, atau pembatalan otomatis atas pemesanan lain.
 - Pemesanan yang valid dibuat dengan status `TERJADWAL`; `waktu_pemesanan` diisi pada saat pembuatan menggunakan konvensi timestamp aplikasi; sedangkan `kode_checkin` dan `waktu_checkin` tetap `NULL`.
-- Pendonor hanya dapat membatalkan pemesanan miliknya yang berstatus `TERJADWAL` dan tanggal jadwalnya belum lewat menurut WIB (`Asia/Jakarta`). Pembatalan mengubah status `TERJADWAL` menjadi `DIBATALKAN`.
+- Pendonor hanya dapat membatalkan pemesanan miliknya yang berstatus `TERJADWAL` dan tanggal jadwalnya belum lewat menurut WIB (`Asia/Jakarta`). Untuk jadwal hari ini, waktu WIB sekarang harus `<= jam_selesai`. Pembatalan mengubah status `TERJADWAL` menjadi `DIBATALKAN`.
 - Pemesanan berstatus `CHECK_IN`, `SELESAI`, `TIDAK_HADIR`, atau `DIBATALKAN` tidak dapat dibatalkan oleh Pendonor.
 
 Pembuatan kode check-in dan proses check-in bukan bagian implementasi Phase 7D.
 
-Cutoff `jam_selesai` hanya berlaku untuk ketersediaan jadwal Pendonor, pembuatan pemesanan baru, dan check-in baru oleh Petugas. Rule waktu ini tidak diperluas ke pembatalan pemesanan, kuesioner, pembuatan atau penampilan kode check-in Pendonor, seleksi, penyumbangan, pencatatan unit, pelulusan, persediaan, distribusi, pemanggilan, pemberitahuan, atau proses lain.
+Cutoff `jam_selesai` pada jadwal hari ini juga membatasi submit kuesioner/pembuatan kode baru dan pembatalan booking `TERJADWAL` oleh Pendonor. Tepat pada `jam_selesai` masih diperbolehkan; setelahnya operasi baru tersebut dan check-in baru ditolak. Kuesioner dan kode historical tetap dapat dilihat. Seleksi setelah check-in valid serta proses hilir tidak diberi cutoff baru.
 
 ### Kuesioner Pradonasi
 
@@ -203,16 +205,16 @@ Ketentuan bahwa kuesioner dibuat untuk pemesanan milik Pendonor pada setiap kese
 Rincian berikut merupakan keputusan proyek Phase 7E untuk perilaku operasional yang sebelumnya belum ditentukan secara tepat:
 
 - Pendonor hanya dapat membuat dan melihat kuesioner yang terkait dengan `pemesanan_donor` miliknya sendiri. Kepemilikan berasal dari Pendonor yang sedang terautentikasi; identifier Pendonor dari client tidak dapat memberi akses ke pemesanan atau kuesioner Pendonor lain.
-- Kuesioner baru hanya dapat dikirim untuk pemesanan milik Pendonor terautentikasi yang berstatus `TERJADWAL`, memiliki tanggal jadwal yang belum lewat menurut WIB (`Asia/Jakarta`), dan tidak terkait dengan jadwal berstatus administratif `DIBATALKAN`. Perubahan jadwal menjadi `DITUTUP` tidak dengan sendirinya membatalkan hak mengisi kuesioner untuk pemesanan yang sudah valid.
+- Kuesioner baru hanya dapat dikirim untuk pemesanan milik Pendonor terautentikasi yang berstatus `TERJADWAL`, memiliki tanggal jadwal yang belum lewat menurut WIB (`Asia/Jakarta`), dan tidak terkait dengan jadwal berstatus administratif `DIBATALKAN`. Untuk jadwal hari ini, waktu sekarang harus `<= jam_selesai`. Perubahan jadwal menjadi `DITUTUP` tidak dengan sendirinya membatalkan hak mengisi kuesioner untuk pemesanan yang sudah valid.
 - Untuk prototype ini, pengisian kuesioner bersifat satu kali kirim. Setelah berhasil dikirim, Pendonor dapat melihat kuesioner dan jawaban yang tersimpan, tetapi tidak dapat mengubah atau mengganti jawabannya. Prototype tidak menyediakan draft atau riwayat revisi jawaban.
 - Form menampilkan seluruh pertanyaan dengan `status_aktif = true`, diurutkan berdasarkan `urutan` lalu `id_pertanyaan` sebagai pembeda deterministik. `kategori` hanya boleh digunakan untuk tampilan atau pengelompokan dan tidak mengubah kewajiban menjawab.
 - Setiap pertanyaan aktif wajib memiliki tepat satu jawaban saat pengiriman berhasil. Jawaban `YA_TIDAK` disimpan secara kanonis sebagai tepat `YA` atau `TIDAK`, sedangkan jawaban `TEKS` wajib tidak kosong setelah whitespace awal dan akhir dihapus. Tidak ada jenis jawaban tambahan.
 - Server menentukan sendiri himpunan pertanyaan aktif yang berwenang pada saat pengiriman. Key jawaban yang dikirim harus tepat sama dengan himpunan pertanyaan aktif tersebut. Jika himpunan pertanyaan berubah sejak form dimuat, pengiriman ditolak secara terkendali dan Pendonor diminta memuat ulang form; jawaban tak terduga atau jawaban yang hilang tidak boleh diabaikan secara diam-diam.
 - Jika tidak ada pertanyaan aktif, kuesioner dinyatakan tidak tersedia bagi Pendonor dan sistem tidak membuat `kuesioner_pradonasi` kosong.
-- Pengiriman yang berhasil disimpan secara atomik sebagai satu `kuesioner_pradonasi` dan tepat satu `jawaban_kuesioner` untuk setiap pertanyaan aktif. `waktu_pengisian` menyatakan waktu keberhasilan pengiriman menurut konvensi timestamp aplikasi.
+- Pengiriman yang berhasil menyimpan secara atomik satu `kuesioner_pradonasi`, tepat satu `jawaban_kuesioner` untuk setiap pertanyaan aktif, dan satu `kode_checkin` unik pada pemesanan. Kegagalan salah satu langkah membatalkan semuanya. `waktu_pengisian` menyatakan waktu keberhasilan pengiriman menurut konvensi timestamp aplikasi. Setelah berhasil, Pendonor diarahkan ke halaman kode check-in dan dapat melihat kode yang sama kemudian.
 - Kuesioner dan jawabannya tetap disimpan sebagai riwayat apabila status pemesanan kemudian berubah atau pemesanan dibatalkan. Pemesanan baru dengan `id_pemesanan` baru merupakan kesempatan donor baru dan mempunyai kuesionernya sendiri.
 
-Phase 7E tidak menghasilkan `kode_checkin`, tidak mengisi `waktu_checkin`, tidak mengubah `status_pemesanan`, serta tidak mengimplementasikan check-in Petugas, review medis kuesioner, seleksi, atau penyumbangan. Phase ini juga tidak menambahkan draft, versioning kuesioner, snapshot teks pertanyaan, atau perubahan schema. Riwayat jawaban tetap mereferensikan row `pertanyaan_kuesioner` yang ada sesuai schema saat ini.
+[SUPERSEDED] Batas Phase 7E lama yang tidak menghasilkan `kode_checkin` diganti oleh transaksi gabungan di atas. Pembuatan kode tidak mengisi `waktu_checkin` atau mengubah `status_pemesanan`. Check-in Petugas, seleksi, dan penyumbangan tetap aksi berikutnya. Tidak ada draft, versioning, snapshot teks pertanyaan, atau perubahan schema; riwayat jawaban tetap mereferensikan row pertanyaan existing.
 
 ### Kode Check-in
 
@@ -227,23 +229,13 @@ Ketentuan bahwa kode check-in bersifat unik, berupa teks biasa, terkait dengan `
 
 Keputusan lifecycle Phase 7D juga tetap berlaku: proses check-in Petugas yang berhasil pada phase berikutnya melakukan transisi `TERJADWAL` menjadi `CHECK_IN` dan mengisi `waktu_checkin`. Pembuatan atau penampilan kode pada Phase 7F bukan proses check-in tersebut.
 
-#### Keputusan Proyek Phase 7F
+#### Keputusan Kode Check-in Setelah Evaluasi
 
-Rincian berikut merupakan keputusan proyek Phase 7F untuk perilaku operasional yang sebelumnya belum ditentukan secara tepat:
+Pendonor hanya melihat kode milik pemesanannya sendiri. Kode yang sudah diterbitkan tetap sama dan dapat dilihat lagi setelah tanggal jadwal berlalu atau status pemesanan berubah. Format kode `UDD-` diikuti tepat 12 karakter heksadesimal uppercase acak, bukan turunan PK; tabrakan ditangani dengan kandidat baru dan UNIQUE existing tetap berlaku.
 
-- Pendonor hanya dapat melihat atau menghasilkan kode check-in untuk `pemesanan_donor` miliknya sendiri. Kepemilikan berasal dari Pendonor yang sedang terautentikasi; identifier Pendonor dari client tidak dapat memberi akses ke pemesanan atau kode Pendonor lain.
-- Kode baru hanya dapat dihasilkan untuk pemesanan milik Pendonor terautentikasi yang berstatus `TERJADWAL`, sudah mempunyai `kuesioner_pradonasi`, memiliki tanggal jadwal yang belum lewat menurut WIB (`Asia/Jakarta`), dan tidak terkait dengan jadwal berstatus administratif `DIBATALKAN`. Jadwal berstatus `DITUTUP` tidak dengan sendirinya menggugurkan pemesanan `TERJADWAL` yang sudah valid untuk pembuatan kode.
-- Untuk prototype ini, keberadaan `kuesioner_pradonasi` yang tersimpan bagi pemesanan menjadi bukti pada layer aplikasi bahwa prasyarat kuesioner telah selesai. Tidak ada tabel atau status penyelesaian pradonasi tambahan.
-- Satu pemesanan mempertahankan satu nilai kode. Setelah `kode_checkin` terisi, akses atau permintaan pembuatan berulang menampilkan atau mempertahankan kode yang sama dan tidak menghasilkan, mengganti, atau merotasinya. Tidak ada riwayat atau versioning kode.
-- Format kode yang dihasilkan adalah `UDD-` diikuti tepat 12 karakter heksadesimal huruf besar, dengan bentuk contoh `UDD-A84C21EF07B9`. Panjang totalnya 16 karakter dan tetap berada dalam batas `VARCHAR(50)` yang sudah ada. Format khusus ini merupakan keputusan proyek Phase 7F. Kandidat harus dibuat menggunakan sumber acak yang sesuai untuk kode non-sekuensial dan tidak boleh diturunkan langsung dari ID Pendonor atau ID pemesanan.
-- Jika kandidat bertabrakan dengan kode yang sudah ada, aplikasi mencoba kandidat baru. UNIQUE `pemesanan_donor.kode_checkin` yang sudah ada tetap menjadi lapisan integritas terakhir; kode milik pemesanan lain tidak boleh ditimpa dan tidak ada UNIQUE baru.
-- Akses `GET` hanya menampilkan halaman dan status kode: kode yang sudah ada ditampilkan, sedangkan pemesanan yang belum mempunyai kode menunjukkan apakah pembuatan tersedia. Akses `POST` melakukan pembuatan kode untuk pemesanan yang memenuhi syarat. `GET` tidak membuat atau merotasi kode.
-- Pembuatan dilakukan secara atomik dengan row `pemesanan_donor` sebagai titik serialisasi: kepemilikan diverifikasi, row pemesanan dikunci, keberadaan kode dan seluruh prasyarat diperiksa ulang, lalu satu kode unik dibuat dan disimpan. Permintaan serentak untuk pemesanan yang sama tidak boleh mengganti atau merotasi kode yang telah dibuat.
-- Kode yang sudah dibuat tidak dihapus otomatis hanya karena status pemesanan kemudian berubah atau tanggal jadwal berlalu. Retensi ini bukan izin check-in untuk pemesanan yang dibatalkan atau selesai; kelayakan check-in oleh Petugas ditentukan pada Phase 8.
+[SUPERSEDED] Keputusan Phase 7F lama yang mewajibkan POST generate terpisah diganti oleh pembuatan kode atomik ketika kuesioner berhasil dikirim. Halaman kode hanya menampilkan kode yang tersimpan. Tidak ada regenerate/rotate. Submit kuesioner untuk jadwal hari ini setelah `jam_selesai` tidak boleh membuat kode baru, tetapi kode historical tetap dapat dilihat.
 
-Melihat atau menghasilkan kode tidak mengisi `waktu_checkin`, tidak mengubah `status_pemesanan`, tidak melakukan transisi `TERJADWAL` menjadi `CHECK_IN`, tidak membuat `seleksi_donor`, tidak mengubah data kuesioner, dan tidak mengubah pemesanan lain. Segera setelah kode dibuat untuk pemesanan normal, status tetap `TERJADWAL`, `waktu_checkin` tetap `NULL`, dan `kode_checkin` berisi kode yang baru dihasilkan.
-
-Phase 7F tidak mengimplementasikan check-in Petugas, pencarian kode oleh Petugas, pengisian `waktu_checkin`, transisi ke `CHECK_IN`, tampilan kuesioner bagi Petugas, seleksi, penyumbangan, QR code, barcode, scanner, field kedaluwarsa kode, riwayat kode, tabel token, atau perubahan schema. Fungsi operasional tersebut tetap menjadi Phase 8 atau phase berikutnya.
+Pembuatan atau penampilan kode tidak mengisi `waktu_checkin` dan tidak mengubah status dari `TERJADWAL` ke `CHECK_IN`. Itu hanya terjadi pada check-in Petugas yang valid. Tidak ada QR/barcode, scanner, field kedaluwarsa kode, tabel token, atau perubahan schema.
 
 ### Riwayat Donor
 
@@ -369,19 +361,20 @@ Petugas menangani proses pelayanan donor setelah Pendonor datang ke UDD serta me
 
 ## Menu / Fitur
 
-Navigasi top-level Petugas terdiri dari:
+Navigasi Petugas untuk operasional: Dashboard, Check-in, Seleksi Donor, Penyumbangan, Unit Komponen, Pelulusan, dan Distribusi. Untuk monitoring: Jadwal Pelayanan, Riwayat Pelayanan, Persediaan, dan Pemanggilan Pendonor. Logout tetap tersedia. Kuesioner Petugas dapat dibuka sebagai konteks Seleksi; tidak perlu menjadi work queue utama. Persediaan Rendah tersedia melalui Persediaan/Dashboard.
 
-- Dashboard;
-- Jadwal;
-- Check-in;
-- Riwayat;
-- Pelulusan;
-- Distribusi;
-- Persediaan;
-- Pemanggilan; dan
-- Logout.
+[SUPERSEDED] Navigasi lama yang hanya menempatkan Unit Komponen sebagai subflow penyumbangan diganti oleh work queue Unit Komponen. Semua item yang terlihat harus menuju halaman/aksi yang benar-benar berfungsi; fase remediasi pada `05_IMPLEMENTATION_PLAN.md` belum mengklaim UI ini sudah tersedia.
 
-Unit Komponen diakses dari workflow penyumbangan, bukan sebagai menu top-level. Riwayat Distribusi dan Kedaluwarsa juga bukan menu top-level. Persediaan Rendah tetap tersedia sebagai fungsi sistem melalui area Persediaan dan Dashboard, tetapi bukan item navigasi top-level tersendiri.
+Semua akun dengan role tunggal `PETUGAS` dapat melanjutkan workflow UDD yang valid, termasuk pekerjaan yang dimulai Petugas lain. Tidak ada subrole dokter/lab/check-in/pelulus. Work queue mendahulukan pekerjaan yang paling lama menunggu, dengan urutan deterministik berikut:
+
+- Seleksi: booking `CHECK_IN` dengan `waktu_checkin` terisi, kuesioner beserta jawaban tersedia, dan belum ada seleksi; `waktu_checkin ASC`, lalu `id_pemesanan ASC`.
+- Penyumbangan: seleksi `LAYAK` pada booking `CHECK_IN` tanpa penyumbangan; `waktu_seleksi ASC`, lalu `id_seleksi ASC`.
+- Unit Komponen: sumber penyumbangan `BERHASIL`, `waktu_pengambilan ASC`, lalu `id_penyumbangan ASC`. Satu sumber dapat menghasilkan beberapa unit tanpa status sintetis "selesai membuat komponen".
+- Pelulusan: unit `MENUNGGU_PELULUSAN`, `id_unit ASC`.
+
+PK pada urutan tersebut hanya menjadi tie-breaker atau penentu urutan deterministik; tidak ada timestamp atau schema baru.
+
+Schema tidak memiliki `id_petugas_checkin`. Aplikasi tidak dapat mengaudit siapa pelaksana check-in dari schema ini; jangan mengklaim demikian atau menambah field.
 
 ### Jadwal Pelayanan
 
@@ -487,6 +480,8 @@ Ketentuan Phase 8B dikunci sebagai berikut:
 - Phase 8B tidak membuat `seleksi_donor`, `penyumbangan`, unit komponen, pemberitahuan, atau mutation lain di luar check-in;
 - Phase 8B tidak menambahkan tabel check-in, tabel log, field Petugas check-in, status baru, migration, custom index, QR code, barcode, scanner, service/repository architecture, AJAX, SPA, atau dependency baru.
 
+Setelah `jam_selesai` lewat, Petugas dapat menandai booking yang masih `TERJADWAL` dan `waktu_checkin IS NULL` sebagai `TIDAK_HADIR` melalui aksi eksplisit. Tidak perlu kuesioner atau kode. Tidak ada cron, delete booking, atau penghapusan kuesioner/jawaban/kode historical. `TIDAK_HADIR` bukan `DIBATALKAN`.
+
 ### Kuesioner Pradonasi
 
 Petugas dapat melihat jawaban kuesioner Pendonor sebagai salah satu informasi dalam proses seleksi.
@@ -526,7 +521,7 @@ Petugas dapat:
 - menentukan keputusan `LAYAK`, `DITUNDA`, atau `DITOLAK`;
 - mencatat alasan keputusan jika diperlukan.
 
-Untuk Pendonor baru yang belum memiliki golongan darah terkonfirmasi, Petugas dapat mencatat golongan darah ABO dan Rhesus yang telah dikonfirmasi.
+Untuk Pendonor dengan golongan darah belum terkonfirmasi, Petugas wajib memilih satu nilai master `golongan_darah` saat Seleksi. Nilai yang sudah tersimpan read-only pada donor berikutnya.
 
 Kewenangan ini tidak berarti Petugas dapat mengubah profil Pendonor secara bebas.
 
@@ -546,12 +541,13 @@ Rincian berikut mengunci perilaku operasional Seleksi Donor pada Phase 8D.
 - Seleksi yang sudah tersimpan tetap dapat dilihat sebagai riwayat meskipun tanggal jadwal telah lewat atau status pemesanan kemudian berubah.
 - `id_petugas` berasal dari profil Petugas yang sedang terautentikasi dan `waktu_seleksi` ditentukan oleh server ketika transaksi berhasil. Nilai tersebut tidak dipercaya dari request client.
 - Field pemeriksaan mengikuti schema `seleksi_donor`: `berat_badan`, `tekanan_sistolik`, `tekanan_diastolik`, `denyut_nadi`, `suhu_tubuh`, `kadar_hb`, `hasil_pemeriksaan_kesehatan`, `keputusan_seleksi`, dan `alasan_keputusan`.
-- Enam nilai pengukuran utama dan `keputusan_seleksi` wajib diisi. `hasil_pemeriksaan_kesehatan` dan `alasan_keputusan` tetap nullable sesuai schema.
+- Enam nilai pengukuran utama, `hasil_pemeriksaan_kesehatan`, dan `keputusan_seleksi` wajib pada level aplikasi. `alasan_keputusan` wajib jika `DITUNDA`/`DITOLAK`, boleh kosong/NULL jika `LAYAK`. Nilai pengukuran `<= 0` ditolak; nilai di luar rentang LAYAK dapat dicatat untuk keputusan lain.
 - Keputusan hanya `LAYAK`, `DITUNDA`, atau `DITOLAK`.
-- Phase 8D tidak menambahkan threshold medis atau rule engine untuk menentukan keputusan dari hasil pengukuran maupun jawaban kuesioner. Keputusan dicatat oleh Petugas.
+- `LAYAK` hanya dapat diterima jika usia saat Seleksi >= 17, berat >= 45 kg, sistolik 90-160, diastolik 60-100, selisih sistolik-diastolik > 20 mmHg, nadi 50-100/menit, suhu 36.5-37.5 C, dan Hb 12.5-17 g/dL. Petugas tetap menentukan keputusan; aplikasi tidak otomatis memilih `DITUNDA` atau `DITOLAK`. Tidak ada batas maksimum usia 60/65, field keteraturan nadi, medical score, atau risk engine.
+- [SUPERSEDED] Keputusan Phase 8D lama yang tidak memiliki threshold medis diganti oleh gate objektif `LAYAK` di atas.
 - Jawaban kuesioner merupakan informasi pendukung seleksi dan tidak menghasilkan skor risiko atau keputusan otomatis.
-- Jika `pendonor.id_golongan_darah` masih `NULL`, Petugas dapat mencatat golongan darah yang sudah dikonfirmasi menggunakan master `golongan_darah`. Pengisian ini tidak diwajibkan hanya untuk membuat seleksi.
-- Jika Pendonor sudah memiliki `id_golongan_darah`, Phase 8D menampilkannya sebagai data terkonfirmasi dan tidak mengizinkan perubahan melalui request seleksi.
+- Jika `pendonor.id_golongan_darah` masih `NULL`, Petugas wajib mengonfirmasi dan menyimpan satu pilihan master `golongan_darah` bersama seleksi. [SUPERSEDED] Pilihan opsional Phase 8D lama tidak berlaku.
+- Jika Pendonor sudah memiliki `id_golongan_darah`, tampilkan read-only dan tolak hostile request yang mencoba menggantinya; Petugas tidak memilih ulang.
 - Pembuatan seleksi dilakukan secara atomik dengan row `pemesanan_donor` sebagai titik serialisasi. Setelah row dikunci, aplikasi memeriksa ulang state check-in, prasyarat kuesioner, dan keberadaan seleksi sebelum menyimpan.
 - Permintaan ganda atau serentak untuk pemesanan yang sama tidak boleh menghasilkan seleksi kedua atau menimpa seleksi pertama. Constraint UNIQUE `seleksi_donor.id_pemesanan` yang sudah ada tetap menjadi lapisan integritas terakhir.
 - Jika keputusan `LAYAK`, `status_pemesanan` tetap `CHECK_IN` agar proses dapat dilanjutkan ke Penyumbangan pada Phase 8E.
@@ -617,15 +613,7 @@ Petugas dapat membuka halaman read-only untuk melihat hasil pelayanan donor yang
 
 Untuk penyumbangan berhasil, Petugas dapat mencatat satu atau lebih unit komponen darah.
 
-Data unit meliputi:
-
-- nomor unit;
-- sumber penyumbangan;
-- jenis komponen;
-- golongan darah;
-- tanggal pembuatan;
-- tanggal kedaluwarsa;
-- Petugas pencatat.
+Data unit meliputi nomor unit yang diterbitkan server, sumber penyumbangan, jenis komponen, golongan darah authoritative dari Pendonor sumber, tanggal pembuatan, tanggal kedaluwarsa, dan Petugas pencatat.
 
 #### Keputusan Proyek Phase 8F - Unit Komponen Darah
 
@@ -638,22 +626,21 @@ Rincian berikut mengunci perilaku operasional pencatatan Unit Komponen Darah pad
 - Setelah penyumbangan berhasil tersimpan, Phase 8F tidak memeriksa ulang status pemesanan, tanggal jadwal, status jadwal, atau jam pelayanan sebagai syarat pencatatan unit.
 - Satu penyumbangan berhasil dapat menghasilkan satu atau lebih unit komponen darah.
 - Satu pengiriman form `POST` membuat tepat satu row `unit_komponen_darah`. Petugas dapat mengulangi pencatatan untuk menambah unit lain dari penyumbangan yang sama.
-- Form pencatatan unit hanya menerima `nomor_unit`, `id_jenis_komponen`, `id_golongan_darah`, `tanggal_pembuatan`, dan `tanggal_kedaluwarsa`.
-- `nomor_unit` diinput Petugas, wajib diisi setelah trimming, maksimal 50 karakter, dan harus unik sesuai UNIQUE existing `unit_komponen_darah.nomor_unit`.
-- Phase 8F tidak membuat format nomor unit baru dan tidak menghasilkan `nomor_unit` secara otomatis karena specification tidak menentukan format tersebut.
+- Pada create Unit Komponen, client normal hanya berwenang mengirim `id_jenis_komponen`, `tanggal_pembuatan`, dan `tanggal_kedaluwarsa`. Request yang menyertakan `nomor_unit` atau `id_golongan_darah` harus ditolak dengan validation error, termasuk jika nilainya kebetulan sama dengan nilai authoritative; jangan hanya mengabaikannya.
+- `nomor_unit` diterbitkan server dari `id_unit` dengan format `UNT-000001`, immutable, dan tidak diinput/diubah Petugas. Gap auto increment diperbolehkan; jangan gunakan `MAX()+1`.
+- [SUPERSEDED] Nomor unit manual dan format bebas Phase 8F lama diganti oleh penerbitan server-side.
 - Jenis komponen dipilih dari master `jenis_komponen_darah` existing dan dibatasi pada kode prototype `WB`, `PRC`, `TC`, dan `FFP`.
 - Phase 8F tidak menambahkan aturan pemisahan darah, jumlah maksimum produk per penyumbangan, atau rule medis baru berdasarkan jenis komponen.
-- Golongan darah unit dipilih dari master `golongan_darah` existing. Pencatatan unit tidak mengubah `pendonor.id_golongan_darah`.
+- Golongan darah unit diambil dari `pendonor.id_golongan_darah` pada sumber penyumbangan. Jika sumber masih NULL, tolak pencatatan sebagai state tidak konsisten. Petugas tidak memilih golongan darah unit secara bebas. [SUPERSEDED] Pilihan bebas Phase 8F lama tidak berlaku.
 - `tanggal_pembuatan` dan `tanggal_kedaluwarsa` merupakan input Petugas dan wajib berupa tanggal yang dapat disimpan.
 - Phase 8F tidak menghitung tanggal kedaluwarsa otomatis, tidak menggunakan masa simpan komponen dari pengetahuan umum, dan tidak menambah field `masa_simpan_hari`.
-- Phase 8F tidak menambahkan validasi urutan antara `tanggal_pembuatan` dan `tanggal_kedaluwarsa` karena specification tidak menetapkan rule tersebut.
+- `tanggal_kedaluwarsa >= tanggal_pembuatan` wajib. [SUPERSEDED] Keputusan lama tanpa validasi urutan dua tanggal tidak berlaku.
 - Saat unit dibuat, server menetapkan `status_unit = MENUNGGU_PELULUSAN`.
 - Pada Phase 8F, `id_petugas_pelulus`, `waktu_pelulusan`, `catatan_pelulusan`, dan `waktu_distribusi` tetap `NULL`.
 - Unit `MENUNGGU_PELULUSAN` belum dihitung sebagai persediaan tersedia.
 - Unit yang sudah tersimpan ditampilkan sebagai daftar read-only pada halaman sumber penyumbangan. Phase 8F tidak menyediakan edit, delete, revisi, pelulusan, atau distribusi.
-- Pembuatan unit dilakukan dalam transaction dengan row `penyumbangan` target sebagai titik serialisasi. Setelah row dikunci, hasil `BERHASIL` dan keunikan `nomor_unit` diperiksa ulang sebelum create.
-- Pengiriman ganda untuk penyumbangan yang sama dengan `nomor_unit` yang sama tidak boleh menghasilkan row kedua atau menimpa unit pertama. UNIQUE `unit_komponen_darah.nomor_unit` existing tetap menjadi lapisan integritas terakhir.
-- `nomor_unit` yang berbeda tetap boleh menghasilkan unit tambahan dari penyumbangan yang sama, termasuk jenis komponen yang sama, karena schema tidak mempunyai UNIQUE `(id_penyumbangan, id_jenis_komponen)`.
+- Pembuatan unit dilakukan dalam transaction dengan row `penyumbangan` target sebagai titik serialisasi. Setelah row dikunci, hasil `BERHASIL`, golongan darah Pendonor sumber, jenis komponen, dan tanggal diperiksa ulang. Nomor diterbitkan dari PK unit baru; UNIQUE existing menjadi lapisan integritas terakhir.
+- Satu sumber penyumbangan `BERHASIL` tetap boleh menghasilkan unit tambahan, termasuk jenis komponen yang sama. Tidak ada status sintetis "selesai membuat komponen".
 - Setelah route Phase 8F tersedia, halaman Penyumbangan `BERHASIL` boleh menampilkan navigasi nyata menuju `Unit Komponen Darah`. Penyumbangan `GAGAL` tidak menampilkan aksi tersebut.
 - Phase 8F berhenti pada pencatatan dan penampilan unit berstatus `MENUNGGU_PELULUSAN`. Pelulusan tetap menjadi Phase 8G dan distribusi tetap phase berikutnya.
 - Phase 8F tidak menambah tabel, field, enum, UNIQUE, foreign key, index, migration, notification, stok manual, atau perubahan schema.
@@ -911,11 +898,7 @@ Tidak ada tabel profil Admin.
 
 ### Dashboard
 
-Menampilkan ringkasan administratif seperti:
-
-- jumlah akun Petugas aktif;
-- jadwal pelayanan;
-- informasi konfigurasi sistem yang relevan.
+Gunakan judul `Ringkasan Konfigurasi Sistem` dengan empat ringkasan: Petugas Aktif; Jadwal Dibuka hari ini dan mendatang; Pertanyaan Aktif; dan Konfigurasi Ambang `X/Y terisi, Z belum`. Tanggal "hari ini" menggunakan `Asia/Jakarta`.
 
 Dashboard Admin tidak menyediakan aksi operasional donor.
 
@@ -943,6 +926,15 @@ Admin dapat:
 - menghapus jadwal yang belum pernah mempunyai pemesanan.
 
 Jadwal yang sudah pernah direferensikan oleh `pemesanan_donor` tidak boleh dihapus secara fisik. Jika jadwal tersebut tidak ingin digunakan lagi, Admin menggunakan status `DIBATALKAN` agar riwayat pemesanan tetap dipertahankan.
+
+Saat Admin mengubah status jadwal menjadi `DIBATALKAN`, pada transaction yang sama booking terkait yang masih `TERJADWAL` menjadi `DIBATALKAN`. `CHECK_IN`, `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tidak diubah. Kuesioner, jawaban, dan kode tetap disimpan. Membuka jadwal kembali tidak menghidupkan row booking yang telah dibatalkan.
+
+### Pengurutan Daftar Admin
+
+- Petugas: `AKTIF` dahulu, lalu `id_petugas DESC`.
+- Pertanyaan: `AKTIF` dahulu, lalu `urutan ASC`, lalu `id_pertanyaan ASC`.
+- Jadwal: hari ini/mendatang di atas dengan yang terdekat dahulu; riwayat di bawah dengan yang terbaru dahulu. Tanggal hari ini menurut `Asia/Jakarta`.
+- Ambang: `jenis_komponen_darah.kode_komponen ASC`, lalu `golongan_darah.id_golongan_darah ASC`, lalu `ambang_persediaan.id_ambang ASC`. Tidak ada urutan ABO/Rhesus khusus.
 
 ### Pertanyaan Kuesioner
 
@@ -1073,6 +1065,10 @@ Cara teknis pembuatan akun Admin awal ditentukan pada tahap implementasi, bukan 
 ---
 
 # 7. Aturan UI
+
+Kebijakan pengurutan umum: histori/transaksi terbaru dahulu; work queue yang menunggu paling lama dahulu; jadwal mendatang yang terdekat dahulu; master aktif sebelum nonaktif; konfigurasi Ambang mengikuti urutan konkret pada Pengurutan Daftar Admin di atas. Urutan rinci yang sudah dikunci untuk fitur tertentu tetap digunakan selama sesuai kategori tersebut.
+
+Identifier operasional `nomor_petugas`, `nomor_donor`, dan `nomor_unit` diterbitkan server dari PK masing-masing dengan format `PTG-000001`, `DNR-000001`, dan `UNT-000001`. Ketiganya immutable, bukan input pengguna; gap auto increment diperbolehkan dan `MAX()+1` dilarang. `kode_checkin` berbeda: `UDD-` + tepat 12 hex uppercase acak, bukan turunan PK.
 
 1. Menu harus berbeda sesuai peran.
 2. Pengguna tidak boleh melihat menu yang tidak menjadi kewenangannya.
