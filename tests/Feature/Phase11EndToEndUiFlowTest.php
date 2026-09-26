@@ -271,6 +271,7 @@ class Phase11EndToEndUiFlowTest extends TestCase
         $this->assertSame($bloodGroup->id_golongan_darah, $mainDonor->fresh()->id_golongan_darah);
         $this->post(route('petugas.seleksi.store', $booking), array_merge($selectionPayload, [
             'keputusan_seleksi' => 'DITOLAK',
+            'alasan_keputusan' => 'Keputusan petugas kedua.',
         ]))->assertStatus(409);
         $this->assertSame('LAYAK', $selection->fresh()->keputusan_seleksi);
         $this->assertDatabaseCount('seleksi_donor', 1);

@@ -6,10 +6,12 @@ use App\Models\GolonganDarah;
 use App\Models\PemesananDonor;
 use App\Models\Pendonor;
 use App\Models\SeleksiDonor;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PetugasSeleksiController extends Controller
@@ -50,15 +52,15 @@ class PetugasSeleksiController extends Controller
     {
         $petugas = $this->authenticatedPetugas($request);
         $validated = $request->validate([
-            'berat_badan' => ['required', 'numeric', 'decimal:0,2', 'between:-999.99,999.99'],
-            'tekanan_sistolik' => ['required', 'integer', 'between:-32768,32767'],
-            'tekanan_diastolik' => ['required', 'integer', 'between:-32768,32767'],
-            'denyut_nadi' => ['required', 'integer', 'between:-32768,32767'],
-            'suhu_tubuh' => ['required', 'numeric', 'decimal:0,1', 'between:-999.9,999.9'],
-            'kadar_hb' => ['required', 'numeric', 'decimal:0,1', 'between:-999.9,999.9'],
-            'hasil_pemeriksaan_kesehatan' => ['nullable', 'string', 'max:65535'],
+            'berat_badan' => ['required', 'numeric', 'decimal:0,2', 'gt:0', 'between:-999.99,999.99'],
+            'tekanan_sistolik' => ['required', 'integer', 'gt:0', 'between:-32768,32767'],
+            'tekanan_diastolik' => ['required', 'integer', 'gt:0', 'between:-32768,32767'],
+            'denyut_nadi' => ['required', 'integer', 'gt:0', 'between:-32768,32767'],
+            'suhu_tubuh' => ['required', 'numeric', 'decimal:0,1', 'gt:0', 'between:-999.9,999.9'],
+            'kadar_hb' => ['required', 'numeric', 'decimal:0,1', 'gt:0', 'between:-999.9,999.9'],
+            'hasil_pemeriksaan_kesehatan' => ['required', 'string', 'max:65535'],
             'keputusan_seleksi' => ['required', Rule::in(['LAYAK', 'DITUNDA', 'DITOLAK'])],
-            'alasan_keputusan' => ['nullable', 'string', 'max:65535'],
+            'alasan_keputusan' => ['required_if:keputusan_seleksi,DITUNDA,DITOLAK', 'nullable', 'string', 'max:65535'],
             'id_golongan_darah' => [
                 'nullable',
                 'integer',
@@ -66,7 +68,7 @@ class PetugasSeleksiController extends Controller
             ],
         ]);
 
-        DB::transaction(function () use ($pemesanan, $petugas, $validated): void {
+        DB::transaction(function () use ($pemesanan, $petugas, $validated, $request): void {
             $lockedPemesanan = PemesananDonor::query()
                 ->whereKey($pemesanan->getKey())
                 ->lockForUpdate()
@@ -79,12 +81,47 @@ class PetugasSeleksiController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if (
-                $pendonor->id_golongan_darah === null
-                && isset($validated['id_golongan_darah'])
-            ) {
+            if ($validated['keputusan_seleksi'] === 'LAYAK') {
+                $turnsSeventeen = CarbonImmutable::parse(
+                    $pendonor->tanggal_lahir->toDateString(),
+                    'Asia/Jakarta'
+                )->addYearsNoOverflow(17);
+                $meetsLayakCriteria = $turnsSeventeen->lte(CarbonImmutable::today('Asia/Jakarta'))
+                    && (float) $validated['berat_badan'] >= 45
+                    && (int) $validated['tekanan_sistolik'] >= 90
+                    && (int) $validated['tekanan_sistolik'] <= 160
+                    && (int) $validated['tekanan_diastolik'] >= 60
+                    && (int) $validated['tekanan_diastolik'] <= 100
+                    && (int) $validated['tekanan_sistolik'] - (int) $validated['tekanan_diastolik'] > 20
+                    && (int) $validated['denyut_nadi'] >= 50
+                    && (int) $validated['denyut_nadi'] <= 100
+                    && (float) $validated['suhu_tubuh'] >= 36.5
+                    && (float) $validated['suhu_tubuh'] <= 37.5
+                    && (float) $validated['kadar_hb'] >= 12.5
+                    && (float) $validated['kadar_hb'] <= 17;
+
+                if (! $meetsLayakCriteria) {
+                    throw ValidationException::withMessages([
+                        'keputusan_seleksi' => 'Keputusan LAYAK memerlukan seluruh kriteria objektif terpenuhi.',
+                    ]);
+                }
+            }
+
+            if ($pendonor->id_golongan_darah === null) {
+                if (! isset($validated['id_golongan_darah'])
+                    || ! GolonganDarah::query()->whereKey($validated['id_golongan_darah'])->exists()) {
+                    throw ValidationException::withMessages([
+                        'id_golongan_darah' => 'Golongan darah Pendonor wajib dikonfirmasi dari master.',
+                    ]);
+                }
+
                 $pendonor->update([
                     'id_golongan_darah' => $validated['id_golongan_darah'],
+                ]);
+            } elseif ($request->exists('id_golongan_darah')
+                && (string) ($validated['id_golongan_darah'] ?? '') !== (string) $pendonor->id_golongan_darah) {
+                throw ValidationException::withMessages([
+                    'id_golongan_darah' => 'Golongan darah Pendonor yang sudah terkonfirmasi tidak dapat diganti.',
                 ]);
             }
 

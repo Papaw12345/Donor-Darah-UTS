@@ -121,6 +121,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
             donorName: 'Pendonor Lain'
         );
         $otherPetugas = $this->createPetugas(name: 'Petugas Hostile');
+        $bloodGroup = $this->createBloodGroup('A', 'POSITIF');
 
         $this->actingAs($petugas->akun)
             ->get(route('petugas.seleksi.show', [
@@ -137,6 +138,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->assertDontSee('Pendonor Lain');
 
         $payload = array_merge($this->validPayload(), [
+            'id_golongan_darah' => $bloodGroup->id_golongan_darah,
             'id_pemesanan' => $otherBooking->id_pemesanan,
             'id_pendonor' => $otherDonor->id_pendonor,
             'id_petugas' => $otherPetugas->id_petugas,
@@ -295,6 +297,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
                 'denyut_nadi',
                 'suhu_tubuh',
                 'kadar_hb',
+                'hasil_pemeriksaan_kesehatan',
                 'keputusan_seleksi',
             ]);
 
@@ -322,19 +325,14 @@ class Phase8DSeleksiPetugasTest extends TestCase
         $this->assertSame('CHECK_IN', $booking->fresh()->status_pemesanan);
     }
 
-    public function test_layak_uses_authenticated_petugas_server_time_allows_null_texts_and_creates_no_downstream_rows(): void
+    public function test_layak_uses_authenticated_petugas_server_time_and_creates_no_downstream_rows(): void
     {
         $petugas = $this->createPetugas(name: 'Petugas Pencatat');
         $hostilePetugas = $this->createPetugas(name: 'Petugas Hostile');
+        $bloodGroup = $this->createBloodGroup('A', 'POSITIF');
         [, $booking] = $this->createValidFixture();
         $payload = $this->validPayload([
-            'berat_badan' => '0.00',
-            'tekanan_sistolik' => -1,
-            'tekanan_diastolik' => 0,
-            'denyut_nadi' => 1,
-            'suhu_tubuh' => '0.0',
-            'kadar_hb' => '0.0',
-            'hasil_pemeriksaan_kesehatan' => null,
+            'id_golongan_darah' => $bloodGroup->id_golongan_darah,
             'keputusan_seleksi' => 'LAYAK',
             'alasan_keputusan' => null,
             'id_petugas' => $hostilePetugas->id_petugas,
@@ -350,7 +348,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
         $this->assertSame($booking->id_pemesanan, $selection->id_pemesanan);
         $this->assertSame($petugas->id_petugas, $selection->id_petugas);
         $this->assertSame(now()->format('Y-m-d H:i:s'), $selection->waktu_seleksi->format('Y-m-d H:i:s'));
-        $this->assertNull($selection->hasil_pemeriksaan_kesehatan);
+        $this->assertSame('Dicatat oleh petugas.', $selection->hasil_pemeriksaan_kesehatan);
         $this->assertNull($selection->alasan_keputusan);
         $this->assertSame('LAYAK', $selection->keputusan_seleksi);
         $this->assertSame('CHECK_IN', $booking->fresh()->status_pemesanan);
@@ -361,12 +359,14 @@ class Phase8DSeleksiPetugasTest extends TestCase
     public function test_ditunda_creates_selection_and_completes_booking_atomically(): void
     {
         $petugas = $this->createPetugas();
+        $bloodGroup = $this->createBloodGroup('A', 'POSITIF');
         [, $booking] = $this->createValidFixture();
 
         $this->actingAs($petugas->akun)
             ->post(route('petugas.seleksi.store', $booking), $this->validPayload([
                 'keputusan_seleksi' => 'DITUNDA',
                 'alasan_keputusan' => 'Keputusan petugas.',
+                'id_golongan_darah' => $bloodGroup->id_golongan_darah,
             ]))
             ->assertRedirect(route('petugas.seleksi.show', $booking));
 
@@ -384,11 +384,14 @@ class Phase8DSeleksiPetugasTest extends TestCase
     public function test_ditolak_creates_selection_and_completes_booking_atomically(): void
     {
         $petugas = $this->createPetugas();
+        $bloodGroup = $this->createBloodGroup('A', 'POSITIF');
         [, $booking] = $this->createValidFixture();
 
         $this->actingAs($petugas->akun)
             ->post(route('petugas.seleksi.store', $booking), $this->validPayload([
                 'keputusan_seleksi' => 'DITOLAK',
+                'alasan_keputusan' => 'Keputusan petugas.',
+                'id_golongan_darah' => $bloodGroup->id_golongan_darah,
             ]))
             ->assertRedirect(route('petugas.seleksi.show', $booking));
 
@@ -402,22 +405,20 @@ class Phase8DSeleksiPetugasTest extends TestCase
         $this->assertNoDownstreamRows();
     }
 
-    public function test_donor_without_blood_group_may_remain_null(): void
+    public function test_donor_without_blood_group_requires_confirmation(): void
     {
         $petugas = $this->createPetugas();
         [$donor, $booking] = $this->createValidFixture();
 
         $this->actingAs($petugas->akun)
             ->post(route('petugas.seleksi.store', $booking), $this->validPayload())
-            ->assertSessionHasNoErrors();
+            ->assertSessionHasErrors('id_golongan_darah');
 
         $this->assertNull($donor->fresh()->id_golongan_darah);
-        $this->assertDatabaseHas('seleksi_donor', [
-            'id_pemesanan' => $booking->id_pemesanan,
-        ]);
+        $this->assertDatabaseMissing('seleksi_donor', ['id_pemesanan' => $booking->id_pemesanan]);
     }
 
-    public function test_donor_without_blood_group_may_receive_an_existing_master_value(): void
+    public function test_donor_without_blood_group_must_receive_an_existing_master_value(): void
     {
         $petugas = $this->createPetugas();
         $bloodGroup = $this->createBloodGroup('AB', 'NEGATIF');
@@ -464,10 +465,10 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->post(route('petugas.seleksi.store', $booking), $this->validPayload([
                 'id_golongan_darah' => $hostile->id_golongan_darah,
             ]))
-            ->assertSessionHasNoErrors();
+            ->assertSessionHasErrors('id_golongan_darah');
 
         $this->assertSame($existing->id_golongan_darah, $donor->fresh()->id_golongan_darah);
-        $this->assertDatabaseCount('seleksi_donor', 1);
+        $this->assertDatabaseCount('seleksi_donor', 0);
     }
 
     public function test_existing_selection_is_read_only_and_historically_viewable_without_mutation(): void
@@ -562,6 +563,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
                 'berat_badan' => '99.99',
                 'hasil_pemeriksaan_kesehatan' => 'Data kedua hostile',
                 'keputusan_seleksi' => 'DITOLAK',
+                'alasan_keputusan' => 'Keputusan petugas kedua.',
             ]))
             ->assertStatus(409);
 
@@ -611,6 +613,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
     public function test_navigation_switches_to_read_only_selection_and_exposes_no_phase_8e_controls(): void
     {
         $petugas = $this->createPetugas();
+        $bloodGroup = $this->createBloodGroup('A', 'POSITIF');
         [, $booking] = $this->createValidFixture();
 
         $questionnaireBefore = $this->actingAs($petugas->akun)
@@ -643,6 +646,8 @@ class Phase8DSeleksiPetugasTest extends TestCase
         $this->actingAs($petugas->akun)
             ->post(route('petugas.seleksi.store', $booking), $this->validPayload([
                 'keputusan_seleksi' => 'DITUNDA',
+                'alasan_keputusan' => 'Keputusan petugas.',
+                'id_golongan_darah' => $bloodGroup->id_golongan_darah,
             ]))
             ->assertSessionHasNoErrors();
 
