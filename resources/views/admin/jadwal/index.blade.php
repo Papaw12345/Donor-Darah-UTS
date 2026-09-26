@@ -43,6 +43,11 @@
                                     </td>
                                     <td>
                                         <a class="button button-secondary button-small" href="{{ route('admin.jadwal.edit', $item) }}">Edit</a>
+                                        <form class="inline-form" method="POST" action="{{ route('admin.jadwal.destroy', $item) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="button button-danger button-small" type="submit">Hapus</button>
+                                        </form>
                                     </td>
                                 </tr>
                             @endforeach

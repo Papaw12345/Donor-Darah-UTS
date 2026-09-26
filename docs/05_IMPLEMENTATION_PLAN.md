@@ -364,6 +364,8 @@ Jangan membuat field `status_petugas`.
 
 CRUD sesuai field final.
 
+Physical DELETE hanya diperbolehkan untuk jadwal yang belum pernah direferensikan oleh `pemesanan_donor`. Jadwal yang sudah mempunyai riwayat pemesanan dipertahankan dan menggunakan status `DIBATALKAN` apabila tidak ingin digunakan lagi.
+
 Kapasitas tersisa dihitung dari pemesanan, bukan disimpan sebagai field tambahan.
 
 ## Pertanyaan Kuesioner

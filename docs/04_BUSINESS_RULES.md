@@ -720,6 +720,18 @@ Pendonor tidak boleh mengubah bebas golongan darah yang telah dikonfirmasi.
 
 ---
 
+## Penghapusan Jadwal Pelayanan oleh Admin
+
+Admin boleh menghapus row `jadwal_pelayanan` secara fisik hanya apabila jadwal tersebut belum pernah direferensikan oleh satu pun row `pemesanan_donor`.
+
+Apabila jadwal sudah pernah mempunyai pemesanan, termasuk pemesanan yang kemudian berstatus `DIBATALKAN`, penghapusan harus ditolak. Jika jadwal tidak ingin digunakan lagi, Admin menggunakan `status_jadwal = DIBATALKAN` sehingga row jadwal dan riwayat pemesanan tetap dipertahankan.
+
+Jadwal yang belum pernah mempunyai pemesanan tidak harus diubah menjadi `DIBATALKAN` sebelum dihapus.
+
+Aturan ini tidak menggunakan cascade delete, tidak menghapus `pemesanan_donor`, dan tidak mengubah schema.
+
+---
+
 ## 33. Pemesanan Aktif Ganda Dicegah pada Aplikasi
 
 Tidak ada UNIQUE constraint `(id_pendonor, id_jadwal)` pada tabel `pemesanan_donor`.

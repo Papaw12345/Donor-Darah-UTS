@@ -939,7 +939,10 @@ Admin dapat:
 - mengatur jam mulai;
 - mengatur jam selesai;
 - mengatur kapasitas;
-- mengatur status `DIBUKA`, `DITUTUP`, atau `DIBATALKAN`.
+- mengatur status `DIBUKA`, `DITUTUP`, atau `DIBATALKAN`;
+- menghapus jadwal yang belum pernah mempunyai pemesanan.
+
+Jadwal yang sudah pernah direferensikan oleh `pemesanan_donor` tidak boleh dihapus secara fisik. Jika jadwal tersebut tidak ingin digunakan lagi, Admin menggunakan status `DIBATALKAN` agar riwayat pemesanan tetap dipertahankan.
 
 ### Pertanyaan Kuesioner
 

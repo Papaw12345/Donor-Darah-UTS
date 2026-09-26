@@ -64,6 +64,23 @@ class AdminJadwalController extends Controller
             ->with('success', 'Jadwal pelayanan berhasil diperbarui.');
     }
 
+    public function destroy(JadwalPelayanan $jadwal): RedirectResponse
+    {
+        if ($jadwal->pemesananDonor()->exists()) {
+            return redirect()
+                ->route('admin.jadwal.index')
+                ->withErrors([
+                    'jadwal' => 'Jadwal yang sudah memiliki pemesanan tidak dapat dihapus. Gunakan status DIBATALKAN jika jadwal tidak ingin digunakan lagi.',
+                ]);
+        }
+
+        $jadwal->delete();
+
+        return redirect()
+            ->route('admin.jadwal.index')
+            ->with('success', 'Jadwal pelayanan berhasil dihapus.');
+    }
+
     private function validationRules(): array
     {
         return [

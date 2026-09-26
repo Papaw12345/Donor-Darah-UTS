@@ -223,6 +223,8 @@ Route::middleware(['auth', 'active'])->group(function () {
             ->name('admin.jadwal.edit');
         Route::put('/admin/jadwal/{jadwal}', [AdminJadwalController::class, 'update'])
             ->name('admin.jadwal.update');
+        Route::delete('/admin/jadwal/{jadwal}', [AdminJadwalController::class, 'destroy'])
+            ->name('admin.jadwal.destroy');
 
         Route::get('/admin/pertanyaan', [AdminPertanyaanKuesionerController::class, 'index'])
             ->name('admin.pertanyaan.index');
