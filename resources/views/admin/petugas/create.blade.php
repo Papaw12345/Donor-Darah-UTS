@@ -30,10 +30,6 @@
                         <input id="password_confirmation" type="password" name="password_confirmation" autocomplete="new-password" required>
                     </div>
                     <div class="form-field">
-                        <label for="nomor_petugas">Nomor Petugas</label>
-                        <input id="nomor_petugas" type="text" name="nomor_petugas" value="{{ old('nomor_petugas') }}" maxlength="50" required>
-                    </div>
-                    <div class="form-field">
                         <label for="nama_petugas">Nama Petugas</label>
                         <input id="nama_petugas" type="text" name="nama_petugas" value="{{ old('nama_petugas') }}" maxlength="150" required>
                     </div>

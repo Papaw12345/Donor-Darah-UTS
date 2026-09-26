@@ -42,10 +42,6 @@
                         <input id="email" type="email" name="email" value="{{ old('email', $akun->email) }}" required>
                     </div>
                     <div class="form-field">
-                        <label for="nomor_petugas">Nomor Petugas</label>
-                        <input id="nomor_petugas" type="text" name="nomor_petugas" value="{{ old('nomor_petugas', $petugas->nomor_petugas) }}" maxlength="50" required>
-                    </div>
-                    <div class="form-field">
                         <label for="nama_petugas">Nama Petugas</label>
                         <input id="nama_petugas" type="text" name="nama_petugas" value="{{ old('nama_petugas', $petugas->nama_petugas) }}" maxlength="150" required>
                     </div>

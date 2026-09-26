@@ -92,6 +92,11 @@ class PendonorPemesananController extends Controller
                 $this->reject('Waktu pelayanan untuk jadwal ini sudah berakhir.');
             }
 
+            if (CarbonImmutable::parse($pendonor->tanggal_lahir->toDateString(), 'Asia/Jakarta')
+                ->addYearsNoOverflow(17)->gt($tanggalJadwal)) {
+                $this->reject('Usia Pendonor pada tanggal jadwal harus minimal 17 tahun.');
+            }
+
             $jumlahPemesanan = PemesananDonor::query()
                 ->where('id_jadwal', $jadwalTerkunci->id_jadwal)
                 ->whereIn(

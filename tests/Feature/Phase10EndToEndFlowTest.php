@@ -399,7 +399,6 @@ class Phase10EndToEndFlowTest extends TestCase
             'password' => self::PASSWORD,
             'password_confirmation' => self::PASSWORD,
             'nik' => '3273010101900010',
-            'nomor_donor' => null,
             'nama_lengkap' => 'Pendonor Utama Phase 10',
             'jenis_kelamin' => 'LAKI_LAKI',
             'tanggal_lahir' => '1990-01-01',

@@ -83,19 +83,23 @@ class Phase11EndToEndUiFlowTest extends TestCase
         $this->assertBusinessForm(
             $petugasCreate,
             route('admin.petugas.store'),
-            ['email', 'password', 'password_confirmation', 'nomor_petugas', 'nama_petugas']
+            ['email', 'password', 'password_confirmation', 'nama_petugas']
         );
+        $petugasCreate->assertDontSee('name="nomor_petugas"', false);
         $this->post(route('admin.petugas.store'), [
             'email' => 'petugas.phase11@example.test',
             'password' => self::PASSWORD,
             'password_confirmation' => self::PASSWORD,
-            'nomor_petugas' => 'P11-001',
             'nama_petugas' => 'Petugas Phase 11',
         ])->assertRedirect(route('admin.petugas.index'));
         $petugasAccount = Akun::query()->where('email', 'petugas.phase11@example.test')->sole();
         $petugas = Petugas::query()->where('id_akun', $petugasAccount->id_akun)->sole();
         $this->assertSame('PETUGAS', $petugasAccount->peran);
         $this->assertSame('AKTIF', $petugasAccount->status_akun);
+        $this->assertSame(
+            'PTG-'.str_pad((string) $petugas->id_petugas, 6, '0', STR_PAD_LEFT),
+            $petugas->nomor_petugas
+        );
 
         $scheduleCreate = $this->get(route('admin.jadwal.create'))->assertOk();
         $this->assertBusinessForm(
@@ -534,7 +538,6 @@ class Phase11EndToEndUiFlowTest extends TestCase
                 'password',
                 'password_confirmation',
                 'nik',
-                'nomor_donor',
                 'nama_lengkap',
                 'jenis_kelamin',
                 'tanggal_lahir',
@@ -545,6 +548,7 @@ class Phase11EndToEndUiFlowTest extends TestCase
                 'alamat_kantor',
             ]
         );
+        $register->assertDontSee('name="nomor_donor"', false);
     }
 
     private function assertAdminNavigation(TestResponse $response): void
@@ -658,7 +662,6 @@ class Phase11EndToEndUiFlowTest extends TestCase
             'password' => self::PASSWORD,
             'password_confirmation' => self::PASSWORD,
             'nik' => '3273010101900011',
-            'nomor_donor' => null,
             'nama_lengkap' => 'Pendonor Utama Phase 11',
             'jenis_kelamin' => 'LAKI_LAKI',
             'tanggal_lahir' => '1990-01-01',

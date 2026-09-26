@@ -37,7 +37,6 @@ class AdminPetugasController extends Controller
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255', Rule::unique('akun', 'email')],
             'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
-            'nomor_petugas' => ['required', 'string', 'max:50', Rule::unique('petugas', 'nomor_petugas')],
             'nama_petugas' => ['required', 'string', 'max:150'],
         ]);
 
@@ -49,10 +48,14 @@ class AdminPetugasController extends Controller
                 'status_akun' => 'AKTIF',
             ]);
 
-            Petugas::create([
+            $petugas = Petugas::create([
                 'id_akun' => $akun->id_akun,
-                'nomor_petugas' => $validated['nomor_petugas'],
+                'nomor_petugas' => 'TMP-'.bin2hex(random_bytes(16)),
                 'nama_petugas' => $validated['nama_petugas'],
+            ]);
+
+            $petugas->update([
+                'nomor_petugas' => 'PTG-'.str_pad((string) $petugas->id_petugas, 6, '0', STR_PAD_LEFT),
             ]);
         });
 
@@ -82,12 +85,6 @@ class AdminPetugasController extends Controller
                 'max:255',
                 Rule::unique('akun', 'email')->ignore($akun->id_akun, 'id_akun'),
             ],
-            'nomor_petugas' => [
-                'required',
-                'string',
-                'max:50',
-                Rule::unique('petugas', 'nomor_petugas')->ignore($petugas->id_petugas, 'id_petugas'),
-            ],
             'nama_petugas' => ['required', 'string', 'max:150'],
         ]);
 
@@ -97,7 +94,6 @@ class AdminPetugasController extends Controller
             ]);
 
             $petugas->update([
-                'nomor_petugas' => $validated['nomor_petugas'],
                 'nama_petugas' => $validated['nama_petugas'],
             ]);
         });

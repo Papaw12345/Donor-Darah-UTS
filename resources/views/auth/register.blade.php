@@ -55,13 +55,7 @@
                     <div class="form-grid">
                         <div class="form-field">
                             <label for="nik">NIK <span class="required-mark" aria-hidden="true">*</span></label>
-                            <input id="nik" type="text" name="nik" value="{{ old('nik') }}" maxlength="20" required inputmode="numeric">
-                        </div>
-
-                        <div class="form-field">
-                            <label for="nomor_donor">Nomor Donor (jika sudah memiliki)</label>
-                            <input id="nomor_donor" type="text" name="nomor_donor" value="{{ old('nomor_donor') }}" maxlength="50" aria-describedby="nomor-donor-hint">
-                            <p class="form-hint" id="nomor-donor-hint">Isi jika Anda sudah mempunyai nomor atau kartu donor sebelumnya.</p>
+                            <input id="nik" type="text" name="nik" value="{{ old('nik') }}" minlength="16" maxlength="16" pattern="[0-9]{16}" required inputmode="numeric">
                         </div>
 
                         <div class="form-field form-field-full">
