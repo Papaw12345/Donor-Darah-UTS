@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\JadwalPelayanan;
+use App\Models\PemesananDonor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -51,13 +53,27 @@ class AdminJadwalController extends Controller
     {
         $validated = $request->validate($this->validationRules());
 
-        $jadwal->update([
-            'tanggal' => $validated['tanggal'],
-            'jam_mulai' => $validated['jam_mulai'],
-            'jam_selesai' => $validated['jam_selesai'],
-            'kapasitas' => $validated['kapasitas'],
-            'status_jadwal' => $validated['status_jadwal'],
-        ]);
+        DB::transaction(function () use ($jadwal, $validated): void {
+            $jadwalTerkunci = JadwalPelayanan::query()
+                ->whereKey($jadwal->id_jadwal)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $jadwalTerkunci->update([
+                'tanggal' => $validated['tanggal'],
+                'jam_mulai' => $validated['jam_mulai'],
+                'jam_selesai' => $validated['jam_selesai'],
+                'kapasitas' => $validated['kapasitas'],
+                'status_jadwal' => $validated['status_jadwal'],
+            ]);
+
+            if ($validated['status_jadwal'] === 'DIBATALKAN') {
+                PemesananDonor::query()
+                    ->where('id_jadwal', $jadwalTerkunci->id_jadwal)
+                    ->where('status_pemesanan', 'TERJADWAL')
+                    ->update(['status_pemesanan' => 'DIBATALKAN']);
+            }
+        });
 
         return redirect()
             ->route('admin.jadwal.index')

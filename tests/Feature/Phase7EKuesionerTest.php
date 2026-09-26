@@ -191,7 +191,7 @@ class Phase7EKuesionerTest extends TestCase
         $question = $this->createQuestion();
 
         $this->submit($pendonor, $booking, [$question->id_pertanyaan => 'YA'])
-            ->assertRedirect(route('pendonor.kuesioner.show', $booking));
+            ->assertRedirect(route('pendonor.kode-checkin.show', $booking));
 
         $this->assertDatabaseHas('jawaban_kuesioner', [
             'id_pertanyaan' => $question->id_pertanyaan,
@@ -206,7 +206,7 @@ class Phase7EKuesionerTest extends TestCase
         $question = $this->createQuestion();
 
         $this->submit($pendonor, $booking, [$question->id_pertanyaan => 'TIDAK'])
-            ->assertRedirect(route('pendonor.kuesioner.show', $booking));
+            ->assertRedirect(route('pendonor.kode-checkin.show', $booking));
 
         $this->assertDatabaseHas('jawaban_kuesioner', [
             'id_pertanyaan' => $question->id_pertanyaan,
@@ -246,7 +246,7 @@ class Phase7EKuesionerTest extends TestCase
 
         $this->submit($pendonor, $booking, [
             $question->id_pertanyaan => '  Tidak ada keluhan.  ',
-        ])->assertRedirect(route('pendonor.kuesioner.show', $booking));
+        ])->assertRedirect(route('pendonor.kode-checkin.show', $booking));
 
         $this->assertDatabaseHas('jawaban_kuesioner', [
             'id_pertanyaan' => $question->id_pertanyaan,
@@ -260,12 +260,12 @@ class Phase7EKuesionerTest extends TestCase
         $booking = $this->createBooking($pendonor, $this->createSchedule([
             'tanggal' => '2026-09-15',
             'jam_mulai' => '06:00',
-            'jam_selesai' => '07:00',
+            'jam_selesai' => '17:00',
         ]));
         $question = $this->createQuestion();
 
         $this->submit($pendonor, $booking, [$question->id_pertanyaan => 'YA'])
-            ->assertRedirect(route('pendonor.kuesioner.show', $booking));
+            ->assertRedirect(route('pendonor.kode-checkin.show', $booking));
 
         $this->assertDatabaseCount('kuesioner_pradonasi', 1);
     }
@@ -280,7 +280,7 @@ class Phase7EKuesionerTest extends TestCase
         $question = $this->createQuestion();
 
         $this->submit($pendonor, $booking, [$question->id_pertanyaan => 'TIDAK'])
-            ->assertRedirect(route('pendonor.kuesioner.show', $booking));
+            ->assertRedirect(route('pendonor.kode-checkin.show', $booking));
 
         $this->assertDatabaseCount('kuesioner_pradonasi', 1);
     }
@@ -311,7 +311,7 @@ class Phase7EKuesionerTest extends TestCase
         $question = $this->createQuestion();
 
         $this->submit($pendonor, $booking, [$question->id_pertanyaan => 'YA'])
-            ->assertRedirect(route('pendonor.kuesioner.show', $booking));
+            ->assertRedirect(route('pendonor.kode-checkin.show', $booking));
 
         $this->assertDatabaseCount('kuesioner_pradonasi', 1);
     }
@@ -333,7 +333,7 @@ class Phase7EKuesionerTest extends TestCase
         $this->submit($pendonor, $booking, [
             $yesNo->id_pertanyaan => 'TIDAK',
             $text->id_pertanyaan => '  Jawaban lengkap  ',
-        ])->assertRedirect(route('pendonor.kuesioner.show', $booking))
+        ])->assertRedirect(route('pendonor.kode-checkin.show', $booking))
             ->assertSessionHas('success');
 
         $kuesioner = KuesionerPradonasi::query()->sole();
@@ -355,7 +355,7 @@ class Phase7EKuesionerTest extends TestCase
 
         $booking->refresh();
         $this->assertSame('TERJADWAL', $booking->status_pemesanan);
-        $this->assertNull($booking->kode_checkin);
+        $this->assertMatchesRegularExpression('/\AUDD-[0-9A-F]{12}\z/', $booking->kode_checkin);
         $this->assertNull($booking->waktu_checkin);
     }
 
@@ -366,7 +366,7 @@ class Phase7EKuesionerTest extends TestCase
         $question = $this->createQuestion();
 
         $this->submit($pendonor, $booking, [$question->id_pertanyaan => 'YA'])
-            ->assertRedirect(route('pendonor.kuesioner.show', $booking));
+            ->assertRedirect(route('pendonor.kode-checkin.show', $booking));
 
         $this->submit($pendonor, $booking, [$question->id_pertanyaan => 'TIDAK'])
             ->assertSessionHasErrors('answers');

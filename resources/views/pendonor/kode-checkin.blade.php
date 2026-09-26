@@ -28,19 +28,8 @@
                 <p class="checkin-code"><code>{{ $pemesanan->kode_checkin }}</code></p>
                 <p class="checkin-note">Kode tetap sama untuk pemesanan ini.</p>
             </section>
-        @elseif ($pesanTidakTersedia !== null)
-            <div class="empty-state">{{ $pesanTidakTersedia }}</div>
         @else
-            <section class="action-panel" aria-labelledby="buat-kode-checkin">
-                <div>
-                    <h2 class="section-title" id="buat-kode-checkin">Kode Belum Dibuat</h2>
-                    <p class="section-description">Buat kode setelah kuesioner pradonasi selesai.</p>
-                </div>
-                <form class="inline-form" method="POST" action="{{ route('pendonor.kode-checkin.generate', $pemesanan) }}">
-                    @csrf
-                    <button class="button button-primary" type="submit">Buat Kode Check-in</button>
-                </form>
-            </section>
+            <div class="empty-state">{{ $pesanTidakTersedia }}</div>
         @endif
     </div>
 @endsection

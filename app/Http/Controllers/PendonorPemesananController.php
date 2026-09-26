@@ -44,8 +44,16 @@ class PendonorPemesananController extends Controller
             ->orderBy('pemesanan_donor.waktu_pemesanan')
             ->get();
 
+        $bolehDibatalkan = $pemesanan
+            ->filter(fn (PemesananDonor $item): bool => $item->status_pemesanan === 'TERJADWAL'
+                && $item->jadwalPelayanan->tanggal->gte(today('Asia/Jakarta'))
+                && ! $this->pelayananSudahBerakhir($item->jadwalPelayanan))
+            ->pluck('id_pemesanan')
+            ->all();
+
         return view('pendonor.pemesanan', [
             'pemesanan' => $pemesanan,
+            'bolehDibatalkan' => $bolehDibatalkan,
         ]);
     }
 
@@ -170,6 +178,10 @@ class PendonorPemesananController extends Controller
 
             if ($jadwal->tanggal->lt(today('Asia/Jakarta'))) {
                 $this->reject('Pemesanan dengan jadwal yang sudah lewat tidak dapat dibatalkan.');
+            }
+
+            if ($this->pelayananSudahBerakhir($jadwal)) {
+                $this->reject('Waktu pelayanan untuk jadwal ini sudah berakhir.');
             }
 
             $pemesananTerkunci->update([

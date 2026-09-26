@@ -43,5 +43,26 @@
                 </div>
             </section>
         @endif
+
+        @if ($pemesananTidakHadir->isNotEmpty())
+            <section class="page-section" aria-labelledby="pemesanan-tidak-hadir">
+                <h2 class="section-title" id="pemesanan-tidak-hadir">Pemesanan Belum Check-in Setelah Jadwal Selesai</h2>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead><tr><th scope="col">Pendonor</th><th scope="col">Tanggal Jadwal</th><th scope="col">Jam Selesai</th><th scope="col">Aksi</th></tr></thead>
+                        <tbody>
+                            @foreach ($pemesananTidakHadir as $item)
+                                <tr>
+                                    <td>{{ $item->pendonor->nama_lengkap }}</td>
+                                    <td>{{ $item->jadwalPelayanan->tanggal->format('d-m-Y') }}</td>
+                                    <td>{{ substr($item->jadwalPelayanan->jam_selesai, 0, 5) }}</td>
+                                    <td><form class="inline-form" method="POST" action="{{ route('petugas.pemesanan.tidak-hadir', $item) }}">@csrf @method('PATCH')<button class="button button-secondary button-small" type="submit">Tandai Tidak Hadir</button></form></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        @endif
     </div>
 @endsection

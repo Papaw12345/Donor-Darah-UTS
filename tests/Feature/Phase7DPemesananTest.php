@@ -494,7 +494,7 @@ class Phase7DPemesananTest extends TestCase
             $this->createSchedule([
                 'tanggal' => '2026-09-15',
                 'jam_mulai' => '06:00',
-                'jam_selesai' => '07:00',
+                'jam_selesai' => '17:00',
             ])
         );
 

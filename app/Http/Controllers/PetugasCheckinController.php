@@ -23,6 +23,21 @@ class PetugasCheckinController extends Controller
         $lookupError = null;
         $eligibilityMessage = null;
         $canCheckIn = false;
+        $pemesananTidakHadir = collect();
+
+        if ($submittedCode === null) {
+            $sekarangWib = CarbonImmutable::now('Asia/Jakarta');
+            $pemesananTidakHadir = PemesananDonor::query()
+                ->where('status_pemesanan', 'TERJADWAL')
+                ->whereNull('waktu_checkin')
+                ->whereHas('jadwalPelayanan', function ($query) use ($sekarangWib): void {
+                    $query->whereDate('tanggal', '<=', $sekarangWib->toDateString());
+                })
+                ->with(['pendonor', 'jadwalPelayanan'])
+                ->orderBy('id_pemesanan')
+                ->get()
+                ->filter(fn (PemesananDonor $item): bool => $this->jadwalSudahSelesai($item, $sekarangWib));
+        }
 
         if ($submittedCode !== null) {
             $normalizedCode = $this->normalizeCode($submittedCode);
@@ -54,7 +69,36 @@ class PetugasCheckinController extends Controller
             'lookupError' => $lookupError,
             'eligibilityMessage' => $eligibilityMessage,
             'canCheckIn' => $canCheckIn,
+            'pemesananTidakHadir' => $pemesananTidakHadir,
         ]);
+    }
+
+    public function markNoShow(Request $request, string $pemesanan): RedirectResponse
+    {
+        $this->authenticatedPetugas($request);
+
+        DB::transaction(function () use ($pemesanan): void {
+            $pemesananTerkunci = PemesananDonor::query()
+                ->whereKey($pemesanan)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $pemesananTerkunci->load('jadwalPelayanan');
+
+            if ($pemesananTerkunci->status_pemesanan !== 'TERJADWAL'
+                || $pemesananTerkunci->waktu_checkin !== null
+                || ! $this->jadwalSudahSelesai($pemesananTerkunci, CarbonImmutable::now('Asia/Jakarta'))) {
+                throw ValidationException::withMessages([
+                    'pemesanan' => 'Pemesanan ini belum memenuhi syarat untuk ditandai tidak hadir.',
+                ]);
+            }
+
+            $pemesananTerkunci->update(['status_pemesanan' => 'TIDAK_HADIR']);
+        });
+
+        return redirect()
+            ->route('petugas.check-in.index')
+            ->with('success', 'Pemesanan berhasil ditandai TIDAK_HADIR.');
     }
 
     public function store(Request $request): RedirectResponse
@@ -196,6 +240,26 @@ class PetugasCheckinController extends Controller
     {
         $sekarangWib = CarbonImmutable::now('Asia/Jakarta');
         $tanggalJadwal = $pemesanan->jadwalPelayanan->tanggal->toDateString();
+        $waktuSelesai = CarbonImmutable::parse(
+            $tanggalJadwal.' '.$pemesanan->jadwalPelayanan->jam_selesai,
+            'Asia/Jakarta'
+        );
+
+        return $sekarangWib->gt($waktuSelesai);
+    }
+
+    private function jadwalSudahSelesai(PemesananDonor $pemesanan, CarbonImmutable $sekarangWib): bool
+    {
+        $tanggalJadwal = $pemesanan->jadwalPelayanan->tanggal->toDateString();
+
+        if ($tanggalJadwal < $sekarangWib->toDateString()) {
+            return true;
+        }
+
+        if ($tanggalJadwal > $sekarangWib->toDateString()) {
+            return false;
+        }
+
         $waktuSelesai = CarbonImmutable::parse(
             $tanggalJadwal.' '.$pemesanan->jadwalPelayanan->jam_selesai,
             'Asia/Jakarta'

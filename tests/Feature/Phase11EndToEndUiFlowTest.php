@@ -192,26 +192,18 @@ class Phase11EndToEndUiFlowTest extends TestCase
         );
         $this->post(route('pendonor.kuesioner.store', $booking), [
             'answers' => [$question->id_pertanyaan => 'YA'],
-        ])->assertRedirect(route('pendonor.kuesioner.show', $booking));
+        ])->assertRedirect(route('pendonor.kode-checkin.show', $booking));
         $this->assertDatabaseHas('jawaban_kuesioner', [
             'id_pertanyaan' => $question->id_pertanyaan,
             'jawaban' => 'YA',
         ]);
 
-        $codePage = $this->get(route('pendonor.kode-checkin.show', $booking))->assertOk();
-        $this->assertBusinessForm(
-            $codePage,
-            route('pendonor.kode-checkin.generate', $booking),
-            []
-        );
-        $this->post(route('pendonor.kode-checkin.generate', $booking))
-            ->assertRedirect(route('pendonor.kode-checkin.show', $booking));
         $booking->refresh();
         $this->assertMatchesRegularExpression('/\AUDD-[0-9A-F]{12}\z/', $booking->kode_checkin);
         $this->get(route('pendonor.kode-checkin.show', $booking))
             ->assertOk()
             ->assertSee($booking->kode_checkin)
-            ->assertDontSee('action="'.route('pendonor.kode-checkin.generate', $booking).'"', false);
+            ->assertDontSee('Buat Kode Check-in');
         $this->post(route('logout'))->assertRedirect(route('login'));
 
         $this->post(route('login.authenticate'), [

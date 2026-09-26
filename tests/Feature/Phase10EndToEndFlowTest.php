@@ -118,13 +118,11 @@ class Phase10EndToEndFlowTest extends TestCase
             ->assertSee($question->teks_pertanyaan);
         $this->post(route('pendonor.kuesioner.store', $booking), [
             'answers' => [$question->id_pertanyaan => 'YA'],
-        ])->assertRedirect(route('pendonor.kuesioner.show', $booking));
+        ])->assertRedirect(route('pendonor.kode-checkin.show', $booking));
 
         $questionnaire = KuesionerPradonasi::query()->sole();
         $answer = JawabanKuesioner::query()->sole();
 
-        $this->post(route('pendonor.kode-checkin.generate', $booking))
-            ->assertRedirect(route('pendonor.kode-checkin.show', $booking));
         $booking->refresh();
         $this->assertMatchesRegularExpression('/\AUDD-[0-9A-F]{12}\z/', $booking->kode_checkin);
         $this->get(route('pendonor.kode-checkin.show', $booking))

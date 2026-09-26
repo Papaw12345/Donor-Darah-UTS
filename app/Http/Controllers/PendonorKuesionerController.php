@@ -6,6 +6,8 @@ use App\Models\JawabanKuesioner;
 use App\Models\KuesionerPradonasi;
 use App\Models\PemesananDonor;
 use App\Models\PertanyaanKuesioner;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +16,8 @@ use Illuminate\View\View;
 
 class PendonorKuesionerController extends Controller
 {
+    private const MAX_CODE_ATTEMPTS = 10;
+
     public function show(Request $request, string $pemesanan): View
     {
         $pendonor = $request->user()
@@ -87,6 +91,10 @@ class PendonorKuesionerController extends Controller
                 ->where('id_pemesanan', $pemesananTerkunci->id_pemesanan)
                 ->exists()) {
                 $this->reject('answers', 'Kuesioner untuk pemesanan ini sudah pernah dikirim.');
+            }
+
+            if ($pemesananTerkunci->kode_checkin !== null) {
+                $this->reject('answers', 'Pemesanan ini sudah memiliki kode check-in.');
             }
 
             $pemesananTerkunci->load('jadwalPelayanan');
@@ -186,11 +194,31 @@ class PendonorKuesionerController extends Controller
                     'jawaban' => $jawabanTervalidasi[$idPertanyaan],
                 ]);
             }
+
+            for ($attempt = 1; $attempt <= self::MAX_CODE_ATTEMPTS; $attempt++) {
+                $candidate = 'UDD-'.strtoupper(bin2hex(random_bytes(6)));
+
+                if (PemesananDonor::query()->where('kode_checkin', $candidate)->exists()) {
+                    continue;
+                }
+
+                try {
+                    $pemesananTerkunci->update(['kode_checkin' => $candidate]);
+
+                    return;
+                } catch (QueryException $exception) {
+                    if (! $this->isCodeCollision($exception)) {
+                        throw $exception;
+                    }
+                }
+            }
+
+            $this->reject('answers', 'Kode check-in belum dapat dibuat. Silakan coba lagi.');
         });
 
         return redirect()
-            ->route('pendonor.kuesioner.show', $pemesanan)
-            ->with('success', 'Kuesioner pradonasi berhasil disimpan.');
+            ->route('pendonor.kode-checkin.show', $pemesanan)
+            ->with('success', 'Kuesioner dan kode check-in berhasil disimpan.');
     }
 
     private function newQuestionnaireUnavailableReason(PemesananDonor $pemesanan): ?string
@@ -203,11 +231,32 @@ class PendonorKuesionerController extends Controller
             return 'Kuesioner tidak dapat diisi karena tanggal jadwal sudah lewat.';
         }
 
+        $sekarangWib = CarbonImmutable::now('Asia/Jakarta');
+        $tanggalJadwal = $pemesanan->jadwalPelayanan->tanggal->toDateString();
+        $waktuSelesai = CarbonImmutable::parse(
+            $tanggalJadwal.' '.$pemesanan->jadwalPelayanan->jam_selesai,
+            'Asia/Jakarta'
+        );
+
+        if ($tanggalJadwal === $sekarangWib->toDateString() && $sekarangWib->gt($waktuSelesai)) {
+            return 'Kuesioner tidak dapat diisi karena waktu pelayanan sudah berakhir.';
+        }
+
         if ($pemesanan->jadwalPelayanan->status_jadwal === 'DIBATALKAN') {
             return 'Kuesioner tidak dapat diisi karena jadwal telah dibatalkan.';
         }
 
         return null;
+    }
+
+    private function isCodeCollision(QueryException $exception): bool
+    {
+        $sqlState = (string) ($exception->errorInfo[0] ?? $exception->getCode());
+        $driverCode = (int) ($exception->errorInfo[1] ?? 0);
+        $message = strtolower($exception->getMessage());
+
+        return ($sqlState === '23000' || $driverCode === 1062 || $driverCode === 19)
+            && str_contains($message, 'kode_checkin');
     }
 
     private function normalizeSubmittedAnswers(array $answers): array

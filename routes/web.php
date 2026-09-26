@@ -105,10 +105,6 @@ Route::middleware(['auth', 'active'])->group(function () {
         ->middleware('role:PENDONOR')
         ->name('pendonor.kode-checkin.show');
 
-    Route::post('/pendonor/pemesanan/{pemesanan}/kode-checkin', [PendonorKodeCheckinController::class, 'generate'])
-        ->middleware('role:PENDONOR')
-        ->name('pendonor.kode-checkin.generate');
-
     Route::get('/petugas', [PetugasDashboardController::class, 'index'])
         ->middleware('role:PETUGAS')
         ->name('petugas.home');
@@ -128,6 +124,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/petugas/check-in', [PetugasCheckinController::class, 'store'])
         ->middleware('role:PETUGAS')
         ->name('petugas.check-in.store');
+
+    Route::patch('/petugas/pemesanan/{pemesanan}/tidak-hadir', [PetugasCheckinController::class, 'markNoShow'])
+        ->middleware('role:PETUGAS')
+        ->name('petugas.pemesanan.tidak-hadir');
 
     Route::get('/petugas/pemesanan/{pemesanan}/kuesioner', [PetugasKuesionerController::class, 'show'])
         ->middleware('role:PETUGAS')

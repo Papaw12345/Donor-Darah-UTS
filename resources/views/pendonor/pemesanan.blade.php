@@ -40,7 +40,7 @@
                                         <div class="table-actions">
                                             <a class="button button-secondary button-small" href="{{ route('pendonor.kuesioner.show', $item) }}">Kuesioner Pradonasi</a>
                                             <a class="button button-secondary button-small" href="{{ route('pendonor.kode-checkin.show', $item) }}">Kode Check-in</a>
-                                            @if ($item->status_pemesanan === 'TERJADWAL' && $item->jadwalPelayanan->tanggal->gte(today('Asia/Jakarta')))
+                                            @if (in_array($item->id_pemesanan, $bolehDibatalkan, true))
                                                 <form class="inline-form" method="POST" action="{{ route('pendonor.pemesanan.cancel', $item) }}">@csrf @method('PATCH')<button class="button button-danger button-small" type="submit">Batalkan</button></form>
                                             @else
                                                 <span class="table-no-action">-</span>

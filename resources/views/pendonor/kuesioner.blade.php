@@ -32,6 +32,9 @@
                         <div class="answer-item"><dt>{{ $jawaban->pertanyaanKuesioner->teks_pertanyaan }}</dt><dd>{{ $jawaban->jawaban }}</dd></div>
                     @endforeach
                 </dl>
+                @if ($pemesanan->kode_checkin !== null)
+                    <a class="button button-secondary" href="{{ route('pendonor.kode-checkin.show', $pemesanan) }}">Lihat Kode Check-in</a>
+                @endif
             </section>
         @elseif ($pesanTidakTersedia)
             <div class="empty-state">{{ $pesanTidakTersedia }}</div>
