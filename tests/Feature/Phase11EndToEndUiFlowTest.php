@@ -306,16 +306,18 @@ class Phase11EndToEndUiFlowTest extends TestCase
         $this->assertBusinessForm(
             $unitPage,
             route('petugas.unit-komponen.store', $donation),
-            ['nomor_unit', 'id_jenis_komponen', 'id_golongan_darah', 'tanggal_pembuatan', 'tanggal_kedaluwarsa']
+            ['id_jenis_komponen', 'tanggal_pembuatan', 'tanggal_kedaluwarsa']
         );
+        $unitPage->assertDontSee('name="nomor_unit"', false)
+            ->assertDontSee('name="id_golongan_darah"', false);
         $this->post(route('petugas.unit-komponen.store', $donation), [
-            'nomor_unit' => 'UNIT-P11-0001',
             'id_jenis_komponen' => $component->id_jenis_komponen,
-            'id_golongan_darah' => $bloodGroup->id_golongan_darah,
             'tanggal_pembuatan' => '2026-10-15',
             'tanggal_kedaluwarsa' => '2026-10-20',
         ])->assertRedirect(route('petugas.unit-komponen.show', $donation));
-        $unit = UnitKomponenDarah::query()->where('nomor_unit', 'UNIT-P11-0001')->sole();
+        $unit = UnitKomponenDarah::query()->sole();
+        $this->assertSame('UNT-'.str_pad((string) $unit->id_unit, 6, '0', STR_PAD_LEFT), $unit->nomor_unit);
+        $this->assertSame($bloodGroup->id_golongan_darah, $unit->id_golongan_darah);
         $this->assertSame('MENUNGGU_PELULUSAN', $unit->status_unit);
         $this->assertNull($unit->id_petugas_pelulus);
         $this->assertNull($unit->waktu_pelulusan);

@@ -176,13 +176,13 @@ class Phase10EndToEndFlowTest extends TestCase
 
         $this->get(route('petugas.unit-komponen.show', $donation))->assertOk();
         $this->post(route('petugas.unit-komponen.store', $donation), [
-            'nomor_unit' => 'UNIT-P10-0001',
             'id_jenis_komponen' => $component->id_jenis_komponen,
-            'id_golongan_darah' => $bloodGroup->id_golongan_darah,
             'tanggal_pembuatan' => '2026-10-15',
             'tanggal_kedaluwarsa' => '2026-10-20',
         ])->assertRedirect(route('petugas.unit-komponen.show', $donation));
         $unit = UnitKomponenDarah::query()->sole();
+        $this->assertSame('UNT-'.str_pad((string) $unit->id_unit, 6, '0', STR_PAD_LEFT), $unit->nomor_unit);
+        $this->assertSame($bloodGroup->id_golongan_darah, $unit->id_golongan_darah);
         $this->assertSame('MENUNGGU_PELULUSAN', $unit->status_unit);
 
         $this->get(route('petugas.persediaan.index'))

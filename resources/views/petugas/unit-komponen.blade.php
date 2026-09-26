@@ -42,6 +42,11 @@
                     <dt>Nomor Donor</dt>
                     <dd>{{ $penyumbangan->seleksiDonor->pemesananDonor->pendonor->nomor_donor ?? 'Belum tersedia' }}</dd>
                 </div>
+
+                <div class="identity-item">
+                    <dt>Golongan Darah Pendonor</dt>
+                    <dd>@if ($penyumbangan->seleksiDonor->pemesananDonor->pendonor->golonganDarah !== null){{ $penyumbangan->seleksiDonor->pemesananDonor->pendonor->golonganDarah->abo }} {{ $penyumbangan->seleksiDonor->pemesananDonor->pendonor->golonganDarah->rhesus }}@else Belum terkonfirmasi @endif</dd>
+                </div>
             </dl>
         </section>
 
@@ -117,17 +122,12 @@
         </section>
 
         <section class="page-section" aria-labelledby="form-unit">
-            <h2 class="section-title" id="form-unit">Form Unit Komponen</h2>
+            <h2 class="section-title" id="form-unit">Pencatatan Unit Hasil Pengolahan</h2>
 
             <form class="form-panel" method="POST" action="{{ route('petugas.unit-komponen.store', $penyumbangan) }}">
                 @csrf
 
                 <div class="form-grid">
-                    <div class="form-field">
-                        <label for="nomor_unit">Nomor unit</label>
-                        <input id="nomor_unit" name="nomor_unit" type="text" value="{{ old('nomor_unit') }}" required>
-                    </div>
-
                     <div class="form-field">
                         <label for="id_jenis_komponen">Jenis komponen</label>
                         <select id="id_jenis_komponen" name="id_jenis_komponen" required>
@@ -135,18 +135,6 @@
                             @foreach ($jenisKomponen as $jenis)
                                 <option value="{{ $jenis->id_jenis_komponen }}" @selected((string) old('id_jenis_komponen') === (string) $jenis->id_jenis_komponen)>
                                     {{ $jenis->kode_komponen }} - {{ $jenis->nama_komponen }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="id_golongan_darah">Golongan darah</label>
-                        <select id="id_golongan_darah" name="id_golongan_darah" required>
-                            <option value="">Pilih golongan</option>
-                            @foreach ($golonganDarah as $golongan)
-                                <option value="{{ $golongan->id_golongan_darah }}" @selected((string) old('id_golongan_darah') === (string) $golongan->id_golongan_darah)>
-                                    {{ $golongan->abo }} {{ $golongan->rhesus }}
                                 </option>
                             @endforeach
                         </select>

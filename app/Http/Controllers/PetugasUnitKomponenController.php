@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\GolonganDarah;
 use App\Models\JenisKomponenDarah;
+use App\Models\Pendonor;
 use App\Models\Penyumbangan;
 use App\Models\Petugas;
 use App\Models\UnitKomponenDarah;
@@ -23,7 +24,7 @@ class PetugasUnitKomponenController extends Controller
         $this->assertSuccessfulDonation($penyumbangan);
 
         $penyumbangan->load([
-            'seleksiDonor.pemesananDonor.pendonor',
+            'seleksiDonor.pemesananDonor.pendonor.golonganDarah',
             'unitKomponenDarah' => fn ($query) => $query->with([
                 'jenisKomponenDarah', 'golonganDarah', 'petugasPencatat',
             ])->orderBy('id_unit'),
@@ -37,20 +38,24 @@ class PetugasUnitKomponenController extends Controller
                 ->whereIn('kode_komponen', self::COMPONENT_CODES)
                 ->orderBy('kode_komponen')
                 ->get(),
-            'golonganDarah' => GolonganDarah::query()->orderBy('abo')->orderBy('rhesus')->get(),
         ]);
     }
 
     public function store(Request $request, Penyumbangan $penyumbangan): RedirectResponse
     {
         $petugas = $this->authenticatedPetugas($request);
-        $request->merge(['nomor_unit' => trim((string) $request->input('nomor_unit'))]);
+        foreach (['nomor_unit', 'id_golongan_darah'] as $serverOwnedField) {
+            if ($request->exists($serverOwnedField)) {
+                throw ValidationException::withMessages([
+                    $serverOwnedField => 'Field ini ditentukan oleh server dan tidak boleh dikirim.',
+                ]);
+            }
+        }
+
         $validated = $request->validate([
-            'nomor_unit' => ['required', 'string', 'max:50'],
             'id_jenis_komponen' => ['required', 'integer'],
-            'id_golongan_darah' => ['required', 'integer'],
             'tanggal_pembuatan' => ['required', 'date_format:Y-m-d'],
-            'tanggal_kedaluwarsa' => ['required', 'date_format:Y-m-d'],
+            'tanggal_kedaluwarsa' => ['required', 'date_format:Y-m-d', 'after_or_equal:tanggal_pembuatan'],
         ]);
 
         DB::transaction(function () use ($penyumbangan, $petugas, $validated): void {
@@ -58,23 +63,38 @@ class PetugasUnitKomponenController extends Controller
                 ->lockForUpdate()->firstOrFail();
             $this->assertSuccessfulDonation($lockedDonation);
 
-            if (UnitKomponenDarah::query()->where('nomor_unit', $validated['nomor_unit'])->exists()) {
-                throw ValidationException::withMessages(['nomor_unit' => 'Nomor unit sudah digunakan.']);
-            }
-
             $jenis = JenisKomponenDarah::query()->whereKey($validated['id_jenis_komponen'])->first();
             if ($jenis === null || ! in_array($jenis->kode_komponen, self::COMPONENT_CODES, true)) {
                 throw ValidationException::withMessages(['id_jenis_komponen' => 'Jenis komponen tidak valid.']);
             }
-            if (! GolonganDarah::query()->whereKey($validated['id_golongan_darah'])->exists()) {
-                throw ValidationException::withMessages(['id_golongan_darah' => 'Golongan darah tidak valid.']);
+
+            if ($validated['tanggal_kedaluwarsa'] < $validated['tanggal_pembuatan']) {
+                throw ValidationException::withMessages([
+                    'tanggal_kedaluwarsa' => 'Tanggal kedaluwarsa tidak boleh sebelum tanggal pembuatan.',
+                ]);
             }
 
-            UnitKomponenDarah::create([
-                'nomor_unit' => $validated['nomor_unit'],
+            $sourceBooking = $lockedDonation->seleksiDonor?->pemesananDonor;
+            abort_if($sourceBooking === null, 409, 'Rantai Pendonor sumber penyumbangan tidak tersedia.');
+
+            $sourceDonor = Pendonor::query()->whereKey($sourceBooking->id_pendonor)
+                ->lockForUpdate()->first();
+            abort_if(
+                $sourceDonor === null || $sourceDonor->id_golongan_darah === null,
+                409,
+                'Golongan darah Pendonor sumber belum terkonfirmasi.'
+            );
+            abort_unless(
+                GolonganDarah::query()->whereKey($sourceDonor->id_golongan_darah)->exists(),
+                409,
+                'Master golongan darah Pendonor sumber tidak tersedia.'
+            );
+
+            $unit = UnitKomponenDarah::create([
+                'nomor_unit' => 'TMP-'.strtoupper(bin2hex(random_bytes(16))),
                 'id_penyumbangan' => $lockedDonation->id_penyumbangan,
                 'id_jenis_komponen' => $jenis->id_jenis_komponen,
-                'id_golongan_darah' => $validated['id_golongan_darah'],
+                'id_golongan_darah' => $sourceDonor->id_golongan_darah,
                 'id_petugas_pencatat' => $petugas->id_petugas,
                 'id_petugas_pelulus' => null,
                 'tanggal_pembuatan' => $validated['tanggal_pembuatan'],
@@ -83,6 +103,10 @@ class PetugasUnitKomponenController extends Controller
                 'status_unit' => 'MENUNGGU_PELULUSAN',
                 'catatan_pelulusan' => null,
                 'waktu_distribusi' => null,
+            ]);
+
+            $unit->update([
+                'nomor_unit' => 'UNT-'.str_pad((string) $unit->id_unit, 6, '0', STR_PAD_LEFT),
             ]);
         });
 
