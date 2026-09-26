@@ -16,6 +16,22 @@ use Illuminate\View\View;
 
 class PetugasSeleksiController extends Controller
 {
+    public function index(Request $request): View
+    {
+        $petugas = $this->authenticatedPetugas($request);
+        $pemesananMenunggu = PemesananDonor::query()
+            ->with(['pendonor', 'jadwalPelayanan'])
+            ->where('status_pemesanan', 'CHECK_IN')
+            ->whereNotNull('waktu_checkin')
+            ->whereHas('kuesionerPradonasi', fn ($query) => $query->whereHas('jawabanKuesioner'))
+            ->whereDoesntHave('seleksiDonor')
+            ->orderBy('waktu_checkin')
+            ->orderBy('id_pemesanan')
+            ->get();
+
+        return view('petugas.seleksi-index', compact('petugas', 'pemesananMenunggu'));
+    }
+
     public function show(Request $request, PemesananDonor $pemesanan): View
     {
         $petugas = $this->authenticatedPetugas($request);

@@ -574,12 +574,17 @@ class Phase11EndToEndUiFlowTest extends TestCase
     private function assertPetugasNavigation(TestResponse $response): void
     {
         $this->assertSharedLayout($response);
+        $response->assertSee('Operasional')->assertSee('Monitoring');
         $this->assertNavigationRoutes($response, [
             'petugas.home',
-            'petugas.jadwal.index',
             'petugas.check-in.index',
+            'petugas.seleksi.index',
+            'petugas.penyumbangan.index',
+            'petugas.unit-komponen.index',
             'petugas.pelulusan.index',
             'petugas.distribusi.index',
+            'petugas.jadwal.index',
+            'petugas.riwayat-pelayanan.index',
             'petugas.persediaan.index',
             'petugas.pemanggilan.index',
         ]);

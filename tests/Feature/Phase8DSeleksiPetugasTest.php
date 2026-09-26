@@ -623,8 +623,8 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->assertSee('Seleksi Donor')
             ->assertDontSee('Lihat Seleksi')
             ->assertDontSee('name="berat_badan"', false)
-            ->assertDontSee('Penyumbangan')
-            ->assertDontSee('Unit Komponen')
+            ->assertDontSee('Catat Penyumbangan')
+            ->assertDontSee('Kelola Unit')
             ->assertDontSee('/petugas/penyumbangan/', false);
 
         $this->assertSame(1, substr_count($questionnaireBefore->getContent(), '<form'));
@@ -634,11 +634,10 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->assertOk()
             ->assertSee(route('petugas.kuesioner.show', $booking), false)
             ->assertSee('Kembali ke Kuesioner')
-            ->assertDontSee('Penyumbangan')
             ->assertDontSee('Catat Penyumbangan')
             ->assertDontSee('BERHASIL')
             ->assertDontSee('GAGAL')
-            ->assertDontSee('Unit Komponen')
+            ->assertDontSee('Kelola Unit')
             ->assertDontSee('Pemberitahuan');
 
         $this->assertSame(2, substr_count($selectionPage->getContent(), '<form'));
@@ -657,7 +656,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->assertSee(route('petugas.seleksi.show', $booking), false)
             ->assertSee('Lihat Seleksi')
             ->assertDontSee('Simpan Seleksi')
-            ->assertDontSee('Penyumbangan');
+            ->assertDontSee('Catat Penyumbangan');
 
         $this->assertSame(1, substr_count($questionnaireAfter->getContent(), '<form'));
 
@@ -666,7 +665,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->assertOk()
             ->assertSee('Seleksi Tersimpan')
             ->assertDontSee('Simpan Seleksi')
-            ->assertDontSee('Penyumbangan');
+            ->assertDontSee('Catat Penyumbangan');
 
         $this->assertSame(1, substr_count($existingPage->getContent(), '<form'));
         $this->assertNoDownstreamRows();

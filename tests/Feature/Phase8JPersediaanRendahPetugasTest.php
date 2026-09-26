@@ -320,7 +320,6 @@ class Phase8JPersediaanRendahPetugasTest extends TestCase
             ->get(route('petugas.persediaan-rendah.index'))
             ->assertOk()
             ->assertSee(route('petugas.home'), false)
-            ->assertDontSee('Pemanggilan Pendonor')
             ->assertDontSee('Kirim Pemberitahuan')
             ->assertDontSee('Buat Pemberitahuan')
             ->assertDontSee('KEDALUWARSA');

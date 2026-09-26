@@ -18,6 +18,20 @@ class PetugasUnitKomponenController extends Controller
 {
     private const COMPONENT_CODES = ['WB', 'PRC', 'TC', 'FFP'];
 
+    public function index(Request $request): View
+    {
+        $petugas = $this->authenticatedPetugas($request);
+        $penyumbanganBerhasil = Penyumbangan::query()
+            ->with(['seleksiDonor.pemesananDonor.pendonor'])
+            ->withCount('unitKomponenDarah')
+            ->where('hasil_penyumbangan', 'BERHASIL')
+            ->orderBy('waktu_pengambilan')
+            ->orderBy('id_penyumbangan')
+            ->get();
+
+        return view('petugas.unit-komponen-index', compact('petugas', 'penyumbanganBerhasil'));
+    }
+
     public function show(Request $request, Penyumbangan $penyumbangan): View
     {
         $petugas = $this->authenticatedPetugas($request);

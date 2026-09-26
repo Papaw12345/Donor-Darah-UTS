@@ -8,7 +8,7 @@
             </span>
         </a>
 
-        <nav class="nav-actions" aria-label="Navigasi utama">
+        <nav class="nav-actions {{ auth()->check() && auth()->user()->peran === 'PETUGAS' ? 'nav-actions-petugas' : '' }}" aria-label="Navigasi utama">
             @guest
                 <a
                     class="nav-link {{ request()->routeIs('login') ? 'is-active' : '' }}"
@@ -29,14 +29,27 @@
                     <a class="nav-link {{ request()->routeIs('pendonor.pemberitahuan.*') ? 'is-active' : '' }}" href="{{ route('pendonor.pemberitahuan.index') }}">Pemberitahuan</a>
                     <a class="nav-link {{ request()->routeIs('pendonor.profil.*') ? 'is-active' : '' }}" href="{{ route('pendonor.profil.show') }}">Profil</a>
                 @elseif (auth()->user()->peran === 'PETUGAS')
-                    <a class="nav-link {{ request()->routeIs('petugas.home') ? 'is-active' : '' }}" href="{{ route('petugas.home') }}">Dashboard</a>
-                    <a class="nav-link {{ request()->routeIs('petugas.jadwal.*') ? 'is-active' : '' }}" href="{{ route('petugas.jadwal.index') }}">Jadwal</a>
-                    <a class="nav-link {{ request()->routeIs('petugas.check-in.*', 'petugas.kuesioner.*', 'petugas.seleksi.*', 'petugas.penyumbangan.*') ? 'is-active' : '' }}" href="{{ route('petugas.check-in.index') }}">Check-in</a>
-                    <a class="nav-link {{ request()->routeIs('petugas.riwayat-pelayanan.*', 'petugas.unit-komponen.*') ? 'is-active' : '' }}" href="{{ route('petugas.riwayat-pelayanan.index') }}">Riwayat</a>
-                    <a class="nav-link {{ request()->routeIs('petugas.pelulusan.*') ? 'is-active' : '' }}" href="{{ route('petugas.pelulusan.index') }}">Pelulusan</a>
-                    <a class="nav-link {{ request()->routeIs('petugas.distribusi.*') ? 'is-active' : '' }}" href="{{ route('petugas.distribusi.index') }}">Distribusi</a>
-                    <a class="nav-link {{ request()->routeIs('petugas.persediaan.*', 'petugas.persediaan-rendah.*') ? 'is-active' : '' }}" href="{{ route('petugas.persediaan.index') }}">Persediaan</a>
-                    <a class="nav-link {{ request()->routeIs('petugas.pemanggilan.*', 'petugas.pemberitahuan.*') ? 'is-active' : '' }}" href="{{ route('petugas.pemanggilan.index') }}">Pemanggilan</a>
+                    <div class="nav-group" aria-label="Operasional">
+                        <span class="nav-group-label">Operasional</span>
+                        <div class="nav-group-links">
+                            <a class="nav-link {{ request()->routeIs('petugas.home') ? 'is-active' : '' }}" href="{{ route('petugas.home') }}">Dashboard</a>
+                            <a class="nav-link {{ request()->routeIs('petugas.check-in.*', 'petugas.kuesioner.*') ? 'is-active' : '' }}" href="{{ route('petugas.check-in.index') }}">Check-in</a>
+                            <a class="nav-link {{ request()->routeIs('petugas.seleksi.*') ? 'is-active' : '' }}" href="{{ route('petugas.seleksi.index') }}">Seleksi Donor</a>
+                            <a class="nav-link {{ request()->routeIs('petugas.penyumbangan.*') ? 'is-active' : '' }}" href="{{ route('petugas.penyumbangan.index') }}">Penyumbangan</a>
+                            <a class="nav-link {{ request()->routeIs('petugas.unit-komponen.*') ? 'is-active' : '' }}" href="{{ route('petugas.unit-komponen.index') }}">Unit Komponen</a>
+                            <a class="nav-link {{ request()->routeIs('petugas.pelulusan.*') ? 'is-active' : '' }}" href="{{ route('petugas.pelulusan.index') }}">Pelulusan</a>
+                            <a class="nav-link {{ request()->routeIs('petugas.distribusi.*') ? 'is-active' : '' }}" href="{{ route('petugas.distribusi.index') }}">Distribusi</a>
+                        </div>
+                    </div>
+                    <div class="nav-group" aria-label="Monitoring">
+                        <span class="nav-group-label">Monitoring</span>
+                        <div class="nav-group-links">
+                            <a class="nav-link {{ request()->routeIs('petugas.jadwal.*') ? 'is-active' : '' }}" href="{{ route('petugas.jadwal.index') }}">Jadwal Pelayanan</a>
+                            <a class="nav-link {{ request()->routeIs('petugas.riwayat-pelayanan.*') ? 'is-active' : '' }}" href="{{ route('petugas.riwayat-pelayanan.index') }}">Riwayat Pelayanan</a>
+                            <a class="nav-link {{ request()->routeIs('petugas.persediaan.*', 'petugas.persediaan-rendah.*') ? 'is-active' : '' }}" href="{{ route('petugas.persediaan.index') }}">Persediaan</a>
+                            <a class="nav-link {{ request()->routeIs('petugas.pemanggilan.*', 'petugas.pemberitahuan.*') ? 'is-active' : '' }}" href="{{ route('petugas.pemanggilan.index') }}">Pemanggilan Pendonor</a>
+                        </div>
+                    </div>
                 @elseif (auth()->user()->peran === 'ADMIN')
                     <a class="nav-link {{ request()->routeIs('admin.home') ? 'is-active' : '' }}" href="{{ route('admin.home') }}">Dashboard</a>
                     <a class="nav-link {{ request()->routeIs('admin.petugas.*') ? 'is-active' : '' }}" href="{{ route('admin.petugas.index') }}">Petugas</a>

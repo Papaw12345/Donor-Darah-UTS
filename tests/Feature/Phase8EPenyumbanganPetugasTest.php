@@ -320,7 +320,7 @@ class Phase8EPenyumbanganPetugasTest extends TestCase
             ->assertOk()
             ->assertSee('Catat Penyumbangan')
             ->assertSee(route('petugas.penyumbangan.show', $layak), false)
-            ->assertDontSee('Unit Komponen')
+            ->assertDontSee('Kelola Unit')
             ->assertDontSee('Pemberitahuan');
 
         Penyumbangan::create([

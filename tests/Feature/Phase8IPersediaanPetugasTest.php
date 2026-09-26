@@ -265,7 +265,6 @@ class Phase8IPersediaanPetugasTest extends TestCase
             ->assertOk()
             ->assertDontSee('Jumlah Minimum')
             ->assertDontSee('Persediaan Rendah')
-            ->assertDontSee('Pemanggilan Pendonor')
             ->assertDontSee('Kirim Pemberitahuan')
             ->assertDontSee('Buat Pemberitahuan')
             ->assertDontSee('Tambah Stok')

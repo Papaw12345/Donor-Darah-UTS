@@ -461,8 +461,8 @@ class Phase8BCheckinPetugasTest extends TestCase
             ->assertOk()
             ->assertSee(route('petugas.check-in.index'), false)
             ->assertSee('Check-in')
-            ->assertDontSee('Seleksi Donor')
-            ->assertDontSee('Penyumbangan')
+            ->assertDontSee('Simpan Seleksi')
+            ->assertDontSee('Catat Penyumbangan')
             ->assertDontSee('Kirim Pemberitahuan');
 
         $eligibleResponse = $this->actingAs($petugas->akun)
@@ -471,9 +471,9 @@ class Phase8BCheckinPetugasTest extends TestCase
             ->assertSee(route('petugas.check-in.store'), false)
             ->assertSee('Konfirmasi Check-in')
             ->assertDontSee('Jawaban Kuesioner')
-            ->assertDontSee('Seleksi Donor')
-            ->assertDontSee('Penyumbangan')
-            ->assertDontSee('Unit Komponen')
+            ->assertDontSee('Simpan Seleksi')
+            ->assertDontSee('Catat Penyumbangan')
+            ->assertDontSee('Kelola Unit')
             ->assertDontSee('Kirim Pemberitahuan');
 
         $this->assertSame(3, substr_count($eligibleResponse->getContent(), '<form'));

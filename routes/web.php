@@ -133,6 +133,10 @@ Route::middleware(['auth', 'active'])->group(function () {
         ->middleware('role:PETUGAS')
         ->name('petugas.kuesioner.show');
 
+    Route::get('/petugas/seleksi', [PetugasSeleksiController::class, 'index'])
+        ->middleware('role:PETUGAS')
+        ->name('petugas.seleksi.index');
+
     Route::get('/petugas/pemesanan/{pemesanan}/seleksi', [PetugasSeleksiController::class, 'show'])
         ->middleware('role:PETUGAS')
         ->name('petugas.seleksi.show');
@@ -141,6 +145,10 @@ Route::middleware(['auth', 'active'])->group(function () {
         ->middleware('role:PETUGAS')
         ->name('petugas.seleksi.store');
 
+    Route::get('/petugas/penyumbangan', [PetugasPenyumbanganController::class, 'index'])
+        ->middleware('role:PETUGAS')
+        ->name('petugas.penyumbangan.index');
+
     Route::get('/petugas/seleksi/{seleksi}/penyumbangan', [PetugasPenyumbanganController::class, 'show'])
         ->middleware('role:PETUGAS')
         ->name('petugas.penyumbangan.show');
@@ -148,6 +156,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/petugas/seleksi/{seleksi}/penyumbangan', [PetugasPenyumbanganController::class, 'store'])
         ->middleware('role:PETUGAS')
         ->name('petugas.penyumbangan.store');
+
+    Route::get('/petugas/unit-komponen', [PetugasUnitKomponenController::class, 'index'])
+        ->middleware('role:PETUGAS')
+        ->name('petugas.unit-komponen.index');
 
     Route::get('/petugas/penyumbangan/{penyumbangan}/unit-komponen', [PetugasUnitKomponenController::class, 'show'])
         ->middleware('role:PETUGAS')

@@ -362,7 +362,7 @@ class Phase8CKuesionerPetugasTest extends TestCase
             ->assertDontSee('LAYAK')
             ->assertDontSee('DITUNDA')
             ->assertDontSee('DITOLAK')
-            ->assertDontSee('Penyumbangan')
+            ->assertDontSee('Catat Penyumbangan')
             ->assertDontSee('/petugas/penyumbangan/', false)
             ->assertDontSee('Kirim Pemberitahuan')
             ->assertDontSee('Edit Kuesioner')

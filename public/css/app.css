@@ -571,6 +571,34 @@ img {
     gap: 0.35rem;
 }
 
+.nav-actions-petugas {
+    flex-basis: 100%;
+    justify-content: flex-start;
+}
+
+.nav-group {
+    display: flex;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.nav-group-label {
+    min-width: 7rem;
+    color: var(--color-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.nav-group-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.2rem;
+}
+
 .nav-link {
     padding: 0.55rem 0.65rem;
     color: var(--color-text);
