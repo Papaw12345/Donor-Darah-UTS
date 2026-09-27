@@ -797,9 +797,9 @@ Bagian ini mencatat rencana/keputusan lama, bukan bukti implementasi requirement
 
 ---
 
-# PHASE 12 - REMEDIASI REQUIREMENT HASIL EVALUASI (BELUM DIIMPLEMENTASIKAN)
+# PHASE 12 - REMEDIASI REQUIREMENT HASIL EVALUASI
 
-Phase ini adalah pekerjaan koreksi mendatang. Dokumen ini tidak menyatakan source code, test, UI, atau database sudah memenuhi keputusan baru. Implementasi dilakukan dalam task terpisah setelah review dokumen.
+[IMPLEMENTED STATE] Requirement Phase 12 pada bagian ini sudah diimplementasikan dan telah melewati targeted test Phase 12, regression end-to-end terkait, full test suite, Blade compile, dan final functional audit. Bagian ini tetap mendokumentasikan scope remediation; requirement utama tetap mengikuti docs 03 dan 04.
 
 1. Registrasi/Admin Petugas/Unit: terbitkan `DNR-000001`, `PTG-000001`, `UNT-000001` server-side dari PK masing-masing, immutable, tanpa input pengguna atau `MAX()+1`; validasi NIK 16 digit, tanggal lahir tidak di masa depan, usia registrasi >= 17, dan recheck usia booking terhadap tanggal jadwal. `kode_checkin` tetap acak `UDD-` + 12 hex uppercase, bukan PK.
 2. Submit kuesioner: dalam satu transaction buat kuesioner, seluruh jawaban, dan satu kode unik; arahkan ke halaman kode dan pertahankan kode untuk akses berikutnya. Hapus ketergantungan pada POST generate terpisah. Check-in tetap aksi Petugas sendiri.

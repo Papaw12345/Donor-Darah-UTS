@@ -363,7 +363,7 @@ Petugas menangani proses pelayanan donor setelah Pendonor datang ke UDD serta me
 
 Navigasi Petugas untuk operasional: Dashboard, Check-in, Seleksi Donor, Penyumbangan, Unit Komponen, Pelulusan, dan Distribusi. Untuk monitoring: Jadwal Pelayanan, Riwayat Pelayanan, Persediaan, dan Pemanggilan Pendonor. Logout tetap tersedia. Kuesioner Petugas dapat dibuka sebagai konteks Seleksi; tidak perlu menjadi work queue utama. Persediaan Rendah tersedia melalui Persediaan/Dashboard.
 
-[SUPERSEDED] Navigasi lama yang hanya menempatkan Unit Komponen sebagai subflow penyumbangan diganti oleh work queue Unit Komponen. Semua item yang terlihat harus menuju halaman/aksi yang benar-benar berfungsi; fase remediasi pada `05_IMPLEMENTATION_PLAN.md` belum mengklaim UI ini sudah tersedia.
+[SUPERSEDED] Navigasi lama yang hanya menempatkan Unit Komponen sebagai subflow penyumbangan diganti oleh work queue Unit Komponen. Semua item yang terlihat harus menuju halaman/aksi yang benar-benar berfungsi. [IMPLEMENTED STATE] Work queue dan navigasi Phase 12 ini sudah tersedia pada implementasi saat ini.
 
 Semua akun dengan role tunggal `PETUGAS` dapat melanjutkan workflow UDD yang valid, termasuk pekerjaan yang dimulai Petugas lain. Tidak ada subrole dokter/lab/check-in/pelulus. Work queue mendahulukan pekerjaan yang paling lama menunggu, dengan urutan deterministik berikut:
 
