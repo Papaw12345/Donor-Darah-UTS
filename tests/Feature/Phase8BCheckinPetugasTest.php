@@ -146,7 +146,7 @@ class Phase8BCheckinPetugasTest extends TestCase
             ->assertSee('DNR-001')
             ->assertSee('2026-09-16')
             ->assertSee('06:00')
-            ->assertSee('DIBUKA')
+            ->assertSee('Dibuka')
             ->assertSee('Terjadwal')
             ->assertSee($booking->kode_checkin)
             ->assertSee('Tersedia')
@@ -402,14 +402,14 @@ class Phase8BCheckinPetugasTest extends TestCase
                 ->assertRedirect(route('petugas.check-in.index', [
                     'kode_checkin' => $booking->kode_checkin,
                 ]))
-                ->assertSessionHas('success', 'Pemesanan ini sudah berhasil check-in.');
+                ->assertSessionHas('success', 'Pendonor ini sudah berhasil check-in.');
         }
 
         $beforeGet = $booking->fresh()->getAttributes();
         $this->actingAs($secondPetugas->akun)
             ->get(route('petugas.check-in.index', ['kode_checkin' => $booking->kode_checkin]))
             ->assertOk()
-            ->assertSee('Pemesanan ini sudah berhasil check-in.')
+            ->assertSee('Pendonor ini sudah berhasil check-in.')
             ->assertDontSee('Konfirmasi Check-in');
 
         $booking->refresh();

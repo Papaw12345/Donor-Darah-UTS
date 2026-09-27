@@ -35,7 +35,7 @@
                                     <td>{{ $item->urutan }}</td>
                                     <td class="message-cell">{{ $item->teks_pertanyaan }}</td>
                                     <td>{{ $item->kategori ?? '-' }}</td>
-                                    <td>{{ $item->jenis_jawaban }}</td>
+                                    <td>{{ ['YA_TIDAK' => 'Ya/Tidak', 'TEKS' => 'Teks'][$item->jenis_jawaban] ?? $item->jenis_jawaban }}</td>
                                     <td>
                                         <span class="status-badge {{ $item->status_aktif ? 'status-success' : 'status-neutral' }}">
                                             {{ $item->status_aktif ? 'Aktif' : 'Nonaktif' }}

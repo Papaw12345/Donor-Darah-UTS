@@ -26,7 +26,7 @@
                 <dt>Status akun</dt>
                 <dd>
                     <span class="status-badge {{ $akun->status_akun === 'AKTIF' ? 'status-success' : 'status-neutral' }}">
-                        {{ $akun->status_akun }}
+                        {{ $akun->status_akun === 'AKTIF' ? 'Aktif' : 'Nonaktif' }}
                     </span>
                 </dd>
             </div>

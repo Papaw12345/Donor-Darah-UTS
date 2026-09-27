@@ -136,8 +136,8 @@ class Phase8EPenyumbanganPetugasTest extends TestCase
             ->assertSee('DNR-8E')
             ->assertSee('name="waktu_pengambilan"', false)
             ->assertSee('name="volume_ml"', false)
-            ->assertSee('BERHASIL')
-            ->assertSee('GAGAL');
+            ->assertSee('value="BERHASIL"', false)->assertSee('>Berhasil</option>', false)
+            ->assertSee('value="GAGAL"', false)->assertSee('>Gagal</option>', false);
 
         $this->assertEquals($before[0], $booking->fresh()->getAttributes());
         $this->assertEquals($before[1], $seleksi->fresh()->getAttributes());
@@ -286,7 +286,7 @@ class Phase8EPenyumbanganPetugasTest extends TestCase
             ->assertOk()
             ->assertSee('Penyumbangan Tersimpan')
             ->assertSee('2020-01-01 09:00:00')
-            ->assertSee('GAGAL')
+            ->assertSee('Gagal')
             ->assertSee('Petugas');
         $page->assertDontSee('Simpan Penyumbangan')
             ->assertDontSee('action="'.route('petugas.penyumbangan.store', $seleksi).'"', false)

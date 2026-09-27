@@ -198,7 +198,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->assertSee((string) $booking->id_pemesanan)
             ->assertSee('2020-01-01')
             ->assertSee('01:00')
-            ->assertSee('DIBATALKAN')
+            ->assertSee('Dibatalkan')
             ->assertSee('2026-09-16 08:00:00')
             ->assertSee('Check-in');
 
@@ -428,7 +428,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->get(route('petugas.seleksi.show', $booking))
             ->assertOk()
             ->assertSee('name="id_golongan_darah"', false)
-            ->assertSee('AB NEGATIF');
+            ->assertSee('AB Negatif');
 
         $this->actingAs($petugas->akun)
             ->post(route('petugas.seleksi.store', $booking), $this->validPayload([
@@ -458,7 +458,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
         $this->actingAs($petugas->akun)
             ->get(route('petugas.seleksi.show', $booking))
             ->assertOk()
-            ->assertSee('A POSITIF')
+            ->assertSee('A Positif')
             ->assertDontSee('name="id_golongan_darah"', false);
 
         $this->actingAs($petugas->akun)
@@ -505,7 +505,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->assertOk()
             ->assertSee('Seleksi Tersimpan')
             ->assertSee('2020-01-01')
-            ->assertSee('DIBATALKAN')
+            ->assertSee('Dibatalkan')
             ->assertSee('Selesai')
             ->assertSee('60.25')
             ->assertSee('120')
@@ -514,7 +514,7 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->assertSee('36.7')
             ->assertSee('13.5')
             ->assertSee('Catatan tersimpan')
-            ->assertSee('DITOLAK')
+            ->assertSee('Ditolak')
             ->assertSee('Alasan tersimpan')
             ->assertSee('Petugas Pencatat')
             ->assertSee('2026-09-16 02:00:00')

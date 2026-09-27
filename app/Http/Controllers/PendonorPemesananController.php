@@ -89,11 +89,11 @@ class PendonorPemesananController extends Controller
             )->startOfDay();
 
             if ($jadwalTerkunci->status_jadwal !== 'DIBUKA') {
-                $this->reject('Jadwal tidak dibuka untuk pemesanan.');
+                $this->reject('Jadwal donor tidak dibuka untuk pendaftaran.');
             }
 
             if ($tanggalJadwal->lt(today('Asia/Jakarta'))) {
-                $this->reject('Jadwal yang sudah lewat tidak dapat dipesan.');
+                $this->reject('Jadwal donor yang sudah lewat tidak dapat dipilih.');
             }
 
             if ($this->pelayananSudahBerakhir($jadwalTerkunci)) {
@@ -124,7 +124,7 @@ class PendonorPemesananController extends Controller
                 ->exists();
 
             if ($pemesananPenghalangAda) {
-                $this->reject('Pemesanan untuk jadwal ini sudah pernah dibuat.');
+                $this->reject('Agenda donor untuk jadwal ini sudah pernah dibuat.');
             }
 
             $informasiDonorBerikutnya = $calculator->calculate(
@@ -152,7 +152,7 @@ class PendonorPemesananController extends Controller
 
         return redirect()
             ->route('pendonor.pemesanan.index')
-            ->with('success', 'Pemesanan donor berhasil dibuat.');
+            ->with('success', 'Pendaftaran Donor berhasil. Agenda Donor Anda telah terbentuk.');
     }
 
     public function cancel(Request $request, string $pemesanan): RedirectResponse
@@ -169,7 +169,7 @@ class PendonorPemesananController extends Controller
                 ->firstOrFail();
 
             if ($pemesananTerkunci->status_pemesanan !== 'TERJADWAL') {
-                $this->reject('Pemesanan ini tidak dapat dibatalkan.');
+                $this->reject('Agenda donor ini tidak dapat dibatalkan.');
             }
 
             $jadwal = JadwalPelayanan::query()
@@ -177,7 +177,7 @@ class PendonorPemesananController extends Controller
                 ->firstOrFail();
 
             if ($jadwal->tanggal->lt(today('Asia/Jakarta'))) {
-                $this->reject('Pemesanan dengan jadwal yang sudah lewat tidak dapat dibatalkan.');
+                $this->reject('Agenda donor dengan jadwal yang sudah lewat tidak dapat dibatalkan.');
             }
 
             if ($this->pelayananSudahBerakhir($jadwal)) {
@@ -191,7 +191,7 @@ class PendonorPemesananController extends Controller
 
         return redirect()
             ->route('pendonor.pemesanan.index')
-            ->with('success', 'Pemesanan donor berhasil dibatalkan.');
+            ->with('success', 'Agenda Donor berhasil dibatalkan.');
     }
 
     private function reject(string $message): never

@@ -47,7 +47,7 @@ class AuthController extends Controller
         if (CarbonImmutable::parse($validated['tanggal_lahir'], 'Asia/Jakarta')
             ->addYearsNoOverflow(17)->gt($hariIniWib)) {
             throw ValidationException::withMessages([
-                'tanggal_lahir' => 'Usia minimal saat registrasi adalah 17 tahun.',
+                'tanggal_lahir' => 'Usia minimal saat pendaftaran adalah 17 tahun.',
             ]);
         }
 
@@ -81,7 +81,7 @@ class AuthController extends Controller
 
         return redirect()
             ->route('login')
-            ->with('success', 'Registrasi berhasil. Silakan login menggunakan akun Anda.');
+            ->with('success', 'Pendaftaran Pendonor berhasil. Silakan masuk menggunakan akun Anda.');
     }
 
     public function login(Request $request): RedirectResponse
@@ -97,7 +97,7 @@ class AuthController extends Controller
             'status_akun' => 'AKTIF',
         ])) {
             return back()
-                ->withErrors(['email' => 'Email atau password tidak valid.'])
+                ->withErrors(['email' => 'Email atau kata sandi tidak valid.'])
                 ->onlyInput('email');
         }
 
@@ -117,7 +117,7 @@ class AuthController extends Controller
 
             return redirect()
                 ->route('login')
-                ->withErrors(['email' => 'Email atau password tidak valid.'])
+                ->withErrors(['email' => 'Email atau kata sandi tidak valid.'])
                 ->withInput(['email' => $credentials['email']]);
         }
 

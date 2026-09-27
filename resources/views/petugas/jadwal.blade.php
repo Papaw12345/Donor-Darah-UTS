@@ -36,7 +36,7 @@
                                     <td>{{ $item->kapasitas }}</td>
                                     <td>
                                         <span class="status-badge {{ $item->status_jadwal === 'DIBUKA' ? 'status-success' : ($item->status_jadwal === 'DIBATALKAN' ? 'status-danger' : 'status-neutral') }}">
-                                            {{ $item->status_jadwal }}
+                                            {{ ['DIBUKA' => 'Dibuka', 'DITUTUP' => 'Ditutup', 'DIBATALKAN' => 'Dibatalkan'][$item->status_jadwal] ?? $item->status_jadwal }}
                                         </span>
                                     </td>
                                 </tr>

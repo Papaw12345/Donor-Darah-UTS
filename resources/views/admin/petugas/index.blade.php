@@ -36,7 +36,7 @@
                                     <td>{{ $item->akun->email }}</td>
                                     <td>
                                         <span class="status-badge {{ $item->akun->status_akun === 'AKTIF' ? 'status-success' : 'status-neutral' }}">
-                                            {{ $item->akun->status_akun }}
+                                            {{ $item->akun->status_akun === 'AKTIF' ? 'Aktif' : 'Nonaktif' }}
                                         </span>
                                     </td>
                                     <td>

@@ -55,7 +55,7 @@ class Phase7FKodeCheckinTest extends TestCase
 
         $this->actingAs($pendonor->akun)->get(route('pendonor.kode-checkin.show', $booking))
             ->assertOk()
-            ->assertSee('Kode check-in belum tersedia')
+            ->assertSee('Kode Check-in belum tersedia')
             ->assertDontSee('Buat Kode Check-in');
         $this->actingAs($pendonor->akun)->post($path)->assertStatus(405);
         $this->assertNull($booking->fresh()->kode_checkin);
@@ -145,7 +145,7 @@ class Phase7FKodeCheckinTest extends TestCase
         $this->actingAs($donor->akun)
             ->get(route('pendonor.kode-checkin.show', $booking))
             ->assertOk()
-            ->assertSee('Kode check-in belum tersedia');
+            ->assertSee('Kode Check-in belum tersedia');
         $this->assertNull($booking->fresh()->kode_checkin);
         $this->assertDatabaseCount('kuesioner_pradonasi', 1);
         $this->assertDatabaseCount('jawaban_kuesioner', 1);

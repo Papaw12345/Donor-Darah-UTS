@@ -8,9 +8,9 @@
         {{-- Login intro --}}
         <section class="auth-intro" aria-labelledby="login-intro-title">
             <div>
-                <p class="eyebrow">Login</p>
+                <p class="eyebrow">Masuk</p>
                 <h1 id="login-intro-title">Masuk ke Sistem</h1>
-                <p>Gunakan email dan password akun Anda.</p>
+                <p>Gunakan email dan kata sandi akun Anda.</p>
             </div>
             <p class="auth-intro-note">Menu yang tersedia mengikuti peran akun.</p>
         </section>
@@ -18,7 +18,7 @@
         {{-- Login form --}}
         <section class="auth-panel" aria-labelledby="login-form-title">
             <header class="auth-panel-header">
-                <h2 id="login-form-title">Login</h2>
+                <h2 id="login-form-title">Masuk</h2>
                 <p>Masukkan data akun yang terdaftar.</p>
             </header>
 
@@ -41,7 +41,7 @@
                 </div>
 
                 <div class="form-field">
-                    <label for="password">Password</label>
+                    <label for="password">Kata Sandi</label>
                     <input
                         id="password"
                         type="password"

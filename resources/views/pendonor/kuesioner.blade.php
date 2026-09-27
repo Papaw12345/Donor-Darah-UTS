@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'Kuesioner Pradonasi | Donor Darah UDD')
+@section('title', 'Kuesioner Pra-Donor | Donor Darah UDD')
 
 @section('content')
     <div class="container page-shell page-shell-narrow">
         <header class="page-header">
             <div class="page-header-main">
-                <p class="eyebrow">Tahap Pradonasi</p>
-                <h1 class="page-title">Kuesioner Pradonasi</h1>
-                <p class="page-description">Jawab pertanyaan yang tersedia untuk pemesanan donor ini.</p>
+                <p class="eyebrow">Sebelum Donor</p>
+                <h1 class="page-title">Kuesioner Pra-Donor</h1>
+                <p class="page-description">Jawab pertanyaan yang tersedia untuk agenda donor ini.</p>
             </div>
-            <a class="button button-secondary" href="{{ route('pendonor.pemesanan.index') }}">Kembali ke Pemesanan Saya</a>
+            <a class="button button-secondary" href="{{ route('pendonor.pemesanan.index') }}">Kembali ke Agenda Donor Saya</a>
         </header>
 
         <dl class="context-strip">
@@ -51,8 +51,8 @@
                             @endif
                             @if ($pertanyaan->jenis_jawaban === 'YA_TIDAK')
                                 <div class="choice-group">
-                                    <label class="choice-option"><input type="radio" name="answers[{{ $pertanyaan->id_pertanyaan }}]" value="YA" @checked(old("answers.{$pertanyaan->id_pertanyaan}") === 'YA')><span>YA</span></label>
-                                    <label class="choice-option"><input type="radio" name="answers[{{ $pertanyaan->id_pertanyaan }}]" value="TIDAK" @checked(old("answers.{$pertanyaan->id_pertanyaan}") === 'TIDAK')><span>TIDAK</span></label>
+                                    <label class="choice-option"><input type="radio" name="answers[{{ $pertanyaan->id_pertanyaan }}]" value="YA" @checked(old("answers.{$pertanyaan->id_pertanyaan}") === 'YA')><span>Ya</span></label>
+                                    <label class="choice-option"><input type="radio" name="answers[{{ $pertanyaan->id_pertanyaan }}]" value="TIDAK" @checked(old("answers.{$pertanyaan->id_pertanyaan}") === 'TIDAK')><span>Tidak</span></label>
                                 </div>
                             @elseif ($pertanyaan->jenis_jawaban === 'TEKS')
                                 <label class="form-field"><span>Jawaban</span><textarea name="answers[{{ $pertanyaan->id_pertanyaan }}]">{{ old("answers.{$pertanyaan->id_pertanyaan}") }}</textarea></label>

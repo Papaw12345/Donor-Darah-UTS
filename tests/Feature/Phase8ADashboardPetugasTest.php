@@ -174,9 +174,9 @@ class Phase8ADashboardPetugasTest extends TestCase
             ->assertSee('17-09-2026')
             ->assertSee('15:30')
             ->assertSee('20')
-            ->assertSee('DIBUKA')
-            ->assertSee('DITUTUP')
-            ->assertSee('DIBATALKAN')
+            ->assertSee('Dibuka')
+            ->assertSee('Ditutup')
+            ->assertSee('Dibatalkan')
             ->assertDontSee('Tambah Jadwal')
             ->assertDontSee(route('admin.jadwal.create'), false)
             ->assertDontSee(route('admin.jadwal.edit', $futureNear), false)
@@ -454,7 +454,7 @@ class Phase8ADashboardPetugasTest extends TestCase
                 ->assertSee($component->nama_komponen);
         }
 
-        $response->assertSee('O')->assertSee('NEGATIF');
+        $response->assertSee('O')->assertSee('Negatif');
         $this->assertCount(4, $response->viewData('persediaanRendah'));
     }
 
@@ -544,7 +544,7 @@ class Phase8ADashboardPetugasTest extends TestCase
             ->assertDontSee('name="kode_checkin"', false)
             ->assertDontSee('action="/petugas/', false)
             ->assertDontSee('Review Kuesioner')
-            ->assertDontSee('Kuesioner Pradonasi')
+            ->assertDontSee('Kuesioner Pra-Donor')
             ->assertDontSee('Simpan Seleksi')
             ->assertDontSee('Catat Penyumbangan')
             ->assertDontSee('Buat Unit')

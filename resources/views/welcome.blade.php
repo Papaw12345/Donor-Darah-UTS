@@ -11,7 +11,7 @@
                 <h1 id="hero-title">Sistem Informasi Donor dan Persediaan Darah</h1>
                 <p class="hero-lead">
                     Aplikasi ini membantu pengelolaan proses donor pada satu UDD, mulai dari jadwal
-                    dan pemesanan sampai pencatatan unit dan persediaan darah.
+                    dan pendaftaran donor sampai pencatatan unit dan persediaan darah.
                 </p>
 
                 <div class="hero-actions">
@@ -34,7 +34,7 @@
                     @endauth
                 </div>
 
-                <p class="hero-note">Registrasi mandiri hanya untuk Pendonor.</p>
+                <p class="hero-note">Pendaftaran mandiri hanya untuk Pendonor.</p>
             </div>
         </div>
     </section>
@@ -50,12 +50,12 @@
             <article class="process-card">
                 <span class="process-number">01</span>
                 <h3 class="process-title">Pilih Jadwal</h3>
-                <p class="process-description">Lihat jadwal pelayanan yang tersedia dan buat pemesanan donor.</p>
+                <p class="process-description">Lihat Jadwal Donor yang tersedia dan daftar pada jadwal pilihan Anda.</p>
             </article>
             <article class="process-card">
                 <span class="process-number">02</span>
                 <h3 class="process-title">Kuesioner &amp; Check-in</h3>
-                <p class="process-description">Isi kuesioner pradonasi dan gunakan kode check-in saat datang ke UDD.</p>
+                <p class="process-description">Isi Kuesioner Pra-Donor dan tunjukkan Kode Check-in saat datang ke UDD.</p>
             </article>
             <article class="process-card">
                 <span class="process-number">03</span>

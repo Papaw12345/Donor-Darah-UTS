@@ -90,11 +90,11 @@ class PendonorKuesionerController extends Controller
             if (KuesionerPradonasi::query()
                 ->where('id_pemesanan', $pemesananTerkunci->id_pemesanan)
                 ->exists()) {
-                $this->reject('answers', 'Kuesioner untuk pemesanan ini sudah pernah dikirim.');
+                $this->reject('answers', 'Kuesioner untuk agenda donor ini sudah pernah dikirim.');
             }
 
             if ($pemesananTerkunci->kode_checkin !== null) {
-                $this->reject('answers', 'Pemesanan ini sudah memiliki kode check-in.');
+                $this->reject('answers', 'Agenda donor ini sudah memiliki kode check-in.');
             }
 
             $pemesananTerkunci->load('jadwalPelayanan');
@@ -224,7 +224,7 @@ class PendonorKuesionerController extends Controller
     private function newQuestionnaireUnavailableReason(PemesananDonor $pemesanan): ?string
     {
         if ($pemesanan->status_pemesanan !== 'TERJADWAL') {
-            return 'Kuesioner baru hanya dapat diisi untuk pemesanan berstatus TERJADWAL.';
+            return 'Kuesioner baru hanya dapat diisi untuk agenda donor berstatus Terjadwal.';
         }
 
         if ($pemesanan->jadwalPelayanan->tanggal->lt(today('Asia/Jakarta'))) {

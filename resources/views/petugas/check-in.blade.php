@@ -13,10 +13,10 @@
 
         {{-- Pencarian kode --}}
         <section class="page-section" aria-labelledby="pencarian-kode">
-            <h2 class="section-title" id="pencarian-kode">Cari Pemesanan</h2>
+            <h2 class="section-title" id="pencarian-kode">Cari Kunjungan Donor</h2>
             <form class="form-panel" method="GET" action="{{ route('petugas.check-in.index') }}">
                 <div class="form-field"><label for="kode_checkin">Kode check-in</label><input id="kode_checkin" name="kode_checkin" type="text" value="{{ $normalizedCode ?? '' }}" autocomplete="off" required>@if ($errors->has('kode_checkin'))<p class="form-hint" role="alert">{{ $errors->first('kode_checkin') }}</p>@endif</div>
-                <div class="form-actions"><button class="button button-primary" type="submit">Cari Pemesanan</button></div>
+                <div class="form-actions"><button class="button button-primary" type="submit">Cari Kunjungan Donor</button></div>
             </form>
         </section>
 
@@ -29,10 +29,10 @@
                     <div class="identity-item"><dt>Nomor Donor</dt><dd>{{ $pemesanan->pendonor->nomor_donor ?? 'Belum tersedia' }}</dd></div>
                     <div class="identity-item"><dt>Tanggal Jadwal</dt><dd>{{ $pemesanan->jadwalPelayanan->tanggal->toDateString() }}</dd></div>
                     <div class="identity-item"><dt>Waktu Jadwal</dt><dd>{{ $pemesanan->jadwalPelayanan->jam_mulai }} - {{ $pemesanan->jadwalPelayanan->jam_selesai }}</dd></div>
-                    <div class="identity-item"><dt>Status Jadwal</dt><dd><span class="status-badge status-neutral">{{ $pemesanan->jadwalPelayanan->status_jadwal }}</span></dd></div>
-                    <div class="identity-item"><dt>Status Pemesanan</dt><dd><span class="status-badge {{ $pemesanan->status_pemesanan === 'CHECK_IN' ? 'status-success' : 'status-warning' }}">{{ ['TERJADWAL' => 'Terjadwal', 'CHECK_IN' => 'Check-in', 'SELESAI' => 'Selesai', 'TIDAK_HADIR' => 'Tidak Hadir'][$pemesanan->status_pemesanan] ?? $pemesanan->status_pemesanan }}</span></dd></div>
+                    <div class="identity-item"><dt>Status Jadwal</dt><dd><span class="status-badge status-neutral">{{ ['DIBUKA' => 'Dibuka', 'DITUTUP' => 'Ditutup', 'DIBATALKAN' => 'Dibatalkan'][$pemesanan->jadwalPelayanan->status_jadwal] ?? $pemesanan->jadwalPelayanan->status_jadwal }}</span></dd></div>
+                    <div class="identity-item"><dt>Status Kunjungan</dt><dd><span class="status-badge {{ $pemesanan->status_pemesanan === 'CHECK_IN' ? 'status-success' : 'status-warning' }}">{{ ['TERJADWAL' => 'Terjadwal', 'CHECK_IN' => 'Check-in', 'SELESAI' => 'Selesai', 'DIBATALKAN' => 'Dibatalkan', 'TIDAK_HADIR' => 'Tidak Hadir'][$pemesanan->status_pemesanan] ?? $pemesanan->status_pemesanan }}</span></dd></div>
                     <div class="identity-item"><dt>Kode Check-in</dt><dd class="code-value">{{ $pemesanan->kode_checkin }}</dd></div>
-                    <div class="identity-item"><dt>Kuesioner Pradonasi</dt><dd>{{ $pemesanan->kuesionerPradonasi !== null ? 'Tersedia' : 'Belum tersedia' }}</dd></div>
+                    <div class="identity-item"><dt>Kuesioner Pra-Donor</dt><dd>{{ $pemesanan->kuesionerPradonasi !== null ? 'Tersedia' : 'Belum tersedia' }}</dd></div>
                 </dl>
                 <div class="action-panel">
                     <div>@if (!$canCheckIn)<p class="section-description" role="status">{{ $eligibilityMessage }}</p>@else<p class="section-description">Data memenuhi syarat untuk dikonfirmasi pada tahap check-in.</p>@endif</div>
@@ -46,7 +46,7 @@
 
         @if ($pemesananTidakHadir->isNotEmpty())
             <section class="page-section" aria-labelledby="pemesanan-tidak-hadir">
-                <h2 class="section-title" id="pemesanan-tidak-hadir">Pemesanan Belum Check-in Setelah Jadwal Selesai</h2>
+                <h2 class="section-title" id="pemesanan-tidak-hadir">Pendonor Belum Check-in Setelah Jadwal Selesai</h2>
                 <div class="table-container">
                     <table class="data-table">
                         <thead><tr><th scope="col">Pendonor</th><th scope="col">Tanggal Jadwal</th><th scope="col">Jam Selesai</th><th scope="col">Aksi</th></tr></thead>

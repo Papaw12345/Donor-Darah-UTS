@@ -31,11 +31,11 @@
             </div>
 
             <div class="dashboard-summary-item">
-                <p class="summary-label">Pemesanan</p>
+                <p class="summary-label">Agenda Donor</p>
                 <p class="summary-value">
-                    {{ $pemesananAktif->isEmpty() ? 'Belum ada pemesanan aktif.' : 'Pemesanan aktif tersedia.' }}
+                    {{ $pemesananAktif->isEmpty() ? 'Belum ada agenda donor aktif.' : 'Agenda donor aktif tersedia.' }}
                 </p>
-                <a class="text-link" href="{{ route('pendonor.pemesanan.index') }}">Lihat Pemesanan</a>
+                <a class="text-link" href="{{ route('pendonor.pemesanan.index') }}">Lihat Agenda Donor Saya</a>
             </div>
 
             <div class="dashboard-summary-item">
@@ -55,7 +55,7 @@
             <dl class="identity-grid">
                 <div class="identity-item"><dt>Nama lengkap</dt><dd>{{ $pendonor->nama_lengkap }}</dd></div>
                 <div class="identity-item"><dt>Email akun</dt><dd>{{ $akun->email }}</dd></div>
-                <div class="identity-item"><dt>Nomor donor</dt><dd>{{ $pendonor->nomor_donor ?? 'Belum tersedia' }}</dd></div>
+                <div class="identity-item"><dt>Nomor Donor</dt><dd>{{ $pendonor->nomor_donor ?? 'Belum tersedia' }}</dd></div>
                 <div class="identity-item">
                     <dt>Golongan darah</dt>
                     <dd>
@@ -72,22 +72,22 @@
         {{-- Pemesanan aktif --}}
         <section class="page-section" aria-labelledby="pemesanan-aktif">
             <div class="section-header">
-                <h2 class="section-title" id="pemesanan-aktif">Pemesanan</h2>
-                <a class="button button-secondary button-small" href="{{ route('pendonor.pemesanan.index') }}">Lihat Pemesanan</a>
+                <h2 class="section-title" id="pemesanan-aktif">Agenda Donor</h2>
+                <a class="button button-secondary button-small" href="{{ route('pendonor.pemesanan.index') }}">Lihat Agenda Donor Saya</a>
             </div>
 
             @if ($pemesananAktif->isEmpty())
-                <div class="empty-state">Belum ada pemesanan aktif.</div>
+                <div class="empty-state">Belum ada agenda donor aktif.</div>
             @else
                 <div class="table-container">
                     <table class="data-table table-compact">
-                        <thead><tr><th scope="col">Tanggal</th><th scope="col">Jam Pelayanan</th><th scope="col">Status</th></tr></thead>
+                        <thead><tr><th scope="col">Tanggal</th><th scope="col">Jam Pelayanan</th><th scope="col">Status Agenda</th></tr></thead>
                         <tbody>
                             @foreach ($pemesananAktif as $pemesanan)
                                 <tr>
                                     <td>{{ $pemesanan->jadwalPelayanan->tanggal->format('d-m-Y') }}</td>
                                     <td>{{ substr($pemesanan->jadwalPelayanan->jam_mulai, 0, 5) }} - {{ substr($pemesanan->jadwalPelayanan->jam_selesai, 0, 5) }}</td>
-                                    <td><span class="status-badge {{ $pemesanan->status_pemesanan === 'CHECK_IN' ? 'status-success' : 'status-warning' }}">{{ $pemesanan->status_pemesanan }}</span></td>
+                                    <td><span class="status-badge {{ $pemesanan->status_pemesanan === 'CHECK_IN' ? 'status-success' : 'status-warning' }}">{{ ['TERJADWAL' => 'Terjadwal', 'CHECK_IN' => 'Check-in'][$pemesanan->status_pemesanan] ?? $pemesanan->status_pemesanan }}</span></td>
                                 </tr>
                             @endforeach
                         </tbody>

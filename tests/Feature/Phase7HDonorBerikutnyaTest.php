@@ -455,7 +455,7 @@ class Phase7HDonorBerikutnyaTest extends TestCase
             ->get(route('pendonor.donor-berikutnya.index'))
             ->assertOk()
             ->assertSee('Informasi ini bukan keputusan kelayakan medis akhir.')
-            ->assertSee('Kuesioner pradonasi')
+            ->assertSee('Kuesioner Pra-Donor')
             ->assertSee('pemeriksaan')
             ->assertSee('seleksi Petugas');
     }
@@ -468,7 +468,7 @@ class Phase7HDonorBerikutnyaTest extends TestCase
             ->get(route('pendonor.donor-berikutnya.index'))
             ->assertOk()
             ->assertDontSee('Kirim Pemberitahuan')
-            ->assertDontSee('Buat Pemesanan')
+            ->assertDontSee('Daftar pada Jadwal Ini')
             ->assertDontSee('Lakukan Seleksi')
             ->assertDontSee('Check-in Petugas');
     }

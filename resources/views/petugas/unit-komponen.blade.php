@@ -19,13 +19,8 @@
 
             <dl class="identity-panel identity-grid">
                 <div class="identity-item">
-                    <dt>ID Penyumbangan</dt>
-                    <dd>{{ $penyumbangan->id_penyumbangan }}</dd>
-                </div>
-
-                <div class="identity-item">
                     <dt>Hasil Penyumbangan</dt>
-                    <dd><span class="status-badge status-success">{{ $penyumbangan->hasil_penyumbangan }}</span></dd>
+                    <dd><span class="status-badge status-success">{{ ['BERHASIL' => 'Berhasil', 'GAGAL' => 'Gagal'][$penyumbangan->hasil_penyumbangan] ?? $penyumbangan->hasil_penyumbangan }}</span></dd>
                 </div>
 
                 <div class="identity-item">
@@ -45,7 +40,7 @@
 
                 <div class="identity-item">
                     <dt>Golongan Darah Pendonor</dt>
-                    <dd>@if ($penyumbangan->seleksiDonor->pemesananDonor->pendonor->golonganDarah !== null){{ $penyumbangan->seleksiDonor->pemesananDonor->pendonor->golonganDarah->abo }} {{ $penyumbangan->seleksiDonor->pemesananDonor->pendonor->golonganDarah->rhesus }}@else Belum terkonfirmasi @endif</dd>
+                    <dd>@if ($penyumbangan->seleksiDonor->pemesananDonor->pendonor->golonganDarah !== null){{ $penyumbangan->seleksiDonor->pemesananDonor->pendonor->golonganDarah->abo }} {{ ucfirst(strtolower($penyumbangan->seleksiDonor->pemesananDonor->pendonor->golonganDarah->rhesus)) }}@else Belum terkonfirmasi @endif</dd>
                 </div>
             </dl>
         </section>
@@ -107,7 +102,7 @@
                                 <tr>
                                     <td>{{ $unit->nomor_unit }}</td>
                                     <td>{{ $unit->jenisKomponenDarah->kode_komponen }} - {{ $unit->jenisKomponenDarah->nama_komponen }}</td>
-                                    <td>{{ $unit->golonganDarah->abo }} {{ $unit->golonganDarah->rhesus }}</td>
+                                    <td>{{ $unit->golonganDarah->abo }} {{ ucfirst(strtolower($unit->golonganDarah->rhesus)) }}</td>
                                     <td>{{ $unit->tanggal_pembuatan->toDateString() }}</td>
                                     <td>{{ $unit->tanggal_kedaluwarsa->toDateString() }}</td>
                                     <td><span class="status-badge {{ $statusClass }}">{{ $statusLabel }}</span></td>

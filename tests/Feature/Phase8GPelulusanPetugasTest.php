@@ -95,7 +95,7 @@ class Phase8GPelulusanPetugasTest extends TestCase
 
         $response = $this->actingAs($viewer->akun)->get(route('petugas.pelulusan.index'))
             ->assertOk()->assertSeeInOrder(['PENDING-ONE', 'PENDING-TWO'])
-            ->assertSee('WB - Whole Blood')->assertSee('A POSITIF')
+            ->assertSee('WB - Whole Blood')->assertSee('A Positif')
             ->assertSee('2026-09-01')->assertSee('2026-10-01')
             ->assertSee(route('petugas.pelulusan.show', $pendingOne), false)
             ->assertSee(route('petugas.pelulusan.show', $pendingTwo), false)
@@ -116,7 +116,8 @@ class Phase8GPelulusanPetugasTest extends TestCase
         $this->actingAs($viewer->akun)->get(route('petugas.pelulusan.show', $pending))
             ->assertOk()->assertSee('name="hasil_pelulusan"', false)
             ->assertSee('name="catatan_pelulusan"', false)->assertSee('Simpan Pelulusan')
-            ->assertSeeInOrder(['ID Penyumbangan', (string) $workflow['donation']->id_penyumbangan]);
+            ->assertSeeInOrder(['Nomor Unit', $pending->nomor_unit])
+            ->assertDontSee('ID Penyumbangan');
 
         foreach (['TERSEDIA', 'DITOLAK', 'DIDISTRIBUSIKAN'] as $status) {
             $unit = $this->createUnit($workflow, $component, $bloodGroup, $status, [
@@ -126,7 +127,7 @@ class Phase8GPelulusanPetugasTest extends TestCase
                 'waktu_distribusi' => $status === 'DIDISTRIBUSIKAN' ? '2026-09-16 10:00:00' : null,
             ]);
             $response = $this->actingAs($viewer->akun)->get(route('petugas.pelulusan.show', $unit))
-                ->assertOk()->assertSee($status)->assertSee('Petugas Pelulus')
+                ->assertOk()->assertSee(['TERSEDIA' => 'Tersedia', 'DITOLAK' => 'Ditolak', 'DIDISTRIBUSIKAN' => 'Didistribusikan'][$status])->assertSee('Petugas Pelulus')
                 ->assertSee($releaser->nama_petugas)->assertSee('2026-09-15 10:00:00')
                 ->assertSee('Catatan historis')->assertSee('Riwayat pelulusan hanya-baca.')
                 ->assertDontSee('name="hasil_pelulusan"', false)->assertDontSee('Simpan Pelulusan')

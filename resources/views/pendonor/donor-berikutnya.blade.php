@@ -89,7 +89,7 @@
 
         <aside class="notice-panel" aria-label="Catatan kelayakan medis">
             <strong>Catatan</strong>
-            <p>Informasi ini bukan keputusan kelayakan medis akhir. Kuesioner pradonasi, pemeriksaan, dan seleksi Petugas tetap berlaku.</p>
+            <p>Informasi ini bukan keputusan kelayakan medis akhir. Kuesioner Pra-Donor, pemeriksaan, dan seleksi Petugas tetap berlaku.</p>
         </aside>
     </div>
 @endsection

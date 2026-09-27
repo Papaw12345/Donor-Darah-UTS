@@ -21,7 +21,7 @@
                 </div>
                 <div class="identity-item">
                     <dt>Peran</dt>
-                    <dd>ADMIN</dd>
+                    <dd>Admin</dd>
                 </div>
             </dl>
         </section>

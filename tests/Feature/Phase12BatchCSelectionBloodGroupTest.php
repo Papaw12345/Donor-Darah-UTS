@@ -281,7 +281,7 @@ class Phase12BatchCSelectionBloodGroupTest extends TestCase
 
         $this->get(route('petugas.seleksi.show', $booking))
             ->assertOk()
-            ->assertSee('A POSITIF')
+            ->assertSee('A Positif')
             ->assertDontSee('name="id_golongan_darah"', false);
 
         $this->post(route('petugas.seleksi.store', $booking), $this->payload([

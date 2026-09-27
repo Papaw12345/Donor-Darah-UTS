@@ -457,7 +457,7 @@ class Phase7EKuesionerTest extends TestCase
             ->get(route('pendonor.pemesanan.index'))
             ->assertOk()
             ->assertSee(route('pendonor.kuesioner.show', $booking), false)
-            ->assertSee('Kuesioner Pradonasi');
+            ->assertSee('Kuesioner Pra-Donor');
     }
 
     private function assertIneligibleBookingIsRejected(

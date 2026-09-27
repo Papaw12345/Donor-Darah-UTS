@@ -21,7 +21,7 @@ class PendonorKodeCheckinController extends Controller
             ->firstOrFail();
 
         $pesanTidakTersedia = $pemesananMilikPendonor->kode_checkin === null
-            ? 'Kode check-in belum tersedia untuk pemesanan ini.'
+            ? 'Kode Check-in belum tersedia untuk agenda donor ini.'
             : null;
 
         return view('pendonor.kode-checkin', [

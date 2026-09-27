@@ -18,7 +18,7 @@
             <dl class="identity-grid">
                 <div class="identity-item"><dt>Email akun</dt><dd>{{ $akun->email }}</dd></div>
                 <div class="identity-item"><dt>NIK</dt><dd>{{ $pendonor->nik }}</dd></div>
-                <div class="identity-item"><dt>Nomor donor</dt><dd>{{ $pendonor->nomor_donor ?? 'Belum tersedia' }}</dd></div>
+                <div class="identity-item"><dt>Nomor Donor</dt><dd>{{ $pendonor->nomor_donor ?? 'Belum tersedia' }}</dd></div>
                 <div class="identity-item"><dt>Jenis kelamin</dt><dd>{{ $pendonor->jenis_kelamin === 'LAKI_LAKI' ? 'Laki-laki' : 'Perempuan' }}</dd></div>
                 <div class="identity-item"><dt>Tanggal lahir</dt><dd>{{ $pendonor->tanggal_lahir->format('d-m-Y') }}</dd></div>
                 <div class="identity-item">

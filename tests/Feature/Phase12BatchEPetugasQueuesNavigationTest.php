@@ -175,7 +175,7 @@ class Phase12BatchEPetugasQueuesNavigationTest extends TestCase
     {
         $staff = $this->staff();
         $response = $this->actingAs($staff->akun)->get(route('petugas.seleksi.index'))->assertOk();
-        $response->assertSee('Tidak ada pemesanan yang menunggu seleksi.');
+        $response->assertSee('Tidak ada pendonor yang menunggu seleksi.');
         $content = $response->getContent();
         $this->assertStringContainsString('aria-label="Operasional"', $content);
         $this->assertStringContainsString('aria-label="Monitoring"', $content);

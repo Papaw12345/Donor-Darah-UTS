@@ -150,8 +150,8 @@ class Phase12BatchFAdminSortingDashboardTest extends TestCase
             ->assertSee('Hari Ini &amp; Mendatang', false)
             ->assertSee('Riwayat')
             ->assertSeeInOrder(['27-09-2026', '28-09-2026', '02-10-2026', '26-09-2026', '20-09-2026'])
-            ->assertSee('DITUTUP')
-            ->assertSee('DIBATALKAN')
+            ->assertSee('Ditutup')
+            ->assertSee('Dibatalkan')
             ->assertSee(route('admin.jadwal.edit', $pastNew), false);
     }
 

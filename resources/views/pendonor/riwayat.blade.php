@@ -24,7 +24,7 @@
                                 <tr>
                                     <td>{{ $penyumbangan->waktu_pengambilan->format('d-m-Y H:i') }}</td>
                                     <td>{{ $penyumbangan->volume_ml !== null ? $penyumbangan->volume_ml.' mL' : '-' }}</td>
-                                    <td><span class="status-badge {{ $penyumbangan->hasil_penyumbangan === 'BERHASIL' ? 'status-success' : 'status-danger' }}">{{ $penyumbangan->hasil_penyumbangan }}</span></td>
+                                    <td><span class="status-badge {{ $penyumbangan->hasil_penyumbangan === 'BERHASIL' ? 'status-success' : 'status-danger' }}">{{ ['BERHASIL' => 'Berhasil', 'GAGAL' => 'Gagal'][$penyumbangan->hasil_penyumbangan] ?? $penyumbangan->hasil_penyumbangan }}</span></td>
                                     <td>{{ $penyumbangan->alasan_gagal ?? '-' }}</td>
                                 </tr>
                             @endforeach

@@ -117,8 +117,8 @@ class Phase8IPersediaanPetugasTest extends TestCase
             ->assertSee('PRC - Packed Red Cell')
             ->assertSee('A')
             ->assertSee('B')
-            ->assertSee('POSITIF')
-            ->assertSee('NEGATIF')
+            ->assertSee('Positif')
+            ->assertSee('Negatif')
             ->assertSee('Jumlah Persediaan');
 
         $persediaan = $response->viewData('persediaan');

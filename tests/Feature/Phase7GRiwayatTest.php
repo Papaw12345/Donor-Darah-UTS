@@ -149,8 +149,8 @@ class Phase7GRiwayatTest extends TestCase
         $this->actingAs($pendonor->akun)
             ->get(route('pendonor.riwayat.index'))
             ->assertOk()
-            ->assertSee('BERHASIL')
-            ->assertSee('GAGAL')
+            ->assertSee('Berhasil')
+            ->assertSee('Gagal')
             ->assertSee('350 mL')
             ->assertSee('Aliran darah berhenti')
             ->assertViewHas('riwayat', fn ($riwayat) => $riwayat->count() === 2);

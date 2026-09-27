@@ -8,7 +8,7 @@
             <div class="page-header-main">
                 <h1 class="page-title">Jadwal Donor</h1>
             </div>
-            <a class="button button-secondary" href="{{ route('pendonor.pemesanan.index') }}">Lihat Pemesanan Saya</a>
+            <a class="button button-secondary" href="{{ route('pendonor.pemesanan.index') }}">Lihat Agenda Donor Saya</a>
         </header>
 
         @include('partials.alerts')
@@ -29,8 +29,8 @@
                                     <td>{{ substr($item->jam_selesai, 0, 5) }}</td>
                                     <td>{{ $item->kapasitas }}</td>
                                     <td>{{ $item->kapasitas - $item->jumlah_pemesanan_berlaku }}</td>
-                                    <td><span class="status-badge status-success">{{ $item->status_jadwal }}</span></td>
-                                    <td><form class="inline-form" method="POST" action="{{ route('pendonor.pemesanan.store', $item) }}">@csrf<button class="button button-primary button-small" type="submit">Buat Pemesanan</button></form></td>
+                                    <td><span class="status-badge status-success">{{ ['DIBUKA' => 'Dibuka', 'DITUTUP' => 'Ditutup', 'DIBATALKAN' => 'Dibatalkan'][$item->status_jadwal] ?? $item->status_jadwal }}</span></td>
+                                    <td><form class="inline-form" method="POST" action="{{ route('pendonor.pemesanan.store', $item) }}">@csrf<button class="button button-primary button-small" type="submit">Daftar pada Jadwal Ini</button></form></td>
                                 </tr>
                             @endforeach
                         </tbody>

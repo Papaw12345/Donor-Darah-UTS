@@ -42,7 +42,7 @@
 
                 <div class="identity-item">
                     <dt>Golongan Darah</dt>
-                    <dd>{{ $unit->golonganDarah->abo }} {{ $unit->golonganDarah->rhesus }}</dd>
+                    <dd>{{ $unit->golonganDarah->abo }} {{ ucfirst(strtolower($unit->golonganDarah->rhesus)) }}</dd>
                 </div>
 
                 <div class="identity-item">
@@ -59,7 +59,7 @@
                     <dt>Status</dt>
                     <dd>
                         <span class="status-badge {{ $unit->status_unit === 'TERSEDIA' ? 'status-success' : 'status-neutral' }}">
-                            {{ $unit->status_unit }}
+                            {{ ['MENUNGGU_PELULUSAN' => 'Menunggu Pelulusan', 'TERSEDIA' => 'Tersedia', 'DITOLAK' => 'Ditolak', 'DIDISTRIBUSIKAN' => 'Didistribusikan'][$unit->status_unit] ?? $unit->status_unit }}
                         </span>
                     </dd>
                 </div>

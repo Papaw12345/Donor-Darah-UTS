@@ -37,7 +37,7 @@
                         <label for="status_jadwal">Status</label>
                         <select id="status_jadwal" name="status_jadwal" required>
                             @foreach (['DIBUKA', 'DITUTUP', 'DIBATALKAN'] as $status)
-                                <option value="{{ $status }}" @selected(old('status_jadwal', 'DIBUKA') === $status)>{{ $status }}</option>
+                                <option value="{{ $status }}" @selected(old('status_jadwal', 'DIBUKA') === $status)>{{ ['DIBUKA' => 'Dibuka', 'DITUTUP' => 'Ditutup', 'DIBATALKAN' => 'Dibatalkan'][$status] }}</option>
                             @endforeach
                         </select>
                     </div>

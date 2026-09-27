@@ -113,7 +113,7 @@ class Phase8LPemberitahuanPetugasTest extends TestCase
             ->assertSee($component->kode_komponen)
             ->assertSee($component->nama_komponen)
             ->assertSee($bloodGroup->abo)
-            ->assertSee($bloodGroup->rhesus)
+            ->assertSee(ucfirst(strtolower($bloodGroup->rhesus)))
             ->assertSee('Jumlah persediaan saat ini: 0')
             ->assertSee('Jumlah minimum: 1')
             ->assertSee($candidate->nomor_donor)

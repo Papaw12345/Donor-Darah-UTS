@@ -53,7 +53,7 @@ class Phase12BatchDUnitKomponenTest extends TestCase
         $page = $this->get(route('petugas.unit-komponen.show', $donation))
             ->assertOk()
             ->assertSee('Pencatatan Unit Hasil Pengolahan')
-            ->assertSee('A POSITIF');
+            ->assertSee('A Positif');
         foreach (['id_jenis_komponen', 'tanggal_pembuatan', 'tanggal_kedaluwarsa'] as $field) {
             $page->assertSee('name="'.$field.'"', false);
         }
@@ -81,7 +81,7 @@ class Phase12BatchDUnitKomponenTest extends TestCase
         $this->get(route('petugas.unit-komponen.show', $donation))
             ->assertOk()
             ->assertSee($unit->nomor_unit)
-            ->assertSee('A POSITIF');
+            ->assertSee('A Positif');
     }
 
     public function test_multiple_units_from_one_successful_donation_may_repeat_component(): void

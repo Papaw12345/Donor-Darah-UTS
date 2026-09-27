@@ -145,7 +145,7 @@ class Phase11EndToEndUiFlowTest extends TestCase
         $threshold = AmbangPersediaan::query()->sole();
 
         $this->get(route('admin.petugas.index'))->assertOk()->assertSee($petugas->nama_petugas);
-        $this->get(route('admin.jadwal.index'))->assertOk()->assertSee('DIBUKA');
+        $this->get(route('admin.jadwal.index'))->assertOk()->assertSee('Dibuka');
         $this->get(route('admin.pertanyaan.index'))->assertOk()->assertSee($question->teks_pertanyaan);
         $this->get(route('admin.ambang.index'))->assertOk()->assertSee('Whole Blood');
         $this->post(route('logout'))->assertRedirect(route('login'));
@@ -430,7 +430,7 @@ class Phase11EndToEndUiFlowTest extends TestCase
         ])->assertRedirect(route('pendonor.home'));
         $this->get(route('pendonor.riwayat.index'))
             ->assertOk()
-            ->assertSee('BERHASIL')
+            ->assertSee('Berhasil')
             ->assertSee('350');
         $this->get(route('pendonor.donor-berikutnya.index'))
             ->assertOk()

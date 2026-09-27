@@ -29,7 +29,7 @@
                         <label for="jenis_jawaban">Jenis Jawaban</label>
                         <select id="jenis_jawaban" name="jenis_jawaban" required>
                             @foreach (['YA_TIDAK', 'TEKS'] as $jenis)
-                                <option value="{{ $jenis }}" @selected(old('jenis_jawaban') === $jenis)>{{ $jenis }}</option>
+                                <option value="{{ $jenis }}" @selected(old('jenis_jawaban') === $jenis)>{{ ['YA_TIDAK' => 'Ya/Tidak', 'TEKS' => 'Teks'][$jenis] ?? $jenis }}</option>
                             @endforeach
                         </select>
                     </div>

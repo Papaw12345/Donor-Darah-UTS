@@ -1,22 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'Registrasi Pendonor | Donor Darah UDD')
+@section('title', 'Daftar sebagai Pendonor | Donor Darah UDD')
 @section('main-class', 'auth-main')
 
 @section('content')
     <div class="auth-shell auth-shell-register">
         <section class="auth-intro" aria-labelledby="register-intro-title">
             <div>
-                <p class="eyebrow">Registrasi Pendonor</p>
+                <p class="eyebrow">Pendaftaran Pendonor</p>
                 <h1 id="register-intro-title">Daftar sebagai Pendonor</h1>
                 <p>Isi data akun dan identitas untuk membuat akun Pendonor.</p>
             </div>
-            <p class="auth-intro-note">Golongan darah tidak diisi saat registrasi. Data tersebut dapat dicatat saat proses pelayanan UDD.</p>
+            <p class="auth-intro-note">Golongan darah tidak diisi saat pendaftaran. Data tersebut dapat dicatat saat proses pelayanan UDD.</p>
         </section>
 
         <section class="auth-panel" aria-labelledby="register-form-title">
             <header class="auth-panel-header">
-                <h2 id="register-form-title">Data Registrasi</h2>
+                <h2 id="register-form-title">Data Pendaftaran</h2>
                 <p>Lengkapi data yang diperlukan.</p>
             </header>
 
@@ -37,13 +37,13 @@
                         </div>
 
                         <div class="form-field">
-                            <label for="password">Password <span class="required-mark" aria-hidden="true">*</span></label>
+                            <label for="password">Kata Sandi <span class="required-mark" aria-hidden="true">*</span></label>
                             <input id="password" type="password" name="password" minlength="8" maxlength="255" required autocomplete="new-password" aria-describedby="password-hint">
                             <p class="form-hint" id="password-hint">Gunakan minimal 8 karakter.</p>
                         </div>
 
                         <div class="form-field">
-                            <label for="password_confirmation">Konfirmasi Password <span class="required-mark" aria-hidden="true">*</span></label>
+                            <label for="password_confirmation">Konfirmasi Kata Sandi <span class="required-mark" aria-hidden="true">*</span></label>
                             <input id="password_confirmation" type="password" name="password_confirmation" minlength="8" maxlength="255" required autocomplete="new-password">
                         </div>
                     </div>

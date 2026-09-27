@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Queue Unit Komponen | Donor Darah UDD')
+@section('title', 'Unit Komponen Darah | Donor Darah UDD')
 
 @section('content')
     <div class="container page-shell">

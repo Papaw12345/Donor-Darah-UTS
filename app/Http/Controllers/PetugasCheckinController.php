@@ -89,7 +89,7 @@ class PetugasCheckinController extends Controller
                 || $pemesananTerkunci->waktu_checkin !== null
                 || ! $this->jadwalSudahSelesai($pemesananTerkunci, CarbonImmutable::now('Asia/Jakarta'))) {
                 throw ValidationException::withMessages([
-                    'pemesanan' => 'Pemesanan ini belum memenuhi syarat untuk ditandai tidak hadir.',
+                    'pemesanan' => 'Kunjungan donor ini belum memenuhi syarat untuk ditandai tidak hadir.',
                 ]);
             }
 
@@ -98,7 +98,7 @@ class PetugasCheckinController extends Controller
 
         return redirect()
             ->route('petugas.check-in.index')
-            ->with('success', 'Pemesanan berhasil ditandai TIDAK_HADIR.');
+            ->with('success', 'Kunjungan donor berhasil ditandai Tidak Hadir.');
     }
 
     public function store(Request $request): RedirectResponse
@@ -155,7 +155,7 @@ class PetugasCheckinController extends Controller
             ->with(
                 'success',
                 $idempotent
-                    ? 'Pemesanan ini sudah berhasil check-in.'
+                    ? 'Pendonor ini sudah berhasil check-in.'
                     : 'Check-in Pendonor berhasil.'
             );
     }
@@ -186,7 +186,7 @@ class PetugasCheckinController extends Controller
             $pemesanan->status_pemesanan === 'CHECK_IN'
             && $pemesanan->waktu_checkin !== null
         ) {
-            return 'Pemesanan ini sudah berhasil check-in.';
+            return 'Pendonor ini sudah berhasil check-in.';
         }
 
         if (
@@ -204,15 +204,17 @@ class PetugasCheckinController extends Controller
         }
 
         if ($pemesanan->status_pemesanan !== 'TERJADWAL') {
-            return 'Pemesanan berstatus '.$pemesanan->status_pemesanan.' tidak dapat menjalani check-in baru.';
+            $statusLabel = ['DIBATALKAN' => 'Dibatalkan', 'TIDAK_HADIR' => 'Tidak Hadir', 'SELESAI' => 'Selesai'][$pemesanan->status_pemesanan] ?? $pemesanan->status_pemesanan;
+
+            return 'Kunjungan donor berstatus '.$statusLabel.' tidak dapat menjalani check-in baru.';
         }
 
         if ($pemesanan->kode_checkin !== $normalizedCode) {
-            return 'Kode check-in tidak sesuai dengan pemesanan.';
+            return 'Kode Check-in tidak sesuai dengan kunjungan donor ini.';
         }
 
         if ($pemesanan->kuesionerPradonasi === null) {
-            return 'Check-in belum dapat dilakukan karena kuesioner pradonasi belum tersedia.';
+            return 'Check-in belum dapat dilakukan karena Kuesioner Pra-Donor belum tersedia.';
         }
 
         $todayWib = CarbonImmutable::now('Asia/Jakarta')->toDateString();

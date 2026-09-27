@@ -12,7 +12,7 @@
 
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button type="submit">Logout</button>
+            <button type="submit">Keluar</button>
         </form>
     </main>
 </body>

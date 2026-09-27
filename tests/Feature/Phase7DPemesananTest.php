@@ -168,7 +168,7 @@ class Phase7DPemesananTest extends TestCase
         $this->actingAs($pendonor->akun)
             ->post(route('pendonor.pemesanan.store', $jadwal))
             ->assertRedirect(route('pendonor.pemesanan.index'))
-            ->assertSessionHas('success');
+            ->assertSessionHas('success', 'Pendaftaran Donor berhasil. Agenda Donor Anda telah terbentuk.');
 
         $pemesanan = PemesananDonor::query()->sole();
 
@@ -558,7 +558,7 @@ class Phase7DPemesananTest extends TestCase
             ->get(route('pendonor.jadwal.index'))
             ->assertOk()
             ->assertSee(route('pendonor.pemesanan.store', $jadwal), false)
-            ->assertSee('Buat Pemesanan')
+            ->assertSee('Daftar pada Jadwal Ini')
             ->assertSee('name="_token"', false);
     }
 

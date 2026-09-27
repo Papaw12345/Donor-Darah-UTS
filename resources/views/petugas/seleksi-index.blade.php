@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Queue Seleksi Donor | Donor Darah UDD')
+@section('title', 'Seleksi Donor | Donor Darah UDD')
 
 @section('content')
     <div class="container page-shell">
-        <header class="page-header"><div class="page-header-main"><h1 class="page-title">Seleksi Donor</h1><p>Pemesanan yang sudah check-in dan menunggu seleksi.</p></div></header>
+        <header class="page-header"><div class="page-header-main"><h1 class="page-title">Seleksi Donor</h1><p>Pendonor yang sudah check-in dan menunggu seleksi.</p></div></header>
         @include('partials.alerts')
-        <section class="page-section" aria-label="Daftar pemesanan menunggu seleksi">
+        <section class="page-section" aria-label="Daftar pendonor menunggu seleksi">
             @if ($pemesananMenunggu->isEmpty())
-                <div class="empty-state">Tidak ada pemesanan yang menunggu seleksi.</div>
+                <div class="empty-state">Tidak ada pendonor yang menunggu seleksi.</div>
             @else
                 <div class="table-container"><table class="data-table">
                     <thead><tr><th scope="col">Pendonor</th><th scope="col">Nomor Donor</th><th scope="col">Jadwal</th><th scope="col">Waktu Check-in</th><th scope="col">Aksi</th></tr></thead>

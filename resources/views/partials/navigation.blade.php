@@ -23,9 +23,9 @@
             @else
                 @if (auth()->user()->peran === 'PENDONOR')
                     <a class="nav-link {{ request()->routeIs('pendonor.home', 'pendonor.donor-berikutnya.*') ? 'is-active' : '' }}" href="{{ route('pendonor.home') }}">Dashboard</a>
-                    <a class="nav-link {{ request()->routeIs('pendonor.jadwal.*') ? 'is-active' : '' }}" href="{{ route('pendonor.jadwal.index') }}">Jadwal</a>
-                    <a class="nav-link {{ request()->routeIs('pendonor.pemesanan.*', 'pendonor.kuesioner.*', 'pendonor.kode-checkin.*') ? 'is-active' : '' }}" href="{{ route('pendonor.pemesanan.index') }}">Pemesanan</a>
-                    <a class="nav-link {{ request()->routeIs('pendonor.riwayat.*') ? 'is-active' : '' }}" href="{{ route('pendonor.riwayat.index') }}">Riwayat</a>
+                    <a class="nav-link {{ request()->routeIs('pendonor.jadwal.*') ? 'is-active' : '' }}" href="{{ route('pendonor.jadwal.index') }}">Jadwal Donor</a>
+                    <a class="nav-link {{ request()->routeIs('pendonor.pemesanan.*', 'pendonor.kuesioner.*', 'pendonor.kode-checkin.*') ? 'is-active' : '' }}" href="{{ route('pendonor.pemesanan.index') }}">Agenda Donor</a>
+                    <a class="nav-link {{ request()->routeIs('pendonor.riwayat.*') ? 'is-active' : '' }}" href="{{ route('pendonor.riwayat.index') }}">Riwayat Donor</a>
                     <a class="nav-link {{ request()->routeIs('pendonor.pemberitahuan.*') ? 'is-active' : '' }}" href="{{ route('pendonor.pemberitahuan.index') }}">Pemberitahuan</a>
                     <a class="nav-link {{ request()->routeIs('pendonor.profil.*') ? 'is-active' : '' }}" href="{{ route('pendonor.profil.show') }}">Profil</a>
                 @elseif (auth()->user()->peran === 'PETUGAS')
