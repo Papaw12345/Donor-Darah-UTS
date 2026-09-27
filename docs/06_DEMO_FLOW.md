@@ -235,13 +235,13 @@ Jadwal yang dibuat Admin tampil karena:
 
 ---
 
-## 10. Pendonor Membuat Pemesanan
+## 10. Pendonor Mendaftar pada Jadwal Donor
 
 ### Aksi
 
-Pilih jadwal dan buat pemesanan.
+Pilih jadwal lalu gunakan aksi `Daftar pada Jadwal Ini`.
 
-Untuk jadwal hari ini, lakukan aksi paling lambat tepat pada `jam_selesai`. `jam_mulai` tidak membatasi pembuatan pemesanan.
+Untuk jadwal hari ini, lakukan pendaftaran paling lambat tepat pada `jam_selesai`. `jam_mulai` tidak membatasi pendaftaran pada jadwal donor.
 
 ### Hasil yang Diharapkan
 
@@ -270,7 +270,7 @@ Sisa kapasitas dihitung dari data, bukan disimpan sebagai field tambahan.
 
 ### Aksi
 
-Buka `Kuesioner Pradonasi` untuk pemesanan tersebut.
+Buka `Kuesioner Pra-Donor` untuk agenda donor tersebut.
 
 Jawab pertanyaan aktif.
 
@@ -802,7 +802,7 @@ Skenario berikut tidak harus semuanya dipresentasikan, tetapi sebaiknya sudah di
 
 Expected result: akses ditolak.
 
-## Registrasi dan Pemesanan
+## Registrasi dan Agenda Donor
 
 - NIK bukan tepat 16 digit, tanggal lahir masa depan, atau usia registrasi/usia pada tanggal jadwal kurang dari 17 tahun;
 - jadwal `DITUTUP`;
@@ -812,7 +812,7 @@ Expected result: akses ditolak.
 - donor ulang belum memenuhi interval;
 - donor ulang sudah mencapai batas frekuensi tahunan.
 
-Expected result: pemesanan baru ditolak sesuai aturan aplikasi.
+Expected result: pendaftaran pada jadwal donor ditolak sesuai aturan aplikasi.
 
 ## Kuesioner dan Seleksi
 
@@ -888,7 +888,7 @@ Jika waktu presentasi sangat terbatas, gunakan alur ringkas berikut:
 
 1. Admin membuat jadwal.
 2. Pendonor registrasi dan login.
-3. Pendonor memilih jadwal dan membuat pemesanan.
+3. Pendonor memilih jadwal dan mendaftarkan diri; agenda donor terbentuk.
 4. Pendonor mengisi kuesioner; sistem sekaligus menyimpan jawaban dan kode secara atomik.
 5. Pendonor melihat kode check-in yang sama pada halaman kode.
 6. Petugas login dan melakukan check-in.

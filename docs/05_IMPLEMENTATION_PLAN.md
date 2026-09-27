@@ -413,16 +413,18 @@ Membuat alur Pendonor sampai siap datang ke UDD.
 1. Dashboard Pendonor.
 2. Profil Saya.
 3. Jadwal Donor.
-4. Pemesanan Donor.
-5. Kuesioner Pradonasi.
+4. Agenda Donor.
+5. Kuesioner Pra-Donor.
 6. Kode Check-in.
 7. Riwayat Donor.
 8. Informasi Donor Berikutnya.
 9. Pemberitahuan.
 
-## Pemesanan
+## Agenda Donor
 
-Sebelum pemesanan baru, sistem harus memeriksa aturan yang relevan:
+Label UI menggunakan **Agenda Donor**, sedangkan implementasi internal tetap menggunakan entitas `pemesanan_donor`.
+
+Sebelum Pendonor didaftarkan pada jadwal donor, sistem harus memeriksa aturan yang relevan:
 
 - riwayat donor ulang;
 - jadwal `DIBUKA`;
@@ -492,7 +494,7 @@ Menyelesaikan proses operasional dari kedatangan Pendonor sampai pengelolaan uni
 
 1. Dashboard Petugas.
 2. Check-in Pendonor.
-3. Kuesioner Pradonasi - lihat.
+3. Kuesioner Pra-Donor - lihat.
 4. Seleksi Donor.
 5. Penyumbangan.
 6. Unit Komponen Darah.
@@ -696,7 +698,7 @@ Membuktikan proses utama benar-benar berjalan dari awal sampai akhir.
 5. Pendonor melakukan registrasi.
 6. Pendonor login.
 7. Pendonor melihat jadwal.
-8. Pendonor membuat pemesanan.
+8. Pendonor mendaftarkan diri pada jadwal donor dan agenda donor terbentuk.
 9. Pendonor mengisi kuesioner.
 10. Sistem menghasilkan kode check-in.
 11. Petugas login.

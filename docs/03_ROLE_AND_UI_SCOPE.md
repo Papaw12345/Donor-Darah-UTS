@@ -100,7 +100,7 @@ Untuk menutup Gate Phase 7, ringkasan pemesanan aktif pada Dashboard Pendonor me
 - karena pemesanan pada `id_jadwal` berbeda dapat sama-sama valid, dashboard tidak memilih satu pemesanan sebagai pemesanan utama dan tidak menyembunyikan pemesanan aktif lain;
 - urutan ringkasan adalah `jadwal_pelayanan.tanggal ASC`, `jadwal_pelayanan.jam_mulai ASC`, `pemesanan_donor.waktu_pemesanan ASC`, kemudian `pemesanan_donor.id_pemesanan ASC` sebagai tie-breaker deterministik;
 - setiap item ringkasan minimal menampilkan tanggal jadwal, jam pelayanan, dan `status_pemesanan`;
-- dashboard menyediakan link nyata menuju halaman `Pemesanan Donor Saya` untuk tindakan atau informasi lebih rinci;
+- dashboard menyediakan link nyata menuju halaman `Agenda Donor Saya` untuk tindakan atau informasi lebih rinci;
 - dashboard tidak menambahkan tombol buat pemesanan, pembatalan, pengisian kuesioner, pembuatan kode check-in, atau aksi mutasi lain di dalam ringkasan ini;
 - apabila tidak ada pemesanan aktif, dashboard menampilkan empty state yang terkendali;
 - Dashboard Pendonor tetap menggunakan `GET` dan bersifat hanya-baca. Membuka dashboard tidak mengubah status atau data pemesanan;
@@ -160,16 +160,37 @@ Jadwal dengan tanggal sebelum hari ini, jadwal `DIBUKA` pada tanggal hari ini ya
 
 Pendonor tidak dapat membuat atau mengubah jadwal pelayanan secara administratif.
 
-### Pemesanan Donor
+### Agenda Donor
+
+[AGREED DECISION] Istilah UI untuk keterikatan Pendonor pada satu jadwal donor adalah **Agenda Donor**. Istilah internal/schema tetap `pemesanan_donor`, `id_pemesanan`, `status_pemesanan`, dan nama teknis terkait; istilah teknis tersebut tidak diubah hanya untuk kebutuhan tampilan aplikasi.
 
 Pendonor dapat:
 
-- memilih jadwal;
-- membuat pemesanan donor;
-- melihat pemesanan miliknya sendiri;
-- membatalkan pemesanan selama masih diperbolehkan oleh aturan aplikasi.
+- memilih jadwal donor;
+- mendaftarkan diri pada jadwal donor melalui aksi **Daftar pada Jadwal Ini**;
+- melihat agenda donor miliknya melalui halaman **Agenda Donor Saya**;
+- membatalkan agenda donor selama masih diperbolehkan oleh aturan aplikasi.
 
-Pendonor tidak boleh melihat atau mengubah pemesanan milik Pendonor lain.
+Pendonor tidak boleh melihat atau mengubah agenda donor milik Pendonor lain. Pada penjelasan teknis di dokumen, istilah pemesanan tetap boleh digunakan ketika secara eksplisit merujuk row `pemesanan_donor` atau field lifecycle-nya.
+
+#### Keputusan Terminologi UI Pendonor
+
+[AGREED DECISION]
+
+Terminologi pengguna untuk alur Pendonor adalah:
+
+- daftar kesempatan donor: **Jadwal Donor**;
+- aksi memilih satu jadwal: **Daftar pada Jadwal Ini**;
+- proses pendaftaran yang berhasil membuat row `pemesanan_donor`: **Pendaftaran Donor**;
+- row aktif yang ditampilkan kepada Pendonor: **Agenda Donor**;
+- halaman agenda aktif: **Agenda Donor Saya**;
+- pembatalan: **Batalkan Agenda Donor**;
+- kuesioner Pendonor: **Kuesioner Pra-Donor**;
+- kode kehadiran: **Kode Check-in**;
+- riwayat transaksi penyumbangan: **Riwayat Donor**;
+- identifier operasional Pendonor: **Nomor Donor**.
+
+Istilah `Pemesanan`, `ID Pemesanan`, dan nama field/PK internal tidak digunakan sebagai label utama yang ditampilkan kepada Pendonor. Perubahan istilah UI ini tidak mengubah schema, model, route, controller, enum, lifecycle, authorization, maupun business rule.
 
 #### Keputusan Proyek Phase 7D
 
@@ -179,7 +200,7 @@ Klarifikasi berikut merupakan keputusan proyek Phase 7D untuk bagian alur Pemesa
 - Pemesanan baru hanya dapat dibuat untuk jadwal `DIBUKA` dengan tanggal hari ini atau setelahnya menurut WIB (`Asia/Jakarta`), sisa kapasitas lebih dari `0`, kelayakan donor ulang terpenuhi terhadap tanggal jadwal yang dipilih, dan aturan pemesanan ulang untuk jadwal yang sama terpenuhi. Khusus jadwal hari ini, pemesanan baru hanya dapat dibuat selama waktu WIB sekarang belum melewati `jam_selesai`; tepat pada `jam_selesai` masih diperbolehkan.
 - `jam_mulai` tidak membatasi pemesanan baru. Pemesanan sebelum jam pelayanan dimulai tetap diperbolehkan jika seluruh syarat lain terpenuhi, dan jadwal masa depan tidak dipengaruhi oleh jam berjalan pada hari ini.
 - Untuk keperluan workflow dan UI, status pemesanan aktif adalah `TERJADWAL` dan `CHECK_IN`.
-- Halaman `Pemesanan Saya` menampilkan hanya pemesanan aktif tersebut. Row `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tetap tersimpan sebagai data transaksi tetapi tidak ditampilkan pada daftar proses aktif Pendonor.
+- Halaman `Agenda Donor Saya` menampilkan hanya row `pemesanan_donor` aktif tersebut. Row `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tetap tersimpan sebagai data transaksi tetapi tidak ditampilkan pada daftar proses aktif Pendonor.
 - Untuk kombinasi Pendonor dan jadwal yang sama, pemesanan berstatus `TERJADWAL`, `CHECK_IN`, `SELESAI`, atau `TIDAK_HADIR` menghalangi pemesanan baru. Hanya pemesanan berstatus `DIBATALKAN` yang tidak menghalangi pemesanan ulang pada jadwal yang sama.
 - Pemesanan pada `id_jadwal` yang berbeda tidak otomatis dilarang oleh aturan duplikasi. Prototype ini tidak menambahkan aturan satu pemesanan per hari, konsep jadwal alternatif, atau pembatalan otomatis atas pemesanan lain.
 - Pemesanan yang valid dibuat dengan status `TERJADWAL`; `waktu_pemesanan` diisi pada saat pembuatan menggunakan konvensi timestamp aplikasi; sedangkan `kode_checkin` dan `waktu_checkin` tetap `NULL`.
@@ -190,7 +211,7 @@ Pembuatan kode check-in dan proses check-in bukan bagian implementasi Phase 7D.
 
 Cutoff `jam_selesai` pada jadwal hari ini juga membatasi submit kuesioner/pembuatan kode baru dan pembatalan booking `TERJADWAL` oleh Pendonor. Tepat pada `jam_selesai` masih diperbolehkan; setelahnya operasi baru tersebut dan check-in baru ditolak. Kuesioner dan kode historical tetap dapat dilihat. Seleksi setelah check-in valid serta proses hilir tidak diberi cutoff baru.
 
-### Kuesioner Pradonasi
+### Kuesioner Pra-Donor
 
 Pendonor dapat mengisi kuesioner kesehatan pradonasi untuk pemesanan miliknya sendiri.
 
@@ -482,7 +503,7 @@ Ketentuan Phase 8B dikunci sebagai berikut:
 
 Setelah `jam_selesai` lewat, Petugas dapat menandai booking yang masih `TERJADWAL` dan `waktu_checkin IS NULL` sebagai `TIDAK_HADIR` melalui aksi eksplisit. Tidak perlu kuesioner atau kode. Tidak ada cron, delete booking, atau penghapusan kuesioner/jawaban/kode historical. `TIDAK_HADIR` bukan `DIBATALKAN`.
 
-### Kuesioner Pradonasi
+### Kuesioner Pra-Donor
 
 Petugas dapat melihat jawaban kuesioner Pendonor sebagai salah satu informasi dalam proses seleksi.
 
