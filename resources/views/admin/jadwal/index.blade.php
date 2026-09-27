@@ -14,7 +14,7 @@
         @include('partials.alerts')
 
         <section class="page-section">
-            @if ($jadwal->isEmpty())
+            @if ($jadwalMendatang->isEmpty() && $jadwalRiwayat->isEmpty())
                 <div class="empty-state">Belum ada jadwal pelayanan.</div>
             @else
                 <div class="table-container">
@@ -30,26 +30,31 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($jadwal as $item)
-                                <tr>
-                                    <td>{{ $item->tanggal->format('d-m-Y') }}</td>
-                                    <td>{{ substr($item->jam_mulai, 0, 5) }}</td>
-                                    <td>{{ substr($item->jam_selesai, 0, 5) }}</td>
-                                    <td>{{ $item->kapasitas }}</td>
-                                    <td>
-                                        <span class="status-badge {{ $item->status_jadwal === 'DIBUKA' ? 'status-success' : ($item->status_jadwal === 'DIBATALKAN' ? 'status-danger' : 'status-neutral') }}">
-                                            {{ $item->status_jadwal }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <a class="button button-secondary button-small" href="{{ route('admin.jadwal.edit', $item) }}">Edit</a>
-                                        <form class="inline-form" method="POST" action="{{ route('admin.jadwal.destroy', $item) }}">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="button button-danger button-small" type="submit">Hapus</button>
-                                        </form>
-                                    </td>
-                                </tr>
+                            @foreach (['Hari Ini & Mendatang' => $jadwalMendatang, 'Riwayat' => $jadwalRiwayat] as $groupLabel => $group)
+                                @if ($group->isNotEmpty())
+                                    <tr><th colspan="6" scope="row">{{ $groupLabel }}</th></tr>
+                                    @foreach ($group as $item)
+                                        <tr>
+                                            <td>{{ $item->tanggal->format('d-m-Y') }}</td>
+                                            <td>{{ substr($item->jam_mulai, 0, 5) }}</td>
+                                            <td>{{ substr($item->jam_selesai, 0, 5) }}</td>
+                                            <td>{{ $item->kapasitas }}</td>
+                                            <td>
+                                                <span class="status-badge {{ $item->status_jadwal === 'DIBUKA' ? 'status-success' : ($item->status_jadwal === 'DIBATALKAN' ? 'status-danger' : 'status-neutral') }}">
+                                                    {{ $item->status_jadwal }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a class="button button-secondary button-small" href="{{ route('admin.jadwal.edit', $item) }}">Edit</a>
+                                                <form class="inline-form" method="POST" action="{{ route('admin.jadwal.destroy', $item) }}">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button class="button button-danger button-small" type="submit">Hapus</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @endif
                             @endforeach
                         </tbody>
                     </table>

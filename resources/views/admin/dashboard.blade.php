@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard Admin | Donor Darah UDD')
+@section('title', 'Ringkasan Konfigurasi Sistem | Donor Darah UDD')
 
 @section('content')
     <div class="container page-shell">
         <header class="page-header">
             <div class="page-header-main">
-                <h1 class="page-title">Dashboard Admin</h1>
+                <h1 class="page-title">Ringkasan Konfigurasi Sistem</h1>
             </div>
         </header>
 
@@ -37,29 +37,25 @@
             </div>
         </section>
 
-        {{-- Ringkasan administrasi --}}
+        {{-- Ringkasan konfigurasi --}}
         <section class="page-section" aria-labelledby="ringkasan-administrasi">
-            <h2 class="section-title" id="ringkasan-administrasi">Ringkasan Administrasi</h2>
+            <h2 class="section-title" id="ringkasan-administrasi">Status Konfigurasi</h2>
             <dl class="dashboard-summary admin-summary">
                 <div class="dashboard-summary-item">
-                    <dt class="summary-label">Petugas aktif</dt>
+                    <dt class="summary-label">Petugas Aktif</dt>
                     <dd class="summary-value">{{ $activePetugasCount }}</dd>
                 </div>
                 <div class="dashboard-summary-item">
-                    <dt class="summary-label">Jadwal dibuka untuk hari ini dan mendatang</dt>
-                    <dd class="summary-value">{{ $openUpcomingScheduleCount }}</dd>
+                    <dt class="summary-label">Jadwal Dibuka</dt>
+                    <dd class="summary-value">{{ $openUpcomingScheduleCount }} <small>hari ini &amp; mendatang</small></dd>
                 </div>
                 <div class="dashboard-summary-item">
-                    <dt class="summary-label">Pertanyaan kuesioner aktif</dt>
+                    <dt class="summary-label">Pertanyaan Aktif</dt>
                     <dd class="summary-value">{{ $activeQuestionCount }}</dd>
                 </div>
                 <div class="dashboard-summary-item">
-                    <dt class="summary-label">Kombinasi ambang persediaan terkonfigurasi</dt>
-                    <dd class="summary-value">{{ $configuredThresholdCount }} dari {{ $expectedThresholdCount }}</dd>
-                </div>
-                <div class="dashboard-summary-item">
-                    <dt class="summary-label">Kombinasi ambang persediaan belum dikonfigurasi</dt>
-                    <dd class="summary-value">{{ $missingThresholdCount }}</dd>
+                    <dt class="summary-label">Konfigurasi Ambang</dt>
+                    <dd class="summary-value">{{ $configuredThresholdCount }}/{{ $expectedThresholdCount }} terisi, {{ $missingThresholdCount }} belum</dd>
                 </div>
             </dl>
         </section>

@@ -15,9 +15,13 @@ class AdminAmbangPersediaanController extends Controller
     public function index(): View
     {
         $ambang = AmbangPersediaan::query()
+            ->join('jenis_komponen_darah', 'jenis_komponen_darah.id_jenis_komponen', '=', 'ambang_persediaan.id_jenis_komponen')
+            ->join('golongan_darah', 'golongan_darah.id_golongan_darah', '=', 'ambang_persediaan.id_golongan_darah')
+            ->select('ambang_persediaan.*')
             ->with(['jenisKomponenDarah', 'golonganDarah'])
-            ->orderBy('id_jenis_komponen')
-            ->orderBy('id_golongan_darah')
+            ->orderBy('jenis_komponen_darah.kode_komponen')
+            ->orderBy('golongan_darah.id_golongan_darah')
+            ->orderBy('ambang_persediaan.id_ambang')
             ->get();
 
         return view('admin.ambang.index', ['ambang' => $ambang]);

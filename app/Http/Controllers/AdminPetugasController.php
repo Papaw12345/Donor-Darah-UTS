@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Akun;
 use App\Models\Petugas;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,11 +16,12 @@ class AdminPetugasController extends Controller
     public function index(): View
     {
         $petugas = Petugas::query()
+            ->join('akun', 'akun.id_akun', '=', 'petugas.id_akun')
+            ->select('petugas.*')
             ->with('akun')
-            ->whereHas('akun', function (Builder $query): void {
-                $query->where('peran', 'PETUGAS');
-            })
-            ->orderBy('nomor_petugas')
+            ->where('akun.peran', 'PETUGAS')
+            ->orderByRaw("CASE WHEN akun.status_akun = 'AKTIF' THEN 0 ELSE 1 END ASC")
+            ->orderByDesc('petugas.id_petugas')
             ->get();
 
         return view('admin.petugas.index', ['petugas' => $petugas]);

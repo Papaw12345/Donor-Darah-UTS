@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\JadwalPelayanan;
 use App\Models\PemesananDonor;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,12 +15,22 @@ class AdminJadwalController extends Controller
 {
     public function index(): View
     {
-        $jadwal = JadwalPelayanan::query()
+        $today = CarbonImmutable::today('Asia/Jakarta')->toDateString();
+        $jadwalMendatang = JadwalPelayanan::query()
+            ->whereDate('tanggal', '>=', $today)
             ->orderBy('tanggal')
             ->orderBy('jam_mulai')
             ->get();
+        $jadwalRiwayat = JadwalPelayanan::query()
+            ->whereDate('tanggal', '<', $today)
+            ->orderByDesc('tanggal')
+            ->orderBy('jam_mulai')
+            ->get();
 
-        return view('admin.jadwal.index', ['jadwal' => $jadwal]);
+        return view('admin.jadwal.index', [
+            'jadwalMendatang' => $jadwalMendatang,
+            'jadwalRiwayat' => $jadwalRiwayat,
+        ]);
     }
 
     public function create(): View

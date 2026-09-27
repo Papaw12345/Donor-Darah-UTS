@@ -13,6 +13,7 @@ class AdminPertanyaanKuesionerController extends Controller
     public function index(): View
     {
         $pertanyaan = PertanyaanKuesioner::query()
+            ->orderByDesc('status_aktif')
             ->orderBy('urutan')
             ->orderBy('id_pertanyaan')
             ->get();

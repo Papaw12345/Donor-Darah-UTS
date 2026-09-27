@@ -8,6 +8,7 @@ use App\Models\JadwalPelayanan;
 use App\Models\JenisKomponenDarah;
 use App\Models\PertanyaanKuesioner;
 use App\Models\Petugas;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -24,9 +25,10 @@ class AdminDashboardController extends Controller
             })
             ->count();
 
+        $today = CarbonImmutable::today('Asia/Jakarta')->toDateString();
         $openUpcomingScheduleCount = JadwalPelayanan::query()
             ->where('status_jadwal', 'DIBUKA')
-            ->whereDate('tanggal', '>=', today())
+            ->whereDate('tanggal', '>=', $today)
             ->count();
 
         $activeQuestionCount = PertanyaanKuesioner::query()
