@@ -1,5 +1,5 @@
 <header class="site-header">
-    <div class="container navigation">
+    <div class="container navigation {{ auth()->check() && auth()->user()->peran === 'PETUGAS' ? 'navigation-petugas' : '' }}">
         <a class="brand" href="{{ url('/') }}" aria-label="Beranda Sistem Informasi UDD">
             <span class="brand-mark" aria-hidden="true"><span>UDD</span></span>
             <span class="brand-copy">
@@ -7,6 +7,15 @@
                 <span>Donor dan persediaan darah</span>
             </span>
         </a>
+
+        @auth
+            @if (auth()->user()->peran === 'PETUGAS')
+                <form class="nav-form" method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button class="button button-primary button-small" type="submit">Keluar</button>
+                </form>
+            @endif
+        @endauth
 
         <nav class="nav-actions {{ auth()->check() && auth()->user()->peran === 'PETUGAS' ? 'nav-actions-petugas' : '' }}" aria-label="Navigasi utama">
             @guest
@@ -58,10 +67,12 @@
                     <a class="nav-link {{ request()->routeIs('admin.ambang.*') ? 'is-active' : '' }}" href="{{ route('admin.ambang.index') }}">Ambang</a>
                 @endif
 
-                <form class="nav-form" method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="button button-primary button-small" type="submit">Keluar</button>
-                </form>
+                @if (auth()->user()->peran !== 'PETUGAS')
+                    <form class="nav-form" method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button class="button button-primary button-small" type="submit">Keluar</button>
+                    </form>
+                @endif
             @endguest
         </nav>
     </div>

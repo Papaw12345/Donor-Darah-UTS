@@ -576,6 +576,44 @@ img {
     justify-content: flex-start;
 }
 
+.navigation.navigation-petugas {
+    display: grid;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.25rem 1rem;
+    padding-block: 0.5rem 0.6rem;
+}
+
+.navigation-petugas > .nav-form {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+}
+
+.navigation-petugas .nav-actions-petugas {
+    grid-column: 1 / -1;
+    display: grid;
+    flex-basis: auto;
+    justify-content: stretch;
+    gap: 0.1rem;
+}
+
+.navigation-petugas .nav-group {
+    gap: 0.2rem;
+}
+
+.navigation-petugas .nav-group-label {
+    min-width: 6.7rem;
+}
+
+.navigation-petugas .nav-group-links {
+    gap: 0.1rem;
+}
+
+.navigation-petugas .nav-link {
+    padding: 0.32rem 0.5rem;
+}
+
 .nav-group {
     display: flex;
     flex: 1 1 100%;
@@ -1446,6 +1484,20 @@ img {
 }
 
 @media (max-width: 480px) {
+    .navigation.navigation-petugas {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .navigation-petugas > .nav-form {
+        grid-column: 1;
+        grid-row: auto;
+        justify-self: start;
+    }
+
+    .navigation-petugas .nav-actions-petugas {
+        grid-column: 1;
+    }
+
     .brand-mark {
         width: 2.4rem;
         height: 2.4rem;
