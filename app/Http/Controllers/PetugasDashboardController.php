@@ -21,10 +21,18 @@ class PetugasDashboardController extends Controller
             'Relasi akun PETUGAS dengan profil Petugas tidak konsisten.'
         );
 
-        $jadwal = JadwalPelayanan::query()
+        $today = CarbonImmutable::today('Asia/Jakarta')->toDateString();
+        $jadwalMendatang = JadwalPelayanan::query()
+            ->whereDate('tanggal', '>=', $today)
+            ->orderBy('tanggal')
+            ->orderByDesc('jam_mulai')
+            ->get();
+        $jadwalRiwayat = JadwalPelayanan::query()
+            ->whereDate('tanggal', '<', $today)
             ->orderByDesc('tanggal')
             ->orderByDesc('jam_mulai')
             ->get();
+        $jadwal = $jadwalMendatang->concat($jadwalRiwayat);
 
         return view('petugas.jadwal', [
             'jadwal' => $jadwal,

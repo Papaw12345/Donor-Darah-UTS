@@ -121,28 +121,44 @@ class Phase8ADashboardPetugasTest extends TestCase
             ->assertOk();
     }
 
-    public function test_jadwal_lists_all_states_in_existing_order_without_mutation_actions(): void
+    public function test_jadwal_uses_wib_date_groups_and_remains_read_only(): void
     {
+        // Pada UTC masih 15 September, tetapi di Jakarta sudah 16 September.
+        $this->travelTo(CarbonImmutable::parse('2026-09-15 17:30:00', 'UTC'));
         $petugas = $this->createPetugas();
-        $pastClosed = JadwalPelayanan::create([
-            'tanggal' => '2026-09-14',
+        $pastOld = JadwalPelayanan::create([
+            'tanggal' => '2026-09-13',
             'jam_mulai' => '08:00',
             'jam_selesai' => '10:00',
             'kapasitas' => 5,
             'status_jadwal' => 'DITUTUP',
         ]);
-        $futureCancelled = JadwalPelayanan::create([
-            'tanggal' => '2026-09-17',
-            'jam_mulai' => '08:00',
-            'jam_selesai' => '10:00',
-            'kapasitas' => 10,
-            'status_jadwal' => 'DIBATALKAN',
-        ]);
-        $futureOpen = JadwalPelayanan::create([
-            'tanggal' => '2026-09-17',
+        $futureFar = JadwalPelayanan::create([
+            'tanggal' => '2026-09-20',
             'jam_mulai' => '13:00',
             'jam_selesai' => '15:30',
             'kapasitas' => 20,
+            'status_jadwal' => 'DIBATALKAN',
+        ]);
+        $today = JadwalPelayanan::create([
+            'tanggal' => '2026-09-16',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'kapasitas' => 10,
+            'status_jadwal' => 'DITUTUP',
+        ]);
+        $pastRecent = JadwalPelayanan::create([
+            'tanggal' => '2026-09-15',
+            'jam_mulai' => '09:00',
+            'jam_selesai' => '11:00',
+            'kapasitas' => 15,
+            'status_jadwal' => 'DIBUKA',
+        ]);
+        $futureNear = JadwalPelayanan::create([
+            'tanggal' => '2026-09-17',
+            'jam_mulai' => '07:00',
+            'jam_selesai' => '09:00',
+            'kapasitas' => 12,
             'status_jadwal' => 'DIBUKA',
         ]);
         $before = JadwalPelayanan::query()
@@ -154,9 +170,8 @@ class Phase8ADashboardPetugasTest extends TestCase
             ->get(route('petugas.jadwal.index'))
             ->assertOk()
             ->assertSee('Jadwal Pelayanan')
-            ->assertSeeInOrder(['13:00', '08:00', '08:00'])
+            ->assertSeeInOrder(['16-09-2026', '17-09-2026', '20-09-2026', '15-09-2026', '13-09-2026'])
             ->assertSee('17-09-2026')
-            ->assertSee('14-09-2026')
             ->assertSee('15:30')
             ->assertSee('20')
             ->assertSee('DIBUKA')
@@ -164,15 +179,24 @@ class Phase8ADashboardPetugasTest extends TestCase
             ->assertSee('DIBATALKAN')
             ->assertDontSee('Tambah Jadwal')
             ->assertDontSee(route('admin.jadwal.create'), false)
-            ->assertDontSee(route('admin.jadwal.edit', $futureOpen), false)
-            ->assertDontSee(route('admin.jadwal.edit', $futureCancelled), false)
-            ->assertDontSee(route('admin.jadwal.edit', $pastClosed), false)
+            ->assertDontSee(route('admin.jadwal.edit', $futureNear), false)
+            ->assertDontSee(route('admin.jadwal.edit', $futureFar), false)
+            ->assertDontSee(route('admin.jadwal.edit', $pastOld), false)
             ->assertDontSee('action="'.route('petugas.jadwal.index').'"', false);
 
         $this->assertSame(
-            [$futureOpen->id_jadwal, $futureCancelled->id_jadwal, $pastClosed->id_jadwal],
+            [
+                $today->id_jadwal,
+                $futureNear->id_jadwal,
+                $futureFar->id_jadwal,
+                $pastRecent->id_jadwal,
+                $pastOld->id_jadwal,
+            ],
             $response->viewData('jadwal')->pluck('id_jadwal')->all()
         );
+        $this->actingAs($petugas->akun)
+            ->get(route('petugas.jadwal.index'))
+            ->assertOk();
         $this->assertEquals(
             $before,
             JadwalPelayanan::query()
