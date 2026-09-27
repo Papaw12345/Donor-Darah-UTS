@@ -84,16 +84,69 @@ class Phase12BatchCSelectionBloodGroupTest extends TestCase
         $this->assertDatabaseCount('seleksi_donor', 0);
     }
 
+    public function test_form_measurements_use_positive_minimums_without_layak_limits(): void
+    {
+        [, $booking] = $this->fixture();
+        $response = $this->get(route('petugas.seleksi.show', $booking))->assertOk();
+
+        foreach ([
+            'berat_badan' => ['0.01', '0.01'],
+            'tekanan_sistolik' => ['1', '1'],
+            'tekanan_diastolik' => ['1', '1'],
+            'denyut_nadi' => ['1', '1'],
+            'suhu_tubuh' => ['0.1', '0.1'],
+            'kadar_hb' => ['0.1', '0.1'],
+        ] as $field => [$step, $minimum]) {
+            $response->assertSee(
+                'name="'.$field.'" type="number" step="'.$step.'" min="'.$minimum.'"',
+                false
+            );
+        }
+    }
+
+    public function test_form_validation_messages_are_in_indonesian(): void
+    {
+        [, $booking] = $this->fixture();
+
+        foreach ([
+            [[], 'berat_badan', 'Berat badan wajib diisi.'],
+            [['berat_badan' => 'bukan angka'], 'berat_badan', 'Berat badan harus berupa angka.'],
+            [['tekanan_sistolik' => '1.5'], 'tekanan_sistolik', 'Tekanan sistolik harus berupa bilangan bulat.'],
+            [['berat_badan' => '60.123'], 'berat_badan', 'Berat badan harus memiliki paling banyak 2 angka di belakang koma.'],
+            [['berat_badan' => '1000.00'], 'berat_badan', 'Berat badan harus berada di antara -999.99 dan 999.99.'],
+            [['hasil_pemeriksaan_kesehatan' => ['bukan teks']], 'hasil_pemeriksaan_kesehatan', 'Hasil pemeriksaan kesehatan harus berupa teks.'],
+            [['hasil_pemeriksaan_kesehatan' => str_repeat('x', 65536)], 'hasil_pemeriksaan_kesehatan', 'Hasil pemeriksaan kesehatan tidak boleh lebih dari 65535 karakter.'],
+            [['keputusan_seleksi' => 'DITUNDA'], 'alasan_keputusan', 'Alasan keputusan wajib diisi untuk keputusan Ditunda atau Ditolak.'],
+            [['keputusan_seleksi' => 'OTOMATIS'], 'keputusan_seleksi', 'Keputusan seleksi harus berupa Layak, Ditunda, atau Ditolak.'],
+            [['id_golongan_darah' => 999999], 'id_golongan_darah', 'Golongan darah harus dipilih dari daftar yang tersedia.'],
+        ] as [$overrides, $field, $message]) {
+            $payload = $overrides === [] ? [] : $this->payload($overrides);
+            $this->post(route('petugas.seleksi.store', $booking), $payload)
+                ->assertSessionHasErrors([$field => $message]);
+        }
+
+        $this->assertDatabaseCount('seleksi_donor', 0);
+    }
+
     #[DataProvider('nonPositiveMeasurements')]
     public function test_every_measurement_rejects_zero_and_negative(string $field, int|float|string $value): void
     {
         [, $booking] = $this->fixture();
 
+        $attribute = [
+            'berat_badan' => 'Berat badan',
+            'tekanan_sistolik' => 'Tekanan sistolik',
+            'tekanan_diastolik' => 'Tekanan diastolik',
+            'denyut_nadi' => 'Denyut nadi',
+            'suhu_tubuh' => 'Suhu tubuh',
+            'kadar_hb' => 'Kadar Hb',
+        ][$field];
+
         $this->post(route('petugas.seleksi.store', $booking), $this->payload([
             $field => $value,
             'keputusan_seleksi' => 'DITUNDA',
             'alasan_keputusan' => 'Keputusan petugas.',
-        ]))->assertSessionHasErrors($field);
+        ]))->assertSessionHasErrors([$field => $attribute.' harus lebih besar dari 0.']);
 
         $this->assertDatabaseCount('seleksi_donor', 0);
     }

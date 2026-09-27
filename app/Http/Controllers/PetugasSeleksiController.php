@@ -82,6 +82,32 @@ class PetugasSeleksiController extends Controller
                 'integer',
                 Rule::exists('golongan_darah', 'id_golongan_darah'),
             ],
+        ], [
+            'required' => ':attribute wajib diisi.',
+            'numeric' => ':attribute harus berupa angka.',
+            'integer' => ':attribute harus berupa bilangan bulat.',
+            'decimal' => ':attribute memiliki jumlah angka desimal yang tidak sesuai.',
+            'berat_badan.decimal' => 'Berat badan harus memiliki paling banyak 2 angka di belakang koma.',
+            'suhu_tubuh.decimal' => 'Suhu tubuh harus memiliki paling banyak 1 angka di belakang koma.',
+            'kadar_hb.decimal' => 'Kadar Hb harus memiliki paling banyak 1 angka di belakang koma.',
+            'gt' => ':attribute harus lebih besar dari :value.',
+            'between' => ':attribute harus berada di antara :min dan :max.',
+            'string' => ':attribute harus berupa teks.',
+            'max' => ':attribute tidak boleh lebih dari :max karakter.',
+            'required_if' => 'Alasan keputusan wajib diisi untuk keputusan Ditunda atau Ditolak.',
+            'in' => 'Keputusan seleksi harus berupa Layak, Ditunda, atau Ditolak.',
+            'exists' => 'Golongan darah harus dipilih dari daftar yang tersedia.',
+        ], [
+            'berat_badan' => 'Berat badan',
+            'tekanan_sistolik' => 'Tekanan sistolik',
+            'tekanan_diastolik' => 'Tekanan diastolik',
+            'denyut_nadi' => 'Denyut nadi',
+            'suhu_tubuh' => 'Suhu tubuh',
+            'kadar_hb' => 'Kadar Hb',
+            'hasil_pemeriksaan_kesehatan' => 'Hasil pemeriksaan kesehatan',
+            'keputusan_seleksi' => 'Keputusan seleksi',
+            'alasan_keputusan' => 'Alasan keputusan',
+            'id_golongan_darah' => 'Golongan darah',
         ]);
 
         DB::transaction(function () use ($pemesanan, $petugas, $validated, $request): void {

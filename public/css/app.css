@@ -580,7 +580,7 @@ img {
     display: grid;
     min-height: 0;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.25rem 1rem;
+    gap: 0.65rem 1rem;
     padding-block: 0.5rem 0.6rem;
 }
 
