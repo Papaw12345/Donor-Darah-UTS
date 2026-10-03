@@ -10,7 +10,7 @@ Terdapat tiga peran:
 - `PETUGAS`
 - `ADMIN`
 
-Codex atau developer tidak boleh:
+Dalam implementasi, tidak boleh:
 
 - memindahkan fungsi dari satu peran ke peran lain tanpa instruksi;
 - menambahkan menu baru tanpa kebutuhan yang jelas;

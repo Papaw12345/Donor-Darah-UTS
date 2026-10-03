@@ -543,7 +543,7 @@ Implikasi proyek:
 
 - jangan membuat index pada semua kolom;
 - custom index harus punya alasan dari pola query nyata;
-- karena schema proyek sudah dikunci, Codex tidak boleh menambah custom index tanpa keputusan eksplisit.
+- karena schema proyek sudah dikunci, custom index tidak boleh ditambahkan tanpa keputusan eksplisit.
 
 Sumber utama:
 
@@ -823,30 +823,7 @@ Jika benar-benar diperlukan, berhenti dan jelaskan alasannya sebelum mengubah ar
 
 ---
 
-# L. Instruksi untuk Codex
-
-Sebelum coding, Codex harus membaca:
-
-- `AGENTS.md`;
-- dokumen `01`-`06` yang relevan;
-- `07_COURSE_SCOPE_AND_REFERENCES.md`.
-
-Codex harus:
-
-1. membedakan requirement proyek dari contoh kuliah;
-2. tidak mengubah schema agar mengikuti default framework;
-3. memilih implementasi yang paling sederhana dan dapat dipertanggungjawabkan;
-4. memakai API/sintaks yang supported pada PHP 8.3, Laravel 13.x, dan MySQL 8.4;
-5. tidak menyalin API deprecated dari bahan lama;
-6. tidak menambahkan package, index, View, Stored Procedure, Trigger, tabel, atau field tanpa kebutuhan yang jelas;
-7. berhenti jika solusi yang dianggap perlu akan memperluas scope atau membutuhkan teknik jauh di luar baseline;
-8. mengerjakan satu task kecil per tahap;
-9. melaporkan file yang diubah dan command/test yang dijalankan;
-10. tidak menganggap suatu topik "sudah dipelajari" jika tidak didukung dokumen ini atau sumber baru yang diberikan pengguna.
-
----
-
-# M. Definition of Course-Aligned Implementation
+# L. Definition of Course-Aligned Implementation
 
 Implementasi dianggap sesuai jika:
 
@@ -860,6 +837,6 @@ Implementasi dianggap sesuai jika:
 - index/View/Stored Procedure/Trigger hanya digunakan jika ada alasan;
 - tidak ada feature creep;
 - tidak ada arsitektur yang jauh lebih rumit daripada kebutuhan;
-- mahasiswa dapat menjelaskan alasan desain, query, dan flow tanpa bergantung pada jawaban "karena AI membuatnya demikian".
+- mahasiswa dapat menjelaskan alasan desain, query, dan flow secara mandiri.
 
 Tujuan dokumen ini bukan membuat implementasi sengaja kuno. Tujuannya adalah menjaga agar prototype **benar secara basis data, berfungsi sebagai sistem informasi CRUD, tetap dekat dengan materi yang benar-benar dapat diverifikasi, dan menggunakan teknologi proyek dengan cara yang masih didukung saat ini**.

@@ -4,7 +4,7 @@
 
 Dokumen ini merupakan source of truth untuk struktur basis data proyek.
 
-Codex atau developer tidak boleh:
+Struktur basis data tidak boleh diubah dengan cara berikut:
 
 - menambah tabel;
 - menghapus tabel;
@@ -58,7 +58,7 @@ Jumlah field:
 
 # Laravel Guardrails
 
-Bagian ini tidak mengubah ERD atau schema bisnis. Bagian ini hanya mencegah Laravel/Codex menambahkan struktur bawaan yang tidak termasuk rancangan proyek.
+Bagian ini tidak mengubah ERD atau schema bisnis. Bagian ini hanya mencegah implementasi Laravel menambahkan struktur bawaan yang tidak termasuk rancangan proyek.
 
 ## 1. Tabel metadata migration Laravel
 

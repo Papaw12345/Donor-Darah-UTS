@@ -24,7 +24,7 @@ Tujuan dokumen ini adalah membuat pengerjaan Laravel dilakukan bertahap, dapat d
 4. Jangan memasang package tambahan tanpa kebutuhan yang jelas dan persetujuan.
 5. Jangan mengubah schema hanya untuk mengikuti default Laravel.
 6. Jangan membuat fitur di luar scope.
-7. Jangan membuat seluruh aplikasi dalam satu task Codex.
+7. Implementasi dilakukan bertahap dan tidak dibuat sekaligus dalam satu perubahan besar.
 8. Selesaikan satu tahap, jalankan pengecekan, laporkan hasil, lalu berhenti.
 9. Semua menu dan tombol yang terlihat harus benar-benar berfungsi.
 10. Prioritas utama adalah ketepatan basis data, CRUD, relasi, validasi, hak akses, dan alur end-to-end.
@@ -47,7 +47,6 @@ Kondisi awal yang sudah disiapkan secara manual:
 - default migration Laravel untuk `users`, cache, dan jobs sudah dihapus.
 - file SQLite bawaan sudah dihapus.
 - folder `database/migrations` siap digunakan untuk migration proyek.
-- `AGENTS.md` sudah tersedia.
 - folder `docs/` berisi spesifikasi proyek.
 
 Jangan mengulangi instalasi Laravel atau membuat project baru.
@@ -853,31 +852,7 @@ Pass hardening, semantik UI, dan visual ini tidak memperkenalkan dependency Java
 
 ---
 
-# D. Aturan Pengerjaan dengan Codex
-
-Setiap task untuk Codex harus kecil dan spesifik.
-
-Format task yang disarankan:
-
-1. minta Codex membaca `AGENTS.md`;
-2. minta membaca dokumen `docs/` yang relevan;
-3. jelaskan hanya phase/subtask yang sedang dikerjakan;
-4. larang perubahan schema atau scope;
-5. minta Codex memeriksa project sebelum mengubah file;
-6. minta menjalankan test/check yang relevan;
-7. minta daftar file yang dibuat/diubah;
-8. minta laporan command yang dijalankan dan hasilnya;
-9. minta berhenti setelah task selesai.
-
-Jangan menggunakan prompt seperti:
-
-`Build the entire application.`
-
-Jangan meminta Codex melanjutkan otomatis ke phase berikutnya.
-
----
-
-# E. Aturan Perubahan Spesifikasi
+# D. Aturan Perubahan Spesifikasi
 
 Jika saat implementasi ditemukan konflik:
 
@@ -891,7 +866,7 @@ Jika memang diputuskan ada perubahan requirement, perbarui dokumen spesifikasi t
 
 ---
 
-# F. Definition of Done Prototype
+# E. Definition of Done Prototype
 
 Prototype dianggap selesai jika:
 
@@ -916,7 +891,7 @@ Prototype dianggap selesai jika:
 
 ---
 
-# G. Prioritas Jika Waktu Terbatas
+# F. Prioritas Jika Waktu Terbatas
 
 Jika waktu implementasi terbatas, prioritas tidak boleh mengorbankan integritas schema.
 
