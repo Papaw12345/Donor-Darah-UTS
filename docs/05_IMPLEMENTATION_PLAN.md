@@ -218,6 +218,14 @@ Data tambahan untuk demonstrasi boleh dibuat melalui seeder terpisah setelah dat
 
 Akun Admin awal untuk kebutuhan login lokal/demo dapat disiapkan pada tahap implementasi menggunakan seeder terpisah. Akun tersebut tetap hanya berupa record pada tabel `akun` dengan `peran = ADMIN`; tidak boleh membuat tabel profil Admin.
 
+### Implemented Seed State - Pertanyaan Kuesioner
+
+[IMPLEMENTED STATE] Proyek menyertakan `PertanyaanKuesionerSeeder` dalam seed utama. Dataset seed saat ini berisi 41 pertanyaan berurutan, seluruhnya menggunakan `YA_TIDAK`, untuk menyiapkan himpunan pertanyaan aktif prototype/demo.
+
+Seeder menonaktifkan himpunan yang sebelumnya aktif, lalu membuat atau memperbarui pertanyaan berdasarkan teks dan mengaktifkan himpunan seed dalam satu transaction. Proses ini tidak menghapus pertanyaan atau riwayat kuesioner/jawaban yang sudah tersimpan.
+
+Jumlah 41 merupakan keadaan data seed yang diimplementasikan, bukan requirement permanen, constraint schema, atau aturan medis. Catatan ini tidak mengklaim validasi klinis independen.
+
 ## Gate Phase 3
 
 - seeder dapat dijalankan berulang dengan aman sesuai desain yang dipilih;
@@ -809,10 +817,39 @@ Bagian ini mencatat rencana/keputusan lama, bukan bukti implementasi requirement
 4. Pembatalan jadwal Admin: dalam transaction yang sama batalkan hanya booking `TERJADWAL`; pertahankan status lain dan data terkait. Pembukaan kembali tidak menghidupkan booking lama.
 5. Seleksi: wajibkan seluruh pengukuran, hasil pemeriksaan kesehatan, keputusan, alasan untuk `DITUNDA`/`DITOLAK`; tolak angka <= 0; gate `LAYAK` sesuai `04_BUSINESS_RULES.md` tanpa memilih keputusan lain otomatis. Konfirmasi golongan darah master jika NULL dan tolak perubahan nilai yang sudah tersimpan.
 6. Unit: gunakan golongan darah Pendonor sumber, tolak sumber NULL, pastikan tanggal kedaluwarsa >= tanggal pembuatan, dan pertahankan urutan penyumbangan `BERHASIL` -> unit `MENUNGGU_PELULUSAN` -> pelulusan `TERSEDIA`/`DITOLAK`. Pada create, client hanya mengirim `id_jenis_komponen`, `tanggal_pembuatan`, dan `tanggal_kedaluwarsa`; keberadaan `nomor_unit` atau `id_golongan_darah` pada request menghasilkan validation error, bukan diabaikan. Authority route, Petugas terautentikasi, dan server tetap mengikuti docs 03/04.
-7. UI Petugas: sediakan navigasi Operasional Dashboard, Check-in, Seleksi Donor, Penyumbangan, Unit Komponen, Pelulusan, Distribusi; Monitoring Jadwal Pelayanan, Riwayat Pelayanan, Persediaan, Pemanggilan Pendonor. Queue mengikuti predicate dan urutan deterministik pada docs 03/04; akun Petugas lain dapat melanjutkan pekerjaan. Jangan tambah subrole, `id_petugas_checkin`, atau timestamp baru.
+7. UI Petugas: Dashboard tersedia langsung; disclosure Operasional memuat Check-in, Seleksi Donor, Penyumbangan, Unit Komponen, Pelulusan, Distribusi; disclosure Monitoring memuat Jadwal Pelayanan, Riwayat Pelayanan, Persediaan, Pemanggilan Pendonor. Kuesioner tetap kontekstual pada Check-in/Seleksi, Persediaan Rendah pada Persediaan, dan Pemberitahuan pada Pemanggilan Pendonor. Queue mengikuti predicate dan urutan deterministik pada docs 03/04; akun Petugas lain dapat melanjutkan pekerjaan. Jangan tambah subrole, `id_petugas_checkin`, atau timestamp baru.
 8. Sorting/Admin: sinkronkan histori newest first, queue oldest waiting first dengan tie-breaker pada docs 03/04, jadwal nearest first, dan master active first. Ambang diurutkan dengan `jenis_komponen_darah.kode_komponen ASC`, lalu `golongan_darah.id_golongan_darah ASC`, lalu `ambang_persediaan.id_ambang ASC`. Dashboard Admin menjadi `Ringkasan Konfigurasi Sistem` dengan empat ringkasan yang dikunci pada docs 03/04.
 
 Gate Phase 12: verifikasi alur utama dan skenario negatif pada `06_DEMO_FLOW.md`, termasuk batas tepat dan lewat `jam_selesai`, hostile identifier/golongan darah, transaksi atomik, no-show, pembatalan jadwal, serta retensi. Tetap 15 tabel bisnis, 97 field, 21 relationship, tanpa migration/schema baru. Tidak ada cron, trigger baru, package, SPA, atau fitur di luar scope.
+
+---
+
+# POST-AUDIT IMPLEMENTED STATE / UI READINESS
+
+[IMPLEMENTED STATE] Bagian ini mencatat hardening dan kesiapan UI yang telah diverifikasi setelah Phase 12; tidak menetapkan requirement bisnis baru.
+
+## Pre-exam Hardening
+
+- Pengurutan Jadwal Petugas hari ini/mendatang diperbaiki agar `jam_mulai` menaik untuk tanggal yang sama, sesuai urutan jadwal terdekat dahulu.
+- `catatan_pelulusan` berupa string literal `"0"` dipertahankan sebagai teks; string yang tepat kosong setelah trimming disimpan sebagai `NULL` sesuai semantik existing. Input malformed/non-scalar ditolak melalui validasi tanpa konversi paksa menjadi teks.
+- Validasi Admin Jadwal `after:jam_mulai` menampilkan pesan Indonesia yang disepakati: `Jam selesai harus setelah jam mulai.`
+- Request diperiksa agar dapat direpresentasikan pada storage MySQL signed `INT` dan kapasitas byte `TEXT` existing di tempat yang relevan. Ini merupakan pengamanan penyimpanan, bukan batas bisnis arbitrer, dan tidak mengubah schema.
+
+## UI Semantics
+
+- Jadwal membedakan status administratif tersimpan dari kondisi turunan `Waktu layanan selesai`.
+- Unit membedakan `status_unit` tersimpan dari kondisi turunan kedaluwarsa.
+- Dashboard Petugas memisahkan `Kegiatan Hari Ini` dari `Ringkasan Saat Ini` tanpa perubahan query/agregat.
+- Seleksi menampilkan satuan kg, mmHg, kali/menit, °C, dan g/dL.
+- Bantuan edit Jadwal Admin menjelaskan konsekuensi pembatalan yang sudah dikunci sebelum perubahan disimpan.
+
+## Visual Readiness
+
+Halaman operasional dipadatkan secara moderat dan diverifikasi untuk keterbacaan pada viewport laptop/kelas dan viewport sempit. Tabel lebar tetap dapat digeser horizontal; viewport sempit menyediakan petunjuk scroll sederhana. Label UI pendek tidak lagi terpecah sembarang di tengah kata, dan target aksi kecil pada tabel diperbaiki untuk penggunaan mobile.
+
+Navigasi Petugas akhir memakai Dashboard langsung serta disclosure Operasional/Monitoring native, dengan penanda grup dan anak aktif sesuai docs 03. Navigasi tetap tersedia melalui Blade/HTML/CSS tanpa tambahan JavaScript.
+
+Pass hardening, semantik UI, dan visual ini tidak memperkenalkan dependency JavaScript, framework/package frontend, perubahan schema, route, atau business rule. Targeted regression, full suite, Blade compile, dan rendered smoke telah lulus pada checkpoint verifikasi masing-masing; catatan ini merekam hasil checkpoint tersebut.
 
 ---
 

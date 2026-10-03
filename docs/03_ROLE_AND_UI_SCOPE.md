@@ -217,7 +217,7 @@ Pendonor dapat mengisi kuesioner kesehatan pradonasi untuk pemesanan miliknya se
 
 Kuesioner diisi pada setiap kesempatan donor.
 
-Aturan mengenai batas waktu perubahan jawaban tidak ditentukan pada dokumen ini dan tidak boleh diasumsikan tanpa keputusan lebih lanjut.
+Sumber awal tidak menentukan batas waktu perubahan jawaban. Keputusan proyek Phase 7E kemudian mengunci perilaku prototype sebagai satu kali kirim: setelah submit berhasil, kuesioner dan jawaban yang tersimpan hanya dapat dilihat dan tidak dapat direvisi.
 
 Ketentuan bahwa kuesioner dibuat untuk pemesanan milik Pendonor pada setiap kesempatan donor, hanya pertanyaan aktif yang ditampilkan, jawaban disimpan pada `jawaban_kuesioner`, satu pemesanan maksimal memiliki satu kuesioner, dan satu pertanyaan maksimal memiliki satu jawaban dalam satu kuesioner merupakan aturan yang sudah bersumber dari dokumen awal dan schema. Demikian pula, kuesioner bukan transaksi review medis tersendiri, jawabannya kemudian dapat dilihat Petugas sebagai informasi untuk seleksi, dan pengisian pradonasi yang diperlukan mendahului pembuatan kode check-in. Ketentuan tersebut bukan keputusan baru Phase 7E.
 
@@ -382,7 +382,17 @@ Petugas menangani proses pelayanan donor setelah Pendonor datang ke UDD serta me
 
 ## Menu / Fitur
 
-Navigasi Petugas untuk operasional: Dashboard, Check-in, Seleksi Donor, Penyumbangan, Unit Komponen, Pelulusan, dan Distribusi. Untuk monitoring: Jadwal Pelayanan, Riwayat Pelayanan, Persediaan, dan Pemanggilan Pendonor. Logout tetap tersedia. Kuesioner Petugas dapat dibuka sebagai konteks Seleksi; tidak perlu menjadi work queue utama. Persediaan Rendah tersedia melalui Persediaan/Dashboard.
+Navigasi Petugas pada prototype akhir menggunakan susunan ringkas berikut:
+
+- **Dashboard** tersedia langsung.
+- Disclosure **Operasional** memuat Check-in, Seleksi Donor, Penyumbangan, Unit Komponen, Pelulusan, dan Distribusi.
+- Disclosure **Monitoring** memuat Jadwal Pelayanan, Riwayat Pelayanan, Persediaan, dan Pemanggilan Pendonor.
+
+Kuesioner tetap kontekstual pada workflow Check-in/Seleksi dan bukan item navigasi utama tersendiri. Persediaan Rendah berada dalam konteks Persediaan, dengan akses nyata `Lihat Persediaan Rendah` dari Dashboard. Pemberitahuan tetap kontekstual pada Pemanggilan Pendonor dan bukan item navigasi utama Petugas tersendiri.
+
+Penanda aktif menunjukkan grup dan item anak yang relevan, termasuk Check-in untuk subflow Kuesioner, Persediaan untuk Persediaan Rendah, serta Pemanggilan Pendonor untuk Pemberitahuan. Grup aktif tetap dapat dikenali saat disclosure tertutup dan tidak dibuka permanen hanya karena aktif. Logout tetap merupakan aksi eksplisit pengguna terautentikasi melalui tombol `Keluar` dengan `POST`.
+
+[IMPLEMENTED STATE] Disclosure ringkas menggunakan Blade/HTML/CSS native tanpa tambahan JavaScript; pengelompokan ini hanya mengubah presentasi navigasi.
 
 [SUPERSEDED] Navigasi lama yang hanya menempatkan Unit Komponen sebagai subflow penyumbangan diganti oleh work queue Unit Komponen. Semua item yang terlihat harus menuju halaman/aksi yang benar-benar berfungsi. [IMPLEMENTED STATE] Work queue dan navigasi Phase 12 ini sudah tersedia pada implementasi saat ini.
 
@@ -407,6 +417,8 @@ Petugas mempunyai halaman khusus untuk melihat seluruh jadwal pelayanan yang dik
 - Admin tetap menjadi pemilik CRUD Jadwal Pelayanan.
 - Halaman tidak menambahkan filter bisnis baru berdasarkan tanggal, waktu, atau status jadwal.
 
+Pada daftar Jadwal Admin/Petugas, `DIBUKA`, `DITUTUP`, dan `DIBATALKAN` ditampilkan sebagai **Status Administratif** yang tersimpan. UI dapat menampilkan kondisi turunan **Waktu layanan selesai** secara terpisah ketika waktu WIB sekarang sudah melewati gabungan `tanggal` dan `jam_selesai` jadwal. Kondisi ini bukan status/enum baru dan tidak memutasi `jadwal_pelayanan`; batas inklusif `jam_selesai` tetap berlaku.
+
 ### Dashboard
 
 Menampilkan ringkasan operasional seperti:
@@ -415,6 +427,8 @@ Menampilkan ringkasan operasional seperti:
 - jumlah Pendonor yang sedang diproses;
 - kondisi persediaan darah;
 - informasi persediaan yang berada pada atau di bawah ambang batas.
+
+Presentasi dashboard membedakan **Kegiatan Hari Ini**, yaitu hitungan `TERJADWAL`, `CHECK_IN`, `SELESAI`, dan `TIDAK_HADIR` pada jadwal hari ini, dari **Ringkasan Saat Ini**, yaitu ringkasan state seperti **Pendonor Sedang Diproses** dan **Unit Persediaan Tersedia**. Pengelompokan ini hanya presentasi dan tidak mengubah definisi query/agregat di bawah.
 
 #### Keputusan Proyek Phase 8A - Dashboard Petugas
 
@@ -546,6 +560,8 @@ Untuk Pendonor dengan golongan darah belum terkonfirmasi, Petugas wajib memilih 
 
 Kewenangan ini tidak berarti Petugas dapat mengubah profil Pendonor secara bebas.
 
+[IMPLEMENTED STATE] Form dan tampilan hasil Seleksi memperjelas satuan pengukuran: berat badan **kg**, tekanan sistolik/diastolik **mmHg**, denyut nadi **kali/menit**, suhu tubuh **°C**, dan kadar Hb **g/dL**. Label ini tidak menambahkan aturan atau threshold medis.
+
 #### Keputusan Proyek Phase 8D - Seleksi Donor
 
 Rincian berikut mengunci perilaku operasional Seleksi Donor pada Phase 8D.
@@ -635,6 +651,8 @@ Petugas dapat membuka halaman read-only untuk melihat hasil pelayanan donor yang
 Untuk penyumbangan berhasil, Petugas dapat mencatat satu atau lebih unit komponen darah.
 
 Data unit meliputi nomor unit yang diterbitkan server, sumber penyumbangan, jenis komponen, golongan darah authoritative dari Pendonor sumber, tanggal pembuatan, tanggal kedaluwarsa, dan Petugas pencatat.
+
+Pada tampilan unit, `status_unit` tetap merupakan status tersimpan yang authoritative, sedangkan **Kedaluwarsa** adalah kondisi saat ini yang diturunkan dari tanggal. Unit dengan status tersimpan `TERSEDIA` yang sudah kedaluwarsa dapat tetap menampilkan **Tersedia** disertai **Kondisi Saat Ini: Kedaluwarsa** secara terpisah. Ini tidak menambahkan enum `KEDALUWARSA` atau perubahan status otomatis.
 
 #### Keputusan Proyek Phase 8F - Unit Komponen Darah
 
@@ -947,6 +965,8 @@ Admin dapat:
 - menghapus jadwal yang belum pernah mempunyai pemesanan.
 
 Jadwal yang sudah pernah direferensikan oleh `pemesanan_donor` tidak boleh dihapus secara fisik. Jika jadwal tersebut tidak ingin digunakan lagi, Admin menggunakan status `DIBATALKAN` agar riwayat pemesanan tetap dipertahankan.
+
+[IMPLEMENTED STATE] UI edit Jadwal menjelaskan konsekuensi pembatalan berikut melalui bantuan sebelum Admin menyimpan perubahan.
 
 Saat Admin mengubah status jadwal menjadi `DIBATALKAN`, pada transaction yang sama booking terkait yang masih `TERJADWAL` menjadi `DIBATALKAN`. `CHECK_IN`, `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tidak diubah. Kuesioner, jawaban, dan kode tetap disimpan. Membuka jadwal kembali tidak menghidupkan row booking yang telah dibatalkan.
 

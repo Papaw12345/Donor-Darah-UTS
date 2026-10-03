@@ -54,6 +54,8 @@ Sebelum demonstrasi dimulai, pastikan:
 - route tiga peran bekerja;
 - basis data yang digunakan adalah `db_donor_darah_udd`.
 
+Seed proyek saat ini menyiapkan 41 pertanyaan aktif berurutan dengan jenis jawaban `YA_TIDAK` untuk demo prototype. Ini adalah keadaan data seed, bukan constraint schema tetap atau requirement medis baru; presenter tidak perlu membacakan seluruh pertanyaan.
+
 Jika menggunakan data lama dari pengujian, pastikan data tersebut tidak membuat alur demo gagal karena:
 
 - email/NIK sudah dipakai;
@@ -93,7 +95,7 @@ Dashboard `Ringkasan Konfigurasi Sistem` dengan empat ringkasan: Petugas Aktif, 
 
 ### Aksi
 
-Buka menu `Jadwal Pelayanan`.
+Buka menu `Jadwal` untuk membuka halaman `Jadwal Pelayanan`.
 
 Buat satu jadwal dengan:
 
@@ -107,6 +109,8 @@ Buat satu jadwal dengan:
 
 Jadwal tersimpan dan dapat dilihat Pendonor.
 
+Saat menunjukkan daftar Jadwal Admin/Petugas, jelaskan bahwa `DIBUKA`, `DITUTUP`, dan `DIBATALKAN` adalah status administratif tersimpan. `Waktu layanan selesai` merupakan kondisi tampilan turunan ketika cutoff sudah lewat; berlalunya waktu tidak otomatis mengubah status pada `jadwal_pelayanan`. Tepat pada `jam_selesai` tetap mengikuti batas inklusif yang sudah dikunci.
+
 ### Data Utama
 
 `jadwal_pelayanan`
@@ -117,7 +121,7 @@ Jadwal tersimpan dan dapat dilihat Pendonor.
 
 ### Aksi
 
-Buka menu `Pertanyaan Kuesioner`.
+Buka menu `Pertanyaan` untuk membuka halaman `Pertanyaan Kuesioner`.
 
 Pastikan tersedia pertanyaan aktif yang akan dijawab Pendonor.
 
@@ -137,7 +141,7 @@ Pertanyaan aktif tersedia untuk pengisian kuesioner.
 
 ### Aksi
 
-Buka menu `Ambang Persediaan`.
+Buka menu `Ambang` untuk membuka halaman `Ambang Persediaan`.
 
 Pastikan terdapat konfigurasi untuk kombinasi jenis komponen dan golongan darah yang akan digunakan pada bagian persediaan demo.
 
@@ -331,7 +335,9 @@ Login menggunakan akun aktif dengan peran `PETUGAS`.
 
 Petugas masuk ke area operasional Petugas.
 
-Tunjukkan menu Operasional (Dashboard, Check-in, Seleksi Donor, Penyumbangan, Unit Komponen, Pelulusan, Distribusi) dan Monitoring (Jadwal Pelayanan, Riwayat Pelayanan, Persediaan, Pemanggilan Pendonor). Kuesioner dapat dibuka sebagai konteks Seleksi. Akun Petugas berbeda boleh melanjutkan proses yang dimulai akun pertama; schema tidak dapat mengaudit pelaksana check-in.
+Dashboard tersedia langsung. Buka Operasional untuk Check-in, Seleksi Donor, Penyumbangan, Unit Komponen, Pelulusan, dan Distribusi; buka Monitoring untuk Jadwal Pelayanan, Riwayat Pelayanan, Persediaan, dan Pemanggilan Pendonor. Kuesioner tetap kontekstual pada Check-in/Seleksi, Persediaan Rendah pada Persediaan, dan Pemberitahuan pada Pemanggilan Pendonor. Akun Petugas berbeda boleh melanjutkan proses yang dimulai akun pertama; schema tidak dapat mengaudit pelaksana check-in.
+
+Pada Dashboard, jelaskan sumber data ringkasan: **Kegiatan Hari Ini** menghitung `TERJADWAL`, `CHECK_IN`, `SELESAI`, dan `TIDAK_HADIR` dari jadwal hari ini menurut WIB. **Ringkasan Saat Ini** menampilkan state workflow/persediaan, yaitu Pendonor Sedang Diproses dan Unit Persediaan Tersedia, sesuai definisi query pada docs 03/04; keduanya bukan field agregat baru yang disimpan.
 
 Admin menu tidak tersedia.
 
@@ -391,13 +397,15 @@ Petugas tidak mengubah master pertanyaan dari area ini.
 
 Isi data seleksi yang diperlukan:
 
-- berat badan;
-- tekanan sistolik;
-- tekanan diastolik;
-- denyut nadi;
-- suhu tubuh;
-- kadar Hb;
+- berat badan (kg);
+- tekanan sistolik (mmHg);
+- tekanan diastolik (mmHg);
+- denyut nadi (kali/menit);
+- suhu tubuh (°C);
+- kadar Hb (g/dL);
 - hasil pemeriksaan kesehatan wajib.
+
+Gunakan satuan yang sama saat membaca kembali hasil Seleksi; label satuan hanya memperjelas pengukuran existing.
 
 Pilih keputusan:
 
@@ -582,7 +590,7 @@ Bagian ini dapat dilakukan setelah alur utama jika waktu memungkinkan.
 
 ### Aksi
 
-Buka menu `Persediaan Rendah`.
+Dari Dashboard Petugas, gunakan link `Lihat Persediaan Rendah` pada konteks persediaan rendah. Halaman ini bukan item navigasi utama Petugas tersendiri.
 
 ### Logika
 
@@ -652,11 +660,13 @@ Login sebagai Pendonor penerima.
 
 Buka menu `Pemberitahuan`.
 
+Buka detail pesan. GET daftar/detail hanya membaca data dan tidak mengubah `waktu_dibaca`. Untuk mencatat state baca pada pesan yang belum dibaca, gunakan aksi eksplisit `Tandai Sudah Dibaca`, yang mengirim request `PATCH`.
+
 ### Hasil yang Diharapkan
 
 Pesan yang dibuat Petugas muncul pada akun Pendonor yang benar.
 
-Setelah dibaca, aplikasi dapat mencatat `waktu_dibaca`.
+`waktu_dibaca` terisi setelah aksi `Tandai Sudah Dibaca` berhasil, bukan hanya karena halaman dibuka.
 
 ---
 
@@ -759,6 +769,8 @@ Unit dapat:
 
 `KEDALUWARSA` bukan status unit.
 
+Jika tersedia unit yang sesuai untuk ditunjukkan, buka daftar Unit Komponen: status tersimpan `TERSEDIA` tetap berlabel **Tersedia**, sedangkan tanggal yang sudah lewat ditunjukkan terpisah sebagai **Kondisi Saat Ini: Kedaluwarsa**. Gunakan ini untuk menjelaskan data tersimpan versus kondisi turunan; unit tersebut tetap tidak dihitung sebagai persediaan tersedia.
+
 ---
 
 # G. Bukti Relasi Data yang Dapat Ditunjukkan
@@ -848,7 +860,7 @@ Expected result: ditolak.
 
 - Tepat pada `jam_selesai` hari ini booking, submit kuesioner/kode, pembatalan Pendonor atas `TERJADWAL`, dan check-in masih diperbolehkan jika syarat lain terpenuhi; setelahnya semuanya ditolak. Kuesioner dan kode yang sudah ada tetap dapat dilihat.
 - Setelah jam selesai, Petugas secara eksplisit menandai booking `TERJADWAL` tanpa check-in menjadi `TIDAK_HADIR`, meskipun belum ada kuesioner/kode. Booking dan data historical tidak dihapus; tidak ada cron.
-- Admin mengubah jadwal menjadi `DIBATALKAN`: hanya booking terkait `TERJADWAL` ikut menjadi `DIBATALKAN` dalam transaction yang sama. `CHECK_IN`, `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tetap. Membuka jadwal lagi tidak menghidupkan row lama.
+- Sebelum menyimpan pembatalan Jadwal Admin, tunjukkan bantuan pada form edit yang menjelaskan konsekuensinya. Admin mengubah jadwal menjadi `DIBATALKAN`: hanya booking terkait `TERJADWAL` ikut menjadi `DIBATALKAN` dalam transaction yang sama. `CHECK_IN`, `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tetap. Membuka jadwal lagi tidak menghidupkan row lama.
 - Pertanyaan nonaktif dan kode yang tak lagi bisa dipakai tidak menghapus jawaban/kode historical.
 
 ## Persediaan

@@ -695,7 +695,7 @@ Jangan menambahkan UNIQUE `(id_pendonor, id_jadwal)` ke basis data.
 Klarifikasi berikut merupakan keputusan proyek Phase 7D atas istilah dan perilaku yang sebelumnya belum ditentukan secara rinci:
 
 - untuk keperluan workflow dan UI prototype, status pemesanan aktif adalah `TERJADWAL` dan `CHECK_IN`;
-- halaman `Pemesanan Saya` menampilkan hanya row dengan status aktif tersebut; row `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tetap dipertahankan dalam basis data dan tidak diubah atau dihapus hanya karena tidak muncul pada daftar aktif;
+- halaman `Agenda Donor Saya` menampilkan hanya row dengan status aktif tersebut; row `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tetap dipertahankan dalam basis data dan tidak diubah atau dihapus hanya karena tidak muncul pada daftar aktif;
 - `SELESAI`, `DIBATALKAN`, dan `TIDAK_HADIR` tidak didefinisikan sebagai status aktif;
 - untuk kombinasi `(id_pendonor, id_jadwal)` yang sama, record berstatus `TERJADWAL`, `CHECK_IN`, `SELESAI`, atau `TIDAK_HADIR` menghalangi pembuatan pemesanan baru;
 - hanya record berstatus `DIBATALKAN` yang tidak menghalangi pemesanan ulang untuk kombinasi Pendonor dan jadwal yang sama.
@@ -719,7 +719,7 @@ Aturan ringkasan dashboard dikunci sebagai berikut:
 5. Lebih dari satu pemesanan aktif dapat tampil apabila berada pada `id_jadwal` yang berbeda. Tidak ada konsep pemesanan utama atau pemilihan satu row secara arbitrer.
 6. Urutan data adalah `jadwal_pelayanan.tanggal ASC`, `jadwal_pelayanan.jam_mulai ASC`, `pemesanan_donor.waktu_pemesanan ASC`, kemudian `pemesanan_donor.id_pemesanan ASC`.
 7. Ringkasan hanya menampilkan informasi yang diperlukan untuk navigasi dan pemahaman state, minimal tanggal jadwal, jam pelayanan, dan status pemesanan.
-8. Aksi pengelolaan tetap dilakukan melalui halaman Pemesanan Donor dan bukan melalui penambahan mutation workflow baru pada dashboard.
+8. Aksi pengelolaan tetap dilakukan melalui halaman `Agenda Donor Saya` dan bukan melalui penambahan mutation workflow baru pada dashboard.
 9. Akses dashboard bersifat hanya-baca dan tidak mengubah `status_pemesanan`, `waktu_checkin`, `kode_checkin`, atau data transaksi lain.
 10. Jika tidak ada pemesanan aktif, aplikasi menampilkan empty state tanpa membuat data sintetis.
 11. Ketentuan ini tidak mengubah definisi kapasitas jadwal dan tidak menambahkan field turunan.
@@ -3069,7 +3069,7 @@ Perilaku Pendonor pada Phase 7I tetap:
 - unread count tetap derived dari `waktu_dibaca IS NULL`; dan
 - Dashboard Pendonor menampilkan maksimum 3 pemberitahuan terbaru miliknya.
 
-Row yang dibuat Phase 8L harus terlihat secara alami melalui query existing Phase 7I tanpa mengubah aturan ownership receiver. Ketika implementasi Phase 8L dikerjakan, expectation test Phase 7I yang menyatakan tidak ada route aplikasi pembuat pemberitahuan perlu diperbarui karena route store Petugas menjadi jalur creation yang memang diotorisasi. Task docs-only ini tidak mengubah test tersebut.
+[IMPLEMENTED STATE] Route `petugas.pemberitahuan.store` merupakan jalur pembuatan pemberitahuan yang diotorisasi bagi Petugas. Row yang dibuat Phase 8L tersedia melalui query existing Phase 7I dengan seluruh aturan receiver di atas tetap berlaku, termasuk ownership, urutan daftar, GET read-only, PATCH eksplisit, unread count turunan, dan ringkasan pemberitahuan terbaru pada Dashboard Pendonor.
 
 ### Batas Mutation dan Transaction
 
