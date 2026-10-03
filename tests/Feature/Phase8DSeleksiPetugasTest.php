@@ -507,12 +507,12 @@ class Phase8DSeleksiPetugasTest extends TestCase
             ->assertSee('2020-01-01')
             ->assertSee('Dibatalkan')
             ->assertSee('Selesai')
-            ->assertSee('60.25')
-            ->assertSee('120')
-            ->assertSee('80')
-            ->assertSee('72')
-            ->assertSee('36.7')
-            ->assertSee('13.5')
+            ->assertSee('60.25 kg')
+            ->assertSee('120 mmHg')
+            ->assertSee('80 mmHg')
+            ->assertSee('72 kali/menit')
+            ->assertSee('36.7 °C')
+            ->assertSee('13.5 g/dL')
             ->assertSee('Catatan tersimpan')
             ->assertSee('Ditolak')
             ->assertSee('Alasan tersimpan')
@@ -595,7 +595,13 @@ class Phase8DSeleksiPetugasTest extends TestCase
 
         $this->actingAs($petugas->akun)
             ->get(route('petugas.seleksi.show', $booking))
-            ->assertOk();
+            ->assertOk()
+            ->assertSee('<label for="berat_badan">Berat Badan (kg)</label>', false)
+            ->assertSee('<label for="tekanan_sistolik">Tekanan Sistolik (mmHg)</label>', false)
+            ->assertSee('<label for="tekanan_diastolik">Tekanan Diastolik (mmHg)</label>', false)
+            ->assertSee('<label for="denyut_nadi">Denyut Nadi (kali/menit)</label>', false)
+            ->assertSee('<label for="suhu_tubuh">Suhu Tubuh (°C)</label>', false)
+            ->assertSee('<label for="kadar_hb">Kadar Hb (g/dL)</label>', false);
         $this->actingAs($petugas->akun)
             ->get(route('petugas.seleksi.show', $booking))
             ->assertOk();

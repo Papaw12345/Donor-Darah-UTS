@@ -342,8 +342,8 @@ class Phase8HDistribusiPetugasTest extends TestCase
             ->assertViewHas('totalPersediaanTersedia', 0);
 
         $this->assertSame($unitCount, UnitKomponenDarah::query()->count());
-        $this->assertStringContainsString('Total unit tersedia: 1', $before->getContent());
-        $this->assertStringContainsString('Total unit tersedia: 0', $after->getContent());
+        $before->assertSeeInOrder(['Ringkasan Saat Ini', 'Unit Persediaan Tersedia</dt><dd>1</dd>'], false);
+        $after->assertSeeInOrder(['Ringkasan Saat Ini', 'Unit Persediaan Tersedia</dt><dd>0</dd>'], false);
     }
 
     public function test_dashboard_exposes_current_real_petugas_links(): void

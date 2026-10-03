@@ -12,6 +12,7 @@ use App\Models\Penyumbangan;
 use App\Models\Petugas;
 use App\Models\SeleksiDonor;
 use App\Models\UnitKomponenDarah;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -82,6 +83,40 @@ class Phase12BatchDUnitKomponenTest extends TestCase
             ->assertOk()
             ->assertSee($unit->nomor_unit)
             ->assertSee('A Positif');
+    }
+
+    public function test_expired_available_unit_shows_stored_status_and_separate_current_condition(): void
+    {
+        [, $donation] = $this->fixture();
+        $unit = UnitKomponenDarah::create(array_merge($this->payload(), [
+            'nomor_unit' => 'UNIT-EXPIRY-TEST',
+            'id_penyumbangan' => $donation->id_penyumbangan,
+            'id_golongan_darah' => $this->bloodGroup->id_golongan_darah,
+            'id_petugas_pencatat' => $this->petugas->id_petugas,
+            'status_unit' => 'TERSEDIA',
+        ]));
+        $before = $unit->fresh()->getAttributes();
+
+        // Tanggal kedaluwarsa masih berlaku sampai akhir hari WIB.
+        $this->travelTo(CarbonImmutable::parse('2026-10-20 16:59:59', 'UTC'));
+        $this->get(route('petugas.unit-komponen.show', $donation))
+            ->assertOk()
+            ->assertSee('<span class="status-badge status-success">Tersedia</span>', false)
+            ->assertDontSee('Kondisi Saat Ini: Kedaluwarsa');
+
+        // UTC masih 20 Oktober, tetapi di Jakarta sudah 21 Oktober.
+        $this->travelTo(CarbonImmutable::parse('2026-10-20 17:00:00', 'UTC'));
+        $this->get(route('petugas.unit-komponen.show', $donation))
+            ->assertOk()
+            ->assertSeeInOrder([
+                '<th scope="col">Status</th>',
+                $unit->nomor_unit,
+                '<span class="status-badge status-success">Tersedia</span>',
+                '<div class="form-hint">Kondisi Saat Ini: Kedaluwarsa</div>',
+            ], false);
+
+        $this->assertSame('TERSEDIA', $unit->fresh()->status_unit);
+        $this->assertSame($before, $unit->fresh()->getAttributes());
     }
 
     public function test_multiple_units_from_one_successful_donation_may_repeat_component(): void

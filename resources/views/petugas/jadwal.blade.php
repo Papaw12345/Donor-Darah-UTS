@@ -12,6 +12,10 @@
 
         @include('partials.alerts')
 
+        @php
+            $sekarangWib = \Carbon\CarbonImmutable::now('Asia/Jakarta');
+        @endphp
+
         <section class="page-section">
             @if ($jadwal->isEmpty())
                 <div class="empty-state">Belum ada jadwal pelayanan.</div>
@@ -24,11 +28,17 @@
                                 <th scope="col">Jam Mulai</th>
                                 <th scope="col">Jam Selesai</th>
                                 <th scope="col">Kapasitas</th>
-                                <th scope="col">Status</th>
+                                <th scope="col">Status Administratif</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($jadwal as $item)
+                                @php
+                                    $layananSelesai = $sekarangWib->greaterThan(\Carbon\CarbonImmutable::parse(
+                                        $item->tanggal->toDateString().' '.$item->jam_selesai,
+                                        'Asia/Jakarta'
+                                    ));
+                                @endphp
                                 <tr>
                                     <td>{{ $item->tanggal->format('d-m-Y') }}</td>
                                     <td>{{ substr($item->jam_mulai, 0, 5) }}</td>
@@ -38,6 +48,9 @@
                                         <span class="status-badge {{ $item->status_jadwal === 'DIBUKA' ? 'status-success' : ($item->status_jadwal === 'DIBATALKAN' ? 'status-danger' : 'status-neutral') }}">
                                             {{ ['DIBUKA' => 'Dibuka', 'DITUTUP' => 'Ditutup', 'DIBATALKAN' => 'Dibatalkan'][$item->status_jadwal] ?? $item->status_jadwal }}
                                         </span>
+                                        @if ($layananSelesai)
+                                            <div class="form-hint">Waktu layanan selesai</div>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

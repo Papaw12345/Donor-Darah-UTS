@@ -12,6 +12,7 @@ use App\Models\Petugas;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class Phase12BatchFAdminSortingDashboardTest extends TestCase
@@ -153,6 +154,67 @@ class Phase12BatchFAdminSortingDashboardTest extends TestCase
             ->assertSee('Ditutup')
             ->assertSee('Dibatalkan')
             ->assertSee(route('admin.jadwal.edit', $pastNew), false);
+    }
+
+    #[DataProvider('scheduleServiceTimeCases')]
+    public function test_schedule_status_is_separate_from_service_time_on_admin_and_petugas_lists(
+        string $nowUtc,
+        string $date,
+        string $status,
+        string $label,
+        bool $ended
+    ): void {
+        $this->travelTo(CarbonImmutable::parse($nowUtc, 'UTC'));
+        $schedule = $this->schedule($date, $status);
+        $before = $schedule->fresh()->getAttributes();
+
+        foreach ([
+            [$this->account('ADMIN'), 'admin.jadwal.index'],
+            [$this->staff()->akun, 'petugas.jadwal.index'],
+        ] as [$account, $route]) {
+            $response = $this->actingAs($account)->get(route($route))
+                ->assertOk()
+                ->assertSee('Status Administratif')
+                ->assertSeeText($label);
+
+            if ($ended) {
+                $response->assertSeeInOrder([$label, '</span>', 'Waktu layanan selesai'], false);
+            } else {
+                $response->assertDontSee('Waktu layanan selesai');
+            }
+
+            $this->assertSame($before, $schedule->fresh()->getAttributes());
+        }
+    }
+
+    public static function scheduleServiceTimeCases(): array
+    {
+        return [
+            'previous date in WIB' => ['2026-09-26 18:30:00', '2026-09-26', 'DIBUKA', 'Dibuka', true],
+            'today before start in WIB' => ['2026-09-26 18:30:00', '2026-09-27', 'DIBUKA', 'Dibuka', false],
+            'before cutoff' => ['2026-09-27 02:59:59', '2026-09-27', 'DIBUKA', 'Dibuka', false],
+            'exact cutoff' => ['2026-09-27 03:00:00', '2026-09-27', 'DIBUKA', 'Dibuka', false],
+            'after cutoff' => ['2026-09-27 03:00:01', '2026-09-27', 'DIBUKA', 'Dibuka', true],
+            'future date after current clock cutoff' => ['2026-09-27 04:00:00', '2026-09-28', 'DIBUKA', 'Dibuka', false],
+            'closed and ended' => ['2026-09-27 04:00:00', '2026-09-27', 'DITUTUP', 'Ditutup', true],
+            'cancelled and ended' => ['2026-09-27 04:00:00', '2026-09-27', 'DIBATALKAN', 'Dibatalkan', true],
+        ];
+    }
+
+    public function test_schedule_edit_explains_cancellation_consequences_without_mutation(): void
+    {
+        $schedule = $this->schedule('2026-09-27', 'DIBUKA');
+        $before = $schedule->fresh()->getAttributes();
+
+        $this->actingAs($this->account('ADMIN'))->get(route('admin.jadwal.edit', $schedule))
+            ->assertOk()
+            ->assertSee('aria-describedby="status-jadwal-help"', false)
+            ->assertSee('id="status-jadwal-help"', false)
+            ->assertSeeText('Mengubah status menjadi Dibatalkan akan membatalkan agenda terkait yang masih Terjadwal.')
+            ->assertSeeText('Agenda berstatus Check-in, Selesai, Dibatalkan, atau Tidak Hadir tidak berubah.')
+            ->assertSeeText('Membuka kembali jadwal tidak memulihkan agenda yang sudah dibatalkan.');
+
+        $this->assertSame($before, $schedule->fresh()->getAttributes());
     }
 
     public function test_threshold_list_orders_by_component_code_then_blood_id_then_threshold_id(): void

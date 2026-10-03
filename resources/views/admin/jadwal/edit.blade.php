@@ -36,11 +36,12 @@
                     </div>
                     <div class="form-field">
                         <label for="status_jadwal">Status</label>
-                        <select id="status_jadwal" name="status_jadwal" required>
+                        <select id="status_jadwal" name="status_jadwal" aria-describedby="status-jadwal-help" required>
                             @foreach (['DIBUKA', 'DITUTUP', 'DIBATALKAN'] as $status)
                                 <option value="{{ $status }}" @selected(old('status_jadwal', $jadwal->status_jadwal) === $status)>{{ ['DIBUKA' => 'Dibuka', 'DITUTUP' => 'Ditutup', 'DIBATALKAN' => 'Dibatalkan'][$status] }}</option>
                             @endforeach
                         </select>
+                        <p class="form-hint" id="status-jadwal-help">Mengubah status menjadi Dibatalkan akan membatalkan agenda terkait yang masih Terjadwal. Agenda berstatus Check-in, Selesai, Dibatalkan, atau Tidak Hadir tidak berubah. Membuka kembali jadwal tidak memulihkan agenda yang sudah dibatalkan.</p>
                     </div>
                 </div>
 

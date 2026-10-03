@@ -73,10 +73,7 @@
                                         $unit->status_unit === 'TERSEDIA'
                                         && $unit->tanggal_kedaluwarsa->toDateString() < $tanggalAcuan;
 
-                                    if ($isKedaluwarsa) {
-                                        $statusLabel = 'Kedaluwarsa';
-                                        $statusClass = 'status-neutral';
-                                    } elseif ($unit->status_unit === 'MENUNGGU_PELULUSAN') {
+                                    if ($unit->status_unit === 'MENUNGGU_PELULUSAN') {
                                         $statusLabel = 'Menunggu Pelulusan';
                                         $statusClass = 'status-warning';
                                     } elseif ($unit->status_unit === 'TERSEDIA') {
@@ -105,7 +102,12 @@
                                     <td>{{ $unit->golonganDarah->abo }} {{ ucfirst(strtolower($unit->golonganDarah->rhesus)) }}</td>
                                     <td>{{ $unit->tanggal_pembuatan->toDateString() }}</td>
                                     <td>{{ $unit->tanggal_kedaluwarsa->toDateString() }}</td>
-                                    <td><span class="status-badge {{ $statusClass }}">{{ $statusLabel }}</span></td>
+                                    <td>
+                                        <span class="status-badge {{ $statusClass }}">{{ $statusLabel }}</span>
+                                        @if ($isKedaluwarsa)
+                                            <div class="form-hint">Kondisi Saat Ini: Kedaluwarsa</div>
+                                        @endif
+                                    </td>
                                     <td>{{ $unit->petugasPencatat->nama_petugas }} ({{ $unit->petugasPencatat->nomor_petugas }})</td>
                                     <td><a class="text-link" href="{{ $detailRoute }}">Lihat</a></td>
                                 </tr>

@@ -290,6 +290,20 @@ class Phase8ADashboardPetugasTest extends TestCase
             'TIDAK_HADIR' => 1,
         ], $response->viewData('kegiatanHariIni'));
 
+        preg_match('/<section[^>]*aria-labelledby="kegiatan-donor-hari-ini"[^>]*>(.*?)<\/section>/s', $response->getContent(), $todaySection);
+        $this->assertCount(2, $todaySection);
+        foreach (['Terjadwal', 'Check-in', 'Selesai', 'Tidak Hadir'] as $label) {
+            $this->assertStringContainsString($label, $todaySection[1]);
+        }
+        $this->assertStringNotContainsString('Pendonor Sedang Diproses', $todaySection[1]);
+        $this->assertStringNotContainsString('Unit Persediaan Tersedia', $todaySection[1]);
+
+        preg_match('/<section[^>]*aria-labelledby="ringkasan-saat-ini"[^>]*>(.*?)<\/section>/s', $response->getContent(), $currentSection);
+        $this->assertCount(2, $currentSection);
+        $this->assertStringContainsString('Ringkasan Saat Ini', $currentSection[1]);
+        $this->assertStringContainsString('Pendonor Sedang Diproses', $currentSection[1]);
+        $this->assertStringContainsString('Unit Persediaan Tersedia', $currentSection[1]);
+
         PemesananDonor::query()
             ->where('status_pemesanan', 'SELESAI')
             ->delete();
@@ -386,7 +400,7 @@ class Phase8ADashboardPetugasTest extends TestCase
             $response = $this->actingAs($viewer->akun)
                 ->get(route('petugas.home'))
                 ->assertOk()
-                ->assertSee('Total unit tersedia: 2');
+                ->assertSeeInOrder(['Ringkasan Saat Ini', 'Unit Persediaan Tersedia</dt><dd>2</dd>'], false);
 
             $this->assertSame(2, $response->viewData('totalPersediaanTersedia'));
         }

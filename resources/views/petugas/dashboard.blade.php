@@ -33,8 +33,14 @@
                 @foreach (['TERJADWAL' => 'Terjadwal', 'CHECK_IN' => 'Check-in', 'SELESAI' => 'Selesai', 'TIDAK_HADIR' => 'Tidak Hadir'] as $status => $label)
                     <div class="dashboard-summary-item"><dt class="summary-label">{{ $label }}</dt><dd>{{ $kegiatanHariIni[$status] }}</dd></div>
                 @endforeach
+            </dl>
+        </section>
+
+        <section class="page-section" aria-labelledby="ringkasan-saat-ini">
+            <h2 class="section-title" id="ringkasan-saat-ini">Ringkasan Saat Ini</h2>
+            <dl class="dashboard-summary petugas-summary">
                 <div class="dashboard-summary-item"><dt class="summary-label">Pendonor Sedang Diproses</dt><dd>{{ $jumlahPendonorDiproses }}</dd></div>
-                <div class="dashboard-summary-item"><dt class="summary-label">Persediaan</dt><dd>Total unit tersedia: {{ $totalPersediaanTersedia }}</dd></div>
+                <div class="dashboard-summary-item"><dt class="summary-label">Unit Persediaan Tersedia</dt><dd>{{ $totalPersediaanTersedia }}</dd></div>
             </dl>
         </section>
 
