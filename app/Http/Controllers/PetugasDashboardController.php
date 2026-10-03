@@ -25,7 +25,7 @@ class PetugasDashboardController extends Controller
         $jadwalMendatang = JadwalPelayanan::query()
             ->whereDate('tanggal', '>=', $today)
             ->orderBy('tanggal')
-            ->orderByDesc('jam_mulai')
+            ->orderBy('jam_mulai')
             ->get();
         $jadwalRiwayat = JadwalPelayanan::query()
             ->whereDate('tanggal', '<', $today)

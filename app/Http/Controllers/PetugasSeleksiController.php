@@ -6,6 +6,7 @@ use App\Models\GolonganDarah;
 use App\Models\PemesananDonor;
 use App\Models\Pendonor;
 use App\Models\SeleksiDonor;
+use App\Rules\MySqlTextBytes;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -74,9 +75,9 @@ class PetugasSeleksiController extends Controller
             'denyut_nadi' => ['required', 'integer', 'gt:0', 'between:-32768,32767'],
             'suhu_tubuh' => ['required', 'numeric', 'decimal:0,1', 'gt:0', 'between:-999.9,999.9'],
             'kadar_hb' => ['required', 'numeric', 'decimal:0,1', 'gt:0', 'between:-999.9,999.9'],
-            'hasil_pemeriksaan_kesehatan' => ['required', 'string', 'max:65535'],
+            'hasil_pemeriksaan_kesehatan' => ['required', 'string', 'max:65535', new MySqlTextBytes],
             'keputusan_seleksi' => ['required', Rule::in(['LAYAK', 'DITUNDA', 'DITOLAK'])],
-            'alasan_keputusan' => ['required_if:keputusan_seleksi,DITUNDA,DITOLAK', 'nullable', 'string', 'max:65535'],
+            'alasan_keputusan' => ['required_if:keputusan_seleksi,DITUNDA,DITOLAK', 'nullable', 'string', 'max:65535', new MySqlTextBytes],
             'id_golongan_darah' => [
                 'nullable',
                 'integer',

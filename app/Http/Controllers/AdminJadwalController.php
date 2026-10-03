@@ -40,7 +40,10 @@ class AdminJadwalController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate($this->validationRules());
+        $validated = $request->validate(
+            $this->validationRules(),
+            $this->validationMessages()
+        );
 
         JadwalPelayanan::create([
             'tanggal' => $validated['tanggal'],
@@ -62,7 +65,10 @@ class AdminJadwalController extends Controller
 
     public function update(Request $request, JadwalPelayanan $jadwal): RedirectResponse
     {
-        $validated = $request->validate($this->validationRules());
+        $validated = $request->validate(
+            $this->validationRules(),
+            $this->validationMessages()
+        );
 
         DB::transaction(function () use ($jadwal, $validated): void {
             $jadwalTerkunci = JadwalPelayanan::query()
@@ -114,11 +120,18 @@ class AdminJadwalController extends Controller
             'tanggal' => ['required', 'date'],
             'jam_mulai' => ['required', 'date_format:H:i'],
             'jam_selesai' => ['required', 'date_format:H:i', 'after:jam_mulai'],
-            'kapasitas' => ['required', 'integer', 'min:1'],
+            'kapasitas' => ['required', 'integer', 'min:1', 'max:2147483647'],
             'status_jadwal' => [
                 'required',
                 Rule::in(['DIBUKA', 'DITUTUP', 'DIBATALKAN']),
             ],
+        ];
+    }
+
+    private function validationMessages(): array
+    {
+        return [
+            'jam_selesai.after' => 'Jam selesai harus setelah jam mulai.',
         ];
     }
 }

@@ -157,6 +157,24 @@ class Phase8GPelulusanPetugasTest extends TestCase
         $nullable = $this->createFixture()['unit'];
         $this->actingAs($petugas->akun)->post(route('petugas.pelulusan.store', $nullable), ['hasil_pelulusan' => 'DITOLAK', 'catatan_pelulusan' => null])->assertSessionHasNoErrors();
         $this->assertNull($nullable->fresh()->catatan_pelulusan);
+
+        $zero = $this->createFixture()['unit'];
+        $this->actingAs($petugas->akun)
+            ->post(route('petugas.pelulusan.store', $zero), $this->payload('DITOLAK', '0'))
+            ->assertSessionHasNoErrors();
+        $this->assertSame('0', $zero->fresh()->catatan_pelulusan);
+
+        $arrayInput = $this->createFixture()['unit'];
+        $arrayBefore = $arrayInput->getAttributes();
+
+        $this->actingAs($petugas->akun)
+            ->post(route('petugas.pelulusan.store', $arrayInput), [
+                'hasil_pelulusan' => 'DITOLAK',
+                'catatan_pelulusan' => ['bukan-teks'],
+            ])
+            ->assertSessionHasErrors('catatan_pelulusan');
+
+        $this->assertEquals($arrayBefore, $arrayInput->fresh()->getAttributes());
     }
 
     public function test_available_release_uses_server_authority_and_preserves_all_other_state(): void

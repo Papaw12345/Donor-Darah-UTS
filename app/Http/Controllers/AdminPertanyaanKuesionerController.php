@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PertanyaanKuesioner;
+use App\Rules\MySqlTextBytes;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -85,13 +86,13 @@ class AdminPertanyaanKuesionerController extends Controller
     private function validationRules(): array
     {
         return [
-            'teks_pertanyaan' => ['required', 'string'],
+            'teks_pertanyaan' => ['required', 'string', new MySqlTextBytes],
             'kategori' => ['nullable', 'string', 'max:100'],
             'jenis_jawaban' => [
                 'required',
                 Rule::in(['YA_TIDAK', 'TEKS']),
             ],
-            'urutan' => ['required', 'integer'],
+            'urutan' => ['required', 'integer', 'between:-2147483648,2147483647'],
             'status_aktif' => ['required', 'boolean'],
         ];
     }

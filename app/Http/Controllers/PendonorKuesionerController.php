@@ -6,6 +6,7 @@ use App\Models\JawabanKuesioner;
 use App\Models\KuesionerPradonasi;
 use App\Models\PemesananDonor;
 use App\Models\PertanyaanKuesioner;
+use App\Rules\MySqlTextBytes;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -171,6 +172,12 @@ class PendonorKuesionerController extends Controller
                         );
                     }
 
+                    if (MySqlTextBytes::exceedsCapacity($nilaiJawaban)) {
+                        $this->reject(
+                            "answers.{$idPertanyaan}",
+                            'Jawaban teks melebihi kapasitas penyimpanan.'
+                        );
+                    }
                     $jawabanTervalidasi[$idPertanyaan] = $nilaiJawaban;
                 } else {
                     $this->reject(

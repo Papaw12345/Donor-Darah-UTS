@@ -206,6 +206,38 @@ class Phase8ADashboardPetugasTest extends TestCase
         );
     }
 
+    public function test_jadwal_orders_same_day_upcoming_by_earliest_start_time(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-09-15 17:30:00', 'UTC'));
+
+        $petugas = $this->createPetugas();
+
+        $later = JadwalPelayanan::create([
+            'tanggal' => '2026-09-17',
+            'jam_mulai' => '13:00',
+            'jam_selesai' => '15:00',
+            'kapasitas' => 10,
+            'status_jadwal' => 'DIBUKA',
+        ]);
+
+        $earlier = JadwalPelayanan::create([
+            'tanggal' => '2026-09-17',
+            'jam_mulai' => '07:00',
+            'jam_selesai' => '09:00',
+            'kapasitas' => 10,
+            'status_jadwal' => 'DIBUKA',
+        ]);
+
+        $response = $this->actingAs($petugas->akun)
+            ->get(route('petugas.jadwal.index'))
+            ->assertOk()
+            ->assertSeeInOrder(['07:00', '13:00']);
+
+        $this->assertSame(
+            [$earlier->id_jadwal, $later->id_jadwal],
+            $response->viewData('jadwal')->pluck('id_jadwal')->all()
+        );
+    }
     public function test_identity_comes_from_authenticated_account_and_ignores_client_petugas_id(): void
     {
         $petugas = $this->createPetugas(name: 'Petugas Login');

@@ -6,6 +6,7 @@ use App\Models\PemesananDonor;
 use App\Models\Penyumbangan;
 use App\Models\Petugas;
 use App\Models\SeleksiDonor;
+use App\Rules\MySqlTextBytes;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -67,7 +68,7 @@ class PetugasPenyumbanganController extends Controller
                 Rule::requiredIf($request->input('hasil_penyumbangan') === 'BERHASIL'),
             ],
             'hasil_penyumbangan' => ['required', Rule::in(['BERHASIL', 'GAGAL'])],
-            'alasan_gagal' => ['nullable', 'string', 'max:65535'],
+            'alasan_gagal' => ['nullable', 'string', 'max:65535', new MySqlTextBytes],
         ]);
 
         DB::transaction(function () use ($seleksi, $petugas, $validated): void {

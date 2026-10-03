@@ -6,6 +6,7 @@ use App\Models\AmbangPersediaan;
 use App\Models\Pemberitahuan;
 use App\Models\Pendonor;
 use App\Models\Petugas;
+use App\Rules\MySqlTextBytes;
 use App\Support\PendonorDonorBerikutnyaCalculator;
 use App\Support\PersediaanDarahQuery;
 use Illuminate\Http\RedirectResponse;
@@ -105,7 +106,7 @@ class PetugasPemberitahuanController extends Controller
         }
 
         $validated = $request->validate([
-            'isi_pesan' => ['required', 'string'],
+            'isi_pesan' => ['required', 'string', new MySqlTextBytes],
         ]);
 
         Pemberitahuan::create([

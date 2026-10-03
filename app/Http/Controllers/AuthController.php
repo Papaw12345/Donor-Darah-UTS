@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Akun;
 use App\Models\Pendonor;
+use App\Rules\MySqlTextBytes;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,10 +39,10 @@ class AuthController extends Controller
             'jenis_kelamin' => ['required', Rule::in(['LAKI_LAKI', 'PEREMPUAN'])],
             'tanggal_lahir' => ['required', 'date', 'before_or_equal:'.$hariIniWib->toDateString()],
             'tempat_lahir' => ['required', 'string', 'max:100'],
-            'alamat' => ['required', 'string'],
+            'alamat' => ['required', 'string', new MySqlTextBytes],
             'nomor_telepon' => ['required', 'string', 'max:20'],
             'pekerjaan' => ['nullable', 'string', 'max:100'],
-            'alamat_kantor' => ['nullable', 'string'],
+            'alamat_kantor' => ['nullable', 'string', new MySqlTextBytes],
         ]);
 
         if (CarbonImmutable::parse($validated['tanggal_lahir'], 'Asia/Jakarta')

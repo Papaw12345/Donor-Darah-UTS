@@ -52,7 +52,7 @@ class AdminAmbangPersediaanController extends Controller
                 'integer',
                 'exists:golongan_darah,id_golongan_darah',
             ],
-            'jumlah_minimum' => ['required', 'integer', 'min:0'],
+            'jumlah_minimum' => ['required', 'integer', 'min:0', 'max:2147483647'],
         ]);
 
         $combinationExists = AmbangPersediaan::query()
@@ -87,7 +87,7 @@ class AdminAmbangPersediaanController extends Controller
     public function update(Request $request, AmbangPersediaan $ambang): RedirectResponse
     {
         $validated = $request->validate([
-            'jumlah_minimum' => ['required', 'integer', 'min:0'],
+            'jumlah_minimum' => ['required', 'integer', 'min:0', 'max:2147483647'],
         ]);
 
         $ambang->update([
