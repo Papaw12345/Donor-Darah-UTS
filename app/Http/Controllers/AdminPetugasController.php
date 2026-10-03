@@ -48,6 +48,7 @@ class AdminPetugasController extends Controller
                 'status_akun' => 'AKTIF',
             ]);
 
+            // Nomor PTG memakai PK hasil INSERT; nilai unik sementara memenuhi kolom wajib/UNIQUE hingga diganti dalam transaksi yang sama.
             $petugas = Petugas::create([
                 'id_akun' => $akun->id_akun,
                 'nomor_petugas' => 'TMP-'.bin2hex(random_bytes(16)),

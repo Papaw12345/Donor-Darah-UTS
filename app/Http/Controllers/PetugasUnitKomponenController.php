@@ -104,6 +104,7 @@ class PetugasUnitKomponenController extends Controller
                 'Master golongan darah Pendonor sumber tidak tersedia.'
             );
 
+            // Nomor UNT memakai PK hasil INSERT; nilai unik sementara memenuhi kolom wajib/UNIQUE hingga diganti dalam transaksi yang sama.
             $unit = UnitKomponenDarah::create([
                 'nomor_unit' => 'TMP-'.strtoupper(bin2hex(random_bytes(16))),
                 'id_penyumbangan' => $lockedDonation->id_penyumbangan,

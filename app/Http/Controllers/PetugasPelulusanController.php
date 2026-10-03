@@ -1,9 +1,93 @@
 <?php
+
 namespace App\Http\Controllers;
-use App\Models\Petugas; use App\Models\UnitKomponenDarah; use App\Rules\MySqlTextBytes; use Illuminate\Http\{Request,RedirectResponse}; use Illuminate\Support\Facades\DB; use Illuminate\Validation\{Rule,ValidationException}; use Illuminate\View\View;
-class PetugasPelulusanController extends Controller {
- public function index(Request $request): View { $petugas=$this->petugas($request); $units=UnitKomponenDarah::with(['jenisKomponenDarah','golonganDarah'])->where('status_unit','MENUNGGU_PELULUSAN')->orderBy('id_unit')->get(); return view('petugas.pelulusan-index',compact('petugas','units')); }
- public function show(Request $request, UnitKomponenDarah $unit): View { $petugas=$this->petugas($request); $unit->load(['penyumbangan','jenisKomponenDarah','golonganDarah','petugasPencatat','petugasPelulus']); return view('petugas.pelulusan-show',compact('petugas','unit')); }
- public function store(Request $request, UnitKomponenDarah $unit): RedirectResponse { $petugas=$this->petugas($request); $catatanPelulusan=$request->input('catatan_pelulusan'); if(is_string($catatanPelulusan)){$request->merge(['catatan_pelulusan'=>trim($catatanPelulusan)]);} $data=$request->validate(['hasil_pelulusan'=>['required',Rule::in(['TERSEDIA','DITOLAK'])],'catatan_pelulusan'=>['nullable','string',new MySqlTextBytes]]); DB::transaction(function()use($unit,$petugas,$data){$locked=UnitKomponenDarah::query()->whereKey($unit->getKey())->lockForUpdate()->firstOrFail(); abort_unless($locked->status_unit==='MENUNGGU_PELULUSAN',409,'Unit tidak lagi menunggu pelulusan.'); $locked->update(['status_unit'=>$data['hasil_pelulusan'],'id_petugas_pelulus'=>$petugas->id_petugas,'waktu_pelulusan'=>now(),'catatan_pelulusan'=>($data['catatan_pelulusan']??null)===''?null:($data['catatan_pelulusan']??null)]);}); return redirect()->route('petugas.pelulusan.show',$unit)->with('success','Hasil pelulusan unit berhasil disimpan.'); }
- private function petugas(Request $request): Petugas {$petugas=$request->user()->petugas()->first(); abort_if($petugas===null,409,'Relasi akun PETUGAS dengan profil Petugas tidak konsisten.'); return $petugas;}
+
+use App\Models\Petugas;
+use App\Models\UnitKomponenDarah;
+use App\Rules\MySqlTextBytes;
+use Illuminate\Http\{Request, RedirectResponse};
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\{Rule, ValidationException};
+use Illuminate\View\View;
+
+class PetugasPelulusanController extends Controller
+{
+    public function index(Request $request): View
+    {
+        $petugas = $this->petugas($request);
+        $units = UnitKomponenDarah::with(['jenisKomponenDarah', 'golonganDarah'])
+            ->where('status_unit', 'MENUNGGU_PELULUSAN')
+            ->orderBy('id_unit')
+            ->get();
+
+        return view('petugas.pelulusan-index', compact('petugas', 'units'));
+    }
+
+    public function show(Request $request, UnitKomponenDarah $unit): View
+    {
+        $petugas = $this->petugas($request);
+        $unit->load([
+            'penyumbangan',
+            'jenisKomponenDarah',
+            'golonganDarah',
+            'petugasPencatat',
+            'petugasPelulus'
+        ]);
+
+        return view('petugas.pelulusan-show', compact('petugas', 'unit'));
+    }
+
+    public function store(Request $request, UnitKomponenDarah $unit): RedirectResponse
+    {
+        $petugas = $this->petugas($request);
+        $catatanPelulusan = $request->input('catatan_pelulusan');
+
+        if (is_string($catatanPelulusan)) {
+            $request->merge(['catatan_pelulusan' => trim($catatanPelulusan)]);
+        }
+
+        $data = $request->validate([
+            'hasil_pelulusan' => ['required', Rule::in(['TERSEDIA', 'DITOLAK'])],
+            'catatan_pelulusan' => ['nullable', 'string', new MySqlTextBytes]
+        ]);
+
+        DB::transaction(function () use ($unit, $petugas, $data) {
+            $locked = UnitKomponenDarah::query()
+                ->whereKey($unit->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_unless(
+                $locked->status_unit === 'MENUNGGU_PELULUSAN',
+                409,
+                'Unit tidak lagi menunggu pelulusan.'
+            );
+
+            $locked->update([
+                'status_unit' => $data['hasil_pelulusan'],
+                'id_petugas_pelulus' => $petugas->id_petugas,
+                'waktu_pelulusan' => now(),
+                'catatan_pelulusan' => ($data['catatan_pelulusan'] ?? null) === ''
+                    ? null
+                    : ($data['catatan_pelulusan'] ?? null)
+            ]);
+        });
+
+        return redirect()
+            ->route('petugas.pelulusan.show', $unit)
+            ->with('success', 'Hasil pelulusan unit berhasil disimpan.');
+    }
+
+    private function petugas(Request $request): Petugas
+    {
+        $petugas = $request->user()->petugas()->first();
+
+        abort_if(
+            $petugas === null,
+            409,
+            'Relasi akun PETUGAS dengan profil Petugas tidak konsisten.'
+        );
+
+        return $petugas;
+    }
 }
